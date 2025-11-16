@@ -1,0 +1,51 @@
+package sn.uasz.uasz_maintenance_backend.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+import sn.uasz.uasz_maintenance_backend.enums.StatutIntervention;
+import sn.uasz.uasz_maintenance_backend.enums.TypeIntervention;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "interventions")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Intervention {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String titre;              // ex : "Remplacement lampe vidéoprojecteur"
+
+    @Column(length = 2000)
+    private String description;
+
+    private LocalDateTime dateDebut;
+
+    private LocalDateTime dateFin;
+
+    @Enumerated(EnumType.STRING)
+    private TypeIntervention type;
+
+    @Enumerated(EnumType.STRING)
+    private StatutIntervention statut;
+
+    private String realiseePar;        // plus tard : Technicien (entité à part)
+
+    private BigDecimal cout;          // coût estimé ou réel
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "panne_id")
+    private Panne panne;
+
+    @OneToMany(mappedBy = "intervention", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TacheIntervention> taches = new ArrayList<>();
+}
