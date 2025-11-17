@@ -16,4 +16,5 @@ public class InterventionRequest {
     private StatutIntervention statut;   // ex : PLANIFIEE au début
     private String realiseePar;
     private BigDecimal cout;
+    private Long technicienId;
 }

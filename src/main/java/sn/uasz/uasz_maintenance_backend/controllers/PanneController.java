@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sn.uasz.uasz_maintenance_backend.dtos.PanneRequest;
 import sn.uasz.uasz_maintenance_backend.entities.Panne;
 import sn.uasz.uasz_maintenance_backend.enums.StatutPanne;
 import sn.uasz.uasz_maintenance_backend.exceptions.ResourceNotFoundException;
@@ -19,12 +20,6 @@ public class PanneController {
 
     private final PanneService panneService;
 
-
-    @GetMapping("/equipement/{equipementId}")
-    public List<Panne> getByEquipement(@PathVariable Long equipementId) {
-        return panneService.getPannesByEquipement(equipementId);
-    }
-
     @GetMapping
     public List<Panne> getAll() {
         return panneService.getAllPannes();
@@ -35,15 +30,38 @@ public class PanneController {
         return panneService.getPanneById(id);
     }
 
-    @PostMapping("/equipement/{equipementId}")
+    @GetMapping("/equipement/{equipementId}")
+    public List<Panne> getByEquipement(@PathVariable Long equipementId) {
+        return panneService.getPannesByEquipement(equipementId);
+    }
+
+    @GetMapping("/statut/{statut}")
+    public List<Panne> getByStatut(@PathVariable StatutPanne statut) {
+        return panneService.getPannesByStatut(statut);
+    }
+
+    @GetMapping("/demandeur/{demandeurId}")
+    public List<Panne> getByDemandeur(@PathVariable Long demandeurId) {
+        return panneService.getPannesByDemandeur(demandeurId);
+    }
+
+    @GetMapping("/demandeur/{demandeurId}/statut/{statut}")
+    public List<Panne> getByDemandeurAndStatut(
+            @PathVariable Long demandeurId,
+            @PathVariable StatutPanne statut
+    ) {
+        return panneService.getPannesByDemandeurAndStatut(demandeurId, statut);
+    }
+
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Panne create(@PathVariable Long equipementId, @RequestBody Panne panne) {
-        return panneService.createPanne(panne, equipementId);
+    public Panne create(@RequestBody PanneRequest request) {
+        return panneService.createPanne(request);
     }
 
     @PutMapping("/{id}")
-    public Panne update(@PathVariable Long id, @RequestBody Panne panne) {
-        return panneService.updatePanne(id, panne);
+    public Panne update(@PathVariable Long id, @RequestBody PanneRequest request) {
+        return panneService.updatePanne(id, request);
     }
 
     @DeleteMapping("/{id}")
@@ -52,15 +70,16 @@ public class PanneController {
         panneService.deletePanne(id);
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
     @PatchMapping("/{id}/statut")
     public Panne updateStatut(
             @PathVariable Long id,
             @RequestParam("statut") StatutPanne statut
     ) {
         return panneService.updateStatut(id, statut);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }

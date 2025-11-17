@@ -7,7 +7,6 @@ import sn.uasz.uasz_maintenance_backend.enums.TypeIntervention;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,13 +22,12 @@ public class Intervention {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String titre;              // ex : "Remplacement lampe vidéoprojecteur"
+    private String titre;
 
-    @Column(length = 2000)
+    @Column(length = 1000)
     private String description;
 
     private LocalDateTime dateDebut;
-
     private LocalDateTime dateFin;
 
     @Enumerated(EnumType.STRING)
@@ -38,14 +36,19 @@ public class Intervention {
     @Enumerated(EnumType.STRING)
     private StatutIntervention statut;
 
-    private String realiseePar;        // plus tard : Technicien (entité à part)
+    private String realiseePar;
 
-    private BigDecimal cout;          // coût estimé ou réel
+    private BigDecimal cout;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "panne_id")
+    @ManyToOne
+    @JoinColumn(name = "panne_id", nullable = false)
     private Panne panne;
 
     @OneToMany(mappedBy = "intervention", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TacheIntervention> taches = new ArrayList<>();
+    private List<TacheIntervention> taches;
+
+    // 🔹 NOUVEAU : technicien assigné (lié à Utilisateur)
+    @ManyToOne
+    @JoinColumn(name = "technicien_id")
+    private Utilisateur technicien;
 }

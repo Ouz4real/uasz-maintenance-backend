@@ -1,13 +1,11 @@
 package sn.uasz.uasz_maintenance_backend.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import sn.uasz.uasz_maintenance_backend.enums.Priorite;
 import sn.uasz.uasz_maintenance_backend.enums.StatutPanne;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "pannes")
@@ -23,10 +21,10 @@ public class Panne {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
-    private String code; // ex: PAN-0001
+    private String code;
 
-    @Column(nullable = false, length = 255)
-    private String titre; // ex: "Vidéo projecteur ne s’allume plus"
+    @Column(nullable = false, length = 200)
+    private String titre;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -36,21 +34,21 @@ public class Panne {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Priorite priorite; // BASSE, MOYENNE, HAUTE, CRITIQUE
+    private Priorite priorite;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private StatutPanne statut; // OUVERTE, EN_COURS, RESOLUE, ANNULEE
+    private StatutPanne statut;
 
-    // Qui a signalé la panne (on fera une entité Utilisateur plus tard)
-    @Column(length = 100)
-    private String signaleePar;
+    @Column(length = 150)
+    private String signaleePar;   // texte libre (ex: “Technicien labo info”)
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "equipement_id", nullable = false)
     private Equipement equipement;
 
-    @OneToMany(mappedBy = "panne")
-    @JsonIgnore // pour éviter les boucles JSON (panne -> interventions -> panne -> ...)
-    private List<Intervention> interventions;
+    // 🔹 nouveau : lien vers le vrai utilisateur demandeur
+    @ManyToOne
+    @JoinColumn(name = "demandeur_id")
+    private Utilisateur demandeur;
 }
