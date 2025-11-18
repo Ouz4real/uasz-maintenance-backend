@@ -20,10 +20,28 @@ public class UtilisateurService {
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Création d’un utilisateur avec vérification d’unicité
+     * sur username et email.
+     */
     public UtilisateurResponse create(UtilisateurRequest request) {
+
+        String username = request.getUsername();
+        String email = request.getEmail();
+
+        // Vérifier si le username est déjà pris
+        if (utilisateurRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("Username déjà utilisé : " + username);
+        }
+
+        // Vérifier si l’email est déjà utilisé
+        if (utilisateurRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email déjà utilisé : " + email);
+        }
+
         Utilisateur utilisateur = Utilisateur.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
+                .username(username)
+                .email(email)
                 .motDePasse(passwordEncoder.encode(request.getMotDePasse()))
                 .role(request.getRole())
                 .enabled(true)

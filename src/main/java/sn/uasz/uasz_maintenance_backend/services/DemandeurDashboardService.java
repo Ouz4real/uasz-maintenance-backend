@@ -3,12 +3,11 @@ package sn.uasz.uasz_maintenance_backend.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sn.uasz.uasz_maintenance_backend.dtos.DemandeurDashboardDto;
 import sn.uasz.uasz_maintenance_backend.dtos.DemandeurDashboardResponse;
 import sn.uasz.uasz_maintenance_backend.entities.Intervention;
 import sn.uasz.uasz_maintenance_backend.entities.Panne;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
-import sn.uasz.uasz_maintenance_backend.enums.Role;
-import sn.uasz.uasz_maintenance_backend.enums.StatutIntervention;
 import sn.uasz.uasz_maintenance_backend.enums.StatutPanne;
 import sn.uasz.uasz_maintenance_backend.exceptions.ResourceNotFoundException;
 import sn.uasz.uasz_maintenance_backend.repositories.InterventionRepository;
@@ -29,75 +28,109 @@ public class DemandeurDashboardService {
     private final PanneRepository panneRepository;
     private final InterventionRepository interventionRepository;
 
+    /**
+     * Méthode utilisée par le contrôleur : retourne un DemandeurDashboardResponse
+     */
     public DemandeurDashboardResponse getDashboard(Long demandeurId) {
+        DemandeurDashboardDto dto = getDashboardForDemandeur(demandeurId);
 
-        // Vérifier utilisateur
+        // On mappe le DTO vers la réponse (même champs)
+        return DemandeurDashboardResponse.builder()
+                .demandeurId(dto.getDemandeurId())
+                .username(dto.getUsername())
+                .email(dto.getEmail())
+                .totalPannes(dto.getTotalPannes())
+                .pannesOuvertes(dto.getPannesOuvertes())
+                .pannesEnCours(dto.getPannesEnCours())
+                .pannesResolues(dto.getPannesResolues())
+                .pannesAnnulees(dto.getPannesAnnulees())
+                .tempsMoyenResolutionMinutes(dto.getTempsMoyenResolutionMinutes())
+                .dernierePanneCree(dto.getDernierePanneCree())
+                .dernierePanneResolue(dto.getDernierePanneResolue())
+                .build();
+    }
+
+    /**
+     * Méthode interne (logique métier) qui calcule les stats
+     */
+    public DemandeurDashboardDto getDashboardForDemandeur(Long demandeurId) {
+
         Utilisateur demandeur = utilisateurRepository.findById(demandeurId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Utilisateur non trouvé avec l'id : " + demandeurId
+                        "Demandeur non trouvé avec l'id : " + demandeurId
                 ));
 
-        if (demandeur.getRole() != Role.DEMANDEUR) {
-            throw new IllegalArgumentException(
-                    "L'utilisateur " + demandeur.getUsername() + " n'a pas le rôle DEMANDEUR"
-            );
-        }
-
-        // Récupérer pannes du demandeur
         List<Panne> pannes = panneRepository.findByDemandeurId(demandeurId);
 
         long totalPannes = pannes.size();
-        long pannesOuvertes = pannes.stream().filter(p -> p.getStatut() == StatutPanne.OUVERTE).count();
-        long pannesEnCours = pannes.stream().filter(p -> p.getStatut() == StatutPanne.EN_COURS).count();
-        long pannesResolues = pannes.stream().filter(p -> p.getStatut() == StatutPanne.RESOLUE).count();
-        long pannesAnnulees = pannes.stream().filter(p -> p.getStatut() == StatutPanne.ANNULEE).count();
+        long pannesOuvertes = pannes.stream()
+                .filter(p -> p.getStatut() == StatutPanne.OUVERTE)
+                .count();
+        long pannesEnCours = pannes.stream()
+                .filter(p -> p.getStatut() == StatutPanne.EN_COURS)
+                .count();
+        long pannesResolues = pannes.stream()
+                .filter(p -> p.getStatut() == StatutPanne.RESOLUE)
+                .count();
+        long pannesAnnulees = pannes.stream()
+                .filter(p -> p.getStatut() == StatutPanne.ANNULEE)
+                .count();
 
-        // Dernier signalement
+        // Dernière panne créée
         LocalDateTime dernierePanneCree = pannes.stream()
                 .map(Panne::getDateSignalement)
                 .filter(d -> d != null)
                 .max(LocalDateTime::compareTo)
                 .orElse(null);
 
-        // Calcul temps moyen de résolution + dernière panne résolue
-        Long tempsMoyenResolutionMinutes = null;
+        // Pannes résolues
+        List<Panne> pannesResoluesList = pannes.stream()
+                .filter(p -> p.getStatut() == StatutPanne.RESOLUE)
+                .toList();
+
         LocalDateTime dernierePanneResolue = null;
+        Long tempsMoyenResolutionMinutes = null;
 
-        long totalMinutes = 0;
-        long nbPannesResoluesAvecTemps = 0;
+        if (!pannesResoluesList.isEmpty()) {
+            // Temps moyen de résolution (signalement -> dernière intervention terminée)
+            OptionalDouble moyenne = pannesResoluesList.stream()
+                    .mapToLong(p -> {
+                        List<Intervention> interventions = interventionRepository.findByPanneId(p.getId());
+                        LocalDateTime dateResolution = interventions.stream()
+                                .map(Intervention::getDateFin)
+                                .filter(d -> d != null)
+                                .max(LocalDateTime::compareTo)
+                                .orElse(null);
 
-        for (Panne panne : pannes) {
-            if (panne.getStatut() != StatutPanne.RESOLUE) continue;
+                        if (p.getDateSignalement() != null && dateResolution != null) {
+                            Duration d = Duration.between(p.getDateSignalement(), dateResolution);
+                            return d.toMinutes();
+                        }
+                        return 0L;
+                    })
+                    .filter(v -> v > 0)
+                    .average();
 
-            List<Intervention> interventions = interventionRepository.findByPanneId(panne.getId());
+            if (moyenne.isPresent()) {
+                tempsMoyenResolutionMinutes = (long) moyenne.getAsDouble();
+            }
 
-            LocalDateTime derniereFin = interventions.stream()
-                    .filter(i -> i.getStatut() == StatutIntervention.TERMINEE)
-                    .map(Intervention::getDateFin)
-                    .filter(df -> df != null)
+            // Dernière panne résolue = celle qui a la date de résolution la plus récente
+            dernierePanneResolue = pannesResoluesList.stream()
+                    .map(p -> {
+                        List<Intervention> interventions = interventionRepository.findByPanneId(p.getId());
+                        return interventions.stream()
+                                .map(Intervention::getDateFin)
+                                .filter(d -> d != null)
+                                .max(LocalDateTime::compareTo)
+                                .orElse(null);
+                    })
+                    .filter(d -> d != null)
                     .max(LocalDateTime::compareTo)
                     .orElse(null);
-
-            if (derniereFin != null && panne.getDateSignalement() != null) {
-
-                // Calcul durée
-                long minutes = Duration.between(panne.getDateSignalement(), derniereFin).toMinutes();
-                totalMinutes += minutes;
-                nbPannesResoluesAvecTemps++;
-
-                // Mise à jour dernière panne résolue
-                if (dernierePanneResolue == null || derniereFin.isAfter(dernierePanneResolue)) {
-                    dernierePanneResolue = derniereFin;
-                }
-            }
         }
 
-        if (nbPannesResoluesAvecTemps > 0) {
-            tempsMoyenResolutionMinutes = totalMinutes / nbPannesResoluesAvecTemps;
-        }
-
-        // Construire réponse
-        return DemandeurDashboardResponse.builder()
+        return DemandeurDashboardDto.builder()
                 .demandeurId(demandeur.getId())
                 .username(demandeur.getUsername())
                 .email(demandeur.getEmail())

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class TechnicienDashboardResponse {
+public class TechnicienDashboardDto {
 
     private Long technicienId;
     private String username;
@@ -29,6 +29,6 @@ public class TechnicienDashboardResponse {
     private Long tempsMoyenRealisationMinutes;
 
     // 🔹 NOUVEAU : pièces consommées
-    private long totalPiecesConsommees;
-    private BigDecimal coutTotalPieces;
+    private long totalPiecesConsommees;     // somme des quantités
+    private BigDecimal coutTotalPieces;     // somme quantité × prix unitaire
 }

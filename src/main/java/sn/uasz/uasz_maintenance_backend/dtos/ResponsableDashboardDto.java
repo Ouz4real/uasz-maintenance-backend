@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder
-public class ResponsableDashboardResponse {
+public class ResponsableDashboardDto {
 
     private Long responsableId;
     private String username;
