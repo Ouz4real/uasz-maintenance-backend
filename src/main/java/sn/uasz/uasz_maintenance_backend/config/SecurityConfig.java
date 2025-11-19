@@ -16,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import sn.uasz.uasz_maintenance_backend.security.JwtAuthenticationFilter;
 import sn.uasz.uasz_maintenance_backend.security.CustomUserDetailsService;
-
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -31,17 +31,37 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
+                // API REST : pas de CSRF
+                .csrf(AbstractHttpConfigurer::disable)
+                // JWT -> pas de session
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
-                        // Auth & création utilisateur autorisés sans token (à ajuster si besoin)
+
+                        // 🔓 SWAGGER / OPENAPI AUTORISÉS SANS AUTH
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/webjars/**"
+                        ).permitAll()
+
+                        // 🔓 AUTH PUBLIC (login / register)
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // 🔓 Création utilisateur (à sécuriser plus tard si tu veux)
                         .requestMatchers(HttpMethod.POST, "/api/utilisateurs").permitAll()
+
+                        // 🔓 Actuator
                         .requestMatchers("/actuator/**").permitAll()
-                        // tout le reste nécessite d'être authentifié
+
+                        // ✅ Tout le reste nécessite un JWT valide
                         .anyRequest().authenticated()
                 )
+                // Filtre JWT avant UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
