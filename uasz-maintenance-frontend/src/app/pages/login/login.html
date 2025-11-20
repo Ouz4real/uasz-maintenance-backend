@@ -1,5 +1,6 @@
 <div class="login-container">
   <mat-card class="login-card">
+    <!-- Identité de la plateforme -->
     <div class="brand">
       <div class="brand-logo">UASZ</div>
       <div class="brand-text">
@@ -12,21 +13,29 @@
     <p class="login-subtitle">Veuillez saisir vos identifiants UASZ</p>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Username / email -->
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Nom d'utilisateur</mat-label>
-        <input matInput formControlName="username" placeholder="ex: jdoe" />
+        <mat-label>Nom d'utilisateur ou email</mat-label>
+        <input
+          matInput
+          formControlName="usernameOrEmail"
+          placeholder="ex: jdoe ou jdoe@uasz.sn"
+        />
         <mat-icon matSuffix>person</mat-icon>
-        <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
-          Le nom d'utilisateur est obligatoire
+        <mat-error
+          *ngIf="loginForm.get('usernameOrEmail')?.hasError('required')"
+        >
+          Ce champ est obligatoire
         </mat-error>
       </mat-form-field>
 
+      <!-- Mot de passe -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Mot de passe</mat-label>
         <input
           matInput
           [type]="hidePassword ? 'password' : 'text'"
-          formControlName="password"
+          formControlName="motDePasse"
           placeholder="Votre mot de passe"
         />
         <button
@@ -37,21 +46,40 @@
           [attr.aria-label]="'Afficher / masquer le mot de passe'"
           [attr.aria-pressed]="!hidePassword"
         >
-          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          <mat-icon>{{
+              hidePassword ? 'visibility_off' : 'visibility'
+            }}</mat-icon>
         </button>
-        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+        <mat-error *ngIf="loginForm.get('motDePasse')?.hasError('required')">
           Le mot de passe est obligatoire
         </mat-error>
       </mat-form-field>
 
+      <!-- Bouton -->
       <button
         mat-raised-button
         color="primary"
         class="full-width login-button"
         type="submit"
+        [disabled]="loading || loginForm.invalid"
       >
-        Se connecter
+        <ng-container *ngIf="!loading; else loadingTpl">
+          Se connecter
+        </ng-container>
+        <ng-template #loadingTpl>
+          <mat-progress-spinner
+            diameter="20"
+            mode="indeterminate"
+            strokeWidth="3"
+          ></mat-progress-spinner>
+        </ng-template>
       </button>
+
+      <!-- Message d'erreur global -->
+      <div class="error-message" *ngIf="errorMessage">
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
     </form>
 
     <div class="helper-text">

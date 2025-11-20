@@ -1,0 +1,52 @@
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="app-brand">
+      <div class="avatar">{{ userInitials }}</div>
+      <div>
+        <h3>Maintenance UASZ</h3>
+        <p>Parc & interventions</p>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <button
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        class="nav-item">
+
+        <span class="icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </button>
+    </nav>
+
+  </aside>
+
+  <!-- HEADER + CONTENT -->
+  <main class="main">
+
+    <header class="header">
+      <h2>Tableau de bord maintenance</h2>
+
+      <div class="user-box">
+        <div class="user-avatar-small">{{ userInitials }}</div>
+
+        <div class="info">
+          <div class="name">{{ userDisplayName }}</div>
+          <div class="role">{{ userRoleLabel }}</div>
+        </div>
+
+        <button class="logout-btn" (click)="logout()">🔒 Déconnexion</button>
+      </div>
+    </header>
+
+    <section class="content">
+      <router-outlet></router-outlet>
+    </section>
+
+  </main>
+
+</div>
