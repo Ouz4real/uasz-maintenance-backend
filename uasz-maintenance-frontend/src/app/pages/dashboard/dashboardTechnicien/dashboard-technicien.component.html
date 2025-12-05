@@ -1,0 +1,180 @@
+<!-- src/app/pages/dashboard/dashboardTechnicien/dashboard-technicien.component.html -->
+
+<div class="dashboard-layout">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="avatar-circle">{{ usernameInitial }}</div>
+      <div class="sidebar-title">
+        <h1>Maintenance UASZ</h1>
+        <p>Parc &amp; interventions</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- Tableau de bord -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'dashboard'"
+        (click)="setActive('dashboard')"
+      >
+        <span class="nav-icon material-icons">dashboard</span>
+        <span class="nav-label">Tableau de bord</span>
+      </button>
+
+      <!-- Mes interventions -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'interventions'"
+        (click)="setActive('interventions')"
+      >
+        <span class="nav-icon material-icons">build</span>
+        <span class="nav-label">Mes interventions</span>
+      </button>
+
+      <!-- Équipements -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'equipements'"
+        (click)="setActive('equipements')"
+      >
+        <span class="nav-icon material-icons">devices</span>
+        <span class="nav-label">Équipements</span>
+      </button>
+
+      <!-- Aide & support -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'help'"
+        (click)="setActive('help')"
+      >
+        <span class="nav-icon material-icons">help_outline</span>
+        <span class="nav-label">Aide &amp; Support</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>Tableau de bord · Technicien</h2>
+        <p>Suivi de vos interventions de maintenance.</p>
+      </div>
+
+      <div class="topbar-right">
+        <div class="user-chip" (click)="toggleUserMenu()">
+          <div class="chip-avatar">{{ usernameInitial }}</div>
+          <div class="chip-text">
+            <div class="chip-name">{{ username }}</div>
+            <div class="chip-role">technicien</div>
+          </div>
+          <span class="material-icons chevron">expand_more</span>
+        </div>
+
+        <div class="user-menu" *ngIf="userMenuOpen">
+          <div class="user-menu-header">
+            <div class="menu-avatar">{{ usernameInitial }}</div>
+            <div>
+              <div class="menu-name">{{ username }}</div>
+              <div class="menu-role">technicien</div>
+            </div>
+          </div>
+
+          <div class="user-menu-body">
+            <button class="menu-item">
+              <span class="menu-icon material-icons">person</span>
+              <span>Mon profil</span>
+            </button>
+
+            <button class="menu-item" (click)="goToDashboard()">
+              <span class="menu-icon material-icons">space_dashboard</span>
+              <span>Tableau de bord</span>
+            </button>
+          </div>
+
+          <div class="user-menu-footer">
+            <button class="menu-item logout" (click)="logout()">
+              <span class="menu-icon material-icons">logout</span>
+              <span>Se déconnecter</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <section class="content">
+      <!-- Carte de bienvenue -->
+      <section class="welcome-card">
+        <h1>Bienvenue, {{ username.toLowerCase() }}</h1>
+        <p>
+          Voici votre espace de suivi des interventions qui vous sont assignées.
+        </p>
+      </section>
+
+      <!-- Stats -->
+      <section class="stats-row">
+        <article class="stat-card">
+          <h3>À faire</h3>
+          <p>Interventions qui n'ont pas encore démarré.</p>
+          <div class="stat-value">{{ aFaire }}</div>
+        </article>
+
+        <article class="stat-card">
+          <h3>En cours</h3>
+          <p>Interventions actuellement en traitement.</p>
+          <div class="stat-value">{{ enCours }}</div>
+        </article>
+
+        <article class="stat-card">
+          <h3>Terminées</h3>
+          <p>Interventions clôturées avec succès.</p>
+          <div class="stat-value">{{ terminees }}</div>
+        </article>
+      </section>
+
+      <!-- Interventions récentes -->
+      <section class="recent-requests">
+        <div class="recent-header">
+          <h2>Mes interventions récentes</h2>
+          <button class="primary-btn">
+            Nouvelle intervention (bientôt)
+          </button>
+        </div>
+
+        <div class="requests-list">
+          <div class="request-item" *ngFor="let i of interventions">
+            <div>
+              <h3 class="request-title">{{ i.titre }}</h3>
+              <p class="request-meta">
+                Créée le {{ i.dateCreation | date: 'yyyy-MM-dd' }} ·
+                {{ i.lieu }}
+              </p>
+            </div>
+
+            <div>
+              <span
+                class="status-chip"
+                [ngClass]="{
+                  pending: i.statut === 'A_FAIRE',
+                  progress: i.statut === 'EN_COURS',
+                  done: i.statut === 'TERMINEE'
+                }"
+              >
+                {{
+                  i.statut === 'A_FAIRE'
+                    ? 'À faire'
+                    : i.statut === 'EN_COURS'
+                      ? 'En cours'
+                      : 'Terminée'
+                }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>

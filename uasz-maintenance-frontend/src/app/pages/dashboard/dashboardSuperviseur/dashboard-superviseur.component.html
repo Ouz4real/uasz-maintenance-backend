@@ -1,0 +1,212 @@
+<!-- src/app/pages/dashboard/dashboardSuperviseur/dashboard-superviseur.component.html -->
+
+<div class="dashboard-layout">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="avatar-circle">{{ usernameInitial }}</div>
+      <div class="sidebar-title">
+        <h1>Maintenance UASZ</h1>
+        <p>Supervision globale</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'dashboard'"
+        (click)="setActive('dashboard')"
+      >
+        <span class="nav-icon material-icons">dashboard</span>
+        <span class="nav-label">Tableau de bord</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'signalements'"
+        (click)="setActive('signalements')"
+      >
+        <span class="nav-icon material-icons">assignment</span>
+        <span class="nav-label">Signalements</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'interventions'"
+        (click)="setActive('interventions')"
+      >
+        <span class="nav-icon material-icons">handyman</span>
+        <span class="nav-label">Interventions</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'equipements'"
+        (click)="setActive('equipements')"
+      >
+        <span class="nav-icon material-icons">devices</span>
+        <span class="nav-label">Équipements</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'stats'"
+        (click)="setActive('stats')"
+      >
+        <span class="nav-icon material-icons">bar_chart</span>
+        <span class="nav-label">Rapports & Stats</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'help'"
+        (click)="setActive('help')"
+      >
+        <span class="nav-icon material-icons">help_outline</span>
+        <span class="nav-label">Aide & Support</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>Tableau de bord · Superviseur</h2>
+        <p>Vue globale des signalements, interventions, performance.</p>
+      </div>
+
+      <div class="topbar-right">
+        <div class="user-chip" (click)="toggleUserMenu()">
+          <div class="chip-avatar">{{ usernameInitial }}</div>
+          <div class="chip-text">
+            <div class="chip-name">{{ username }}</div>
+            <div class="chip-role">superviseur</div>
+          </div>
+          <span class="material-icons chevron">expand_more</span>
+        </div>
+
+        <div class="user-menu" *ngIf="userMenuOpen">
+          <div class="user-menu-header">
+            <div class="menu-avatar">{{ usernameInitial }}</div>
+            <div>
+              <div class="menu-name">{{ username }}</div>
+              <div class="menu-role">superviseur</div>
+            </div>
+          </div>
+          <div class="user-menu-body">
+            <button class="menu-item">
+              <span class="menu-icon material-icons">person</span>
+              <span>Mon profil</span>
+            </button>
+
+            <button class="menu-item" (click)="goToDashboard()">
+              <span class="menu-icon material-icons">space_dashboard</span>
+              <span>Tableau de bord</span>
+            </button>
+          </div>
+
+          <div class="user-menu-footer">
+            <button class="menu-item logout" (click)="logout()">
+              <span class="menu-icon material-icons">logout</span>
+              <span>Se déconnecter</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== CONTENU ===== -->
+    <section class="content">
+      <!-- WELCOME -->
+      <section class="welcome-card">
+        <h1>Bienvenue, {{ username.toLowerCase() }}</h1>
+        <p>
+          Supervision globale du parc, des pannes, interventions et statistiques générales.
+        </p>
+      </section>
+
+      <!-- STATS -->
+      <section class="stats-row">
+        <article class="stat-card">
+          <h3>Total signalements</h3>
+          <p>Pannes enregistrées.</p>
+          <div class="stat-value">{{ statsGlobal.totalSignalements }}</div>
+        </article>
+
+        <article class="stat-card">
+          <h3>Total interventions</h3>
+          <p>Interventions effectuées.</p>
+          <div class="stat-value">{{ statsGlobal.totalInterventions }}</div>
+        </article>
+
+        <article class="stat-card">
+          <h3>Interventions en cours</h3>
+          <p>Traitement en cours.</p>
+          <div class="stat-value">{{ statsGlobal.interventionsEnCours }}</div>
+        </article>
+
+        <article class="stat-card">
+          <h3>Taux de résolution</h3>
+          <p>Interventions clôturées.</p>
+          <div class="stat-value">{{ statsGlobal.tauxResolution }}%</div>
+        </article>
+      </section>
+
+      <!-- LISTE SIGNALMENTS RECENTS -->
+      <section class="recent-requests">
+        <div class="recent-header">
+          <h2>Signalements récents</h2>
+        </div>
+
+        <div class="requests-list">
+          <div class="request-item" *ngFor="let s of signalementsRecents">
+            <div>
+              <h3 class="request-title">{{ s.titre }}</h3>
+              <p class="request-meta">
+                {{ s.dateCreation | date:'yyyy-MM-dd' }} · {{ s.lieu }}
+              </p>
+            </div>
+
+            <span class="status-chip"
+                  [ngClass]="{
+                pending: s.statut === 'En attente',
+                progress: s.statut === 'En cours',
+                done: s.statut === 'Résolue'
+              }">
+              {{ s.statut }}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- LISTE INTERVENTIONS RECENTES -->
+      <section class="recent-requests">
+        <div class="recent-header">
+          <h2>Interventions récentes</h2>
+        </div>
+
+        <div class="requests-list">
+          <div class="request-item" *ngFor="let i of interventionsRecents">
+            <div>
+              <h3 class="request-title">{{ i.titre }}</h3>
+              <p class="request-meta">
+                {{ i.date | date:'yyyy-MM-dd' }} · {{ i.technicien }}
+              </p>
+            </div>
+
+            <span class="status-chip"
+                  [ngClass]="{
+                pending: i.statut === 'Planifiée',
+                progress: i.statut === 'En cours',
+                done: i.statut === 'Terminée'
+              }">
+              {{ i.statut }}
+            </span>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>

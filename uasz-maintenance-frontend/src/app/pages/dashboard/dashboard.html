@@ -1,1 +1,10 @@
-<p>dashboard works!</p>
+<div class="dashboard-container">
+  <mat-card class="dashboard-card">
+    <h1>Bienvenue, vous êtes connecté ✅</h1>
+    <p>
+      Utilisateur connecté :
+      {{ localStorage.getItem('auth_username') || 'inconnu' }}
+    </p>
+    <p>On ajoutera ensuite le vrai dashboard (sidebar, stats, etc.).</p>
+  </mat-card>
+</div>

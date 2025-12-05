@@ -1,0 +1,204 @@
+<!-- src/app/pages/dashboard/dashboardAdmin/dashboard-admin.component.html -->
+
+<div class="dashboard-layout">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="avatar-circle">{{ usernameInitial }}</div>
+      <div class="sidebar-title">
+        <h1>Maintenance UASZ</h1>
+        <p>Administration</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <!-- Tableau de bord -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'dashboard'"
+        (click)="setActive('dashboard')"
+      >
+        <span class="nav-icon material-icons">dashboard</span>
+        <span class="nav-label">Tableau de bord</span>
+      </button>
+
+      <!-- Gestion des utilisateurs -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'utilisateurs'"
+        (click)="setActive('utilisateurs')"
+      >
+        <span class="nav-icon material-icons">people</span>
+        <span class="nav-label">Utilisateurs</span>
+      </button>
+
+      <!-- Gestion des rôles -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'roles'"
+        (click)="setActive('roles')"
+      >
+        <span class="nav-icon material-icons">shield</span>
+        <span class="nav-label">Rôles & Permissions</span>
+      </button>
+
+      <!-- Import / Export -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'importExport'"
+        (click)="setActive('importExport')"
+      >
+        <span class="nav-icon material-icons">import_export</span>
+        <span class="nav-label">Import / Export</span>
+      </button>
+
+      <!-- Journal / Audit -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'journal'"
+        (click)="setActive('journal')"
+      >
+        <span class="nav-icon material-icons">history</span>
+        <span class="nav-label">Journal & Audit</span>
+      </button>
+
+      <!-- Aide -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'help'"
+        (click)="setActive('help')"
+      >
+        <span class="nav-icon material-icons">help_outline</span>
+        <span class="nav-label">Aide & Support</span>
+      </button>
+
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>Tableau de bord · Administrateur</h2>
+        <p>Gestion des comptes, rôles, import/export et journalisation.</p>
+      </div>
+
+      <div class="topbar-right">
+        <div class="user-chip" (click)="toggleUserMenu()">
+          <div class="chip-avatar">{{ usernameInitial }}</div>
+          <div class="chip-text">
+            <div class="chip-name">{{ username }}</div>
+            <div class="chip-role">administrateur</div>
+          </div>
+          <span class="material-icons chevron">expand_more</span>
+        </div>
+
+        <div class="user-menu" *ngIf="userMenuOpen">
+          <div class="user-menu-header">
+            <div class="menu-avatar">{{ usernameInitial }}</div>
+            <div>
+              <div class="menu-name">{{ username }}</div>
+              <div class="menu-role">administrateur</div>
+            </div>
+          </div>
+
+          <div class="user-menu-body">
+
+            <button class="menu-item">
+              <span class="menu-icon material-icons">person</span>
+              <span>Mon profil</span>
+            </button>
+
+            <button class="menu-item" (click)="goToDashboard()">
+              <span class="menu-icon material-icons">space_dashboard</span>
+              <span>Tableau de bord</span>
+            </button>
+          </div>
+
+          <div class="user-menu-footer">
+            <button class="menu-item logout" (click)="logout()">
+              <span class="menu-icon material-icons">logout</span>
+              <span>Se déconnecter</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== CONTENU ===== -->
+    <section class="content">
+
+      <!-- CARTE BIENVENUE -->
+      <section class="welcome-card">
+        <h1>Bienvenue, {{ username.toLowerCase() }}</h1>
+        <p>
+          Administration des utilisateurs, permissions, importation de données et audit
+          des actions du système.
+        </p>
+      </section>
+
+      <!-- STATS -->
+      <section class="stats-row">
+        <article class="stat-card">
+          <h3>Total utilisateurs</h3>
+          <p>Comptes enregistrés dans la plateforme.</p>
+          <div class="stat-value">{{ stats.totalUtilisateurs }}</div>
+        </article>
+
+        <article class="stat-card">
+          <h3>Comptes actifs</h3>
+          <p>Utilisateurs ayant accès.</p>
+          <div class="stat-value">{{ stats.comptesActifs }}</div>
+        </article>
+
+        <article class="stat-card">
+          <h3>Comptes désactivés</h3>
+          <p>Accès temporairement suspendu.</p>
+          <div class="stat-value">{{ stats.comptesDesactives }}</div>
+        </article>
+
+        <article class="stat-card">
+          <h3>Rôles disponibles</h3>
+          <p>Profils de permission configurés.</p>
+          <div class="stat-value">{{ stats.rolesDisponibles }}</div>
+        </article>
+      </section>
+
+      <!-- DERNIERS UTILISATEURS -->
+      <section class="recent-requests">
+        <div class="recent-header">
+          <h2>Derniers utilisateurs</h2>
+          <button class="primary-btn">
+            Nouveau compte (bientôt)
+          </button>
+        </div>
+
+        <div class="requests-list">
+          <div class="request-item" *ngFor="let u of derniersUtilisateurs">
+            <div>
+              <h3 class="request-title">{{ u.nomComplet }}</h3>
+              <p class="request-meta">
+                {{ u.username }} · {{ u.role }}
+                · Créé le {{ u.dateCreation | date:'yyyy-MM-dd' }}
+              </p>
+            </div>
+
+            <span
+              class="status-chip"
+              [ngClass]="{
+                active: u.actif,
+                inactive: !u.actif
+              }"
+            >
+              {{ u.actif ? 'Actif' : 'Désactivé' }}
+            </span>
+          </div>
+        </div>
+      </section>
+
+    </section>
+  </main>
+</div>

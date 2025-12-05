@@ -1,0 +1,390 @@
+/* src/app/pages/dashboard/dashboardTechnicien/dashboard-technicien.component.scss */
+
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f6fb;
+  color: #0f172a;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+  sans-serif;
+}
+
+/* ========== SIDEBAR ========== */
+
+.sidebar {
+  width: 260px;
+  background: #020617;
+  color: #e5e7eb;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f9fafb;
+  font-weight: 600;
+}
+
+.sidebar-title h1 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.sidebar-title p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: 999px;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.05s ease;
+  border: none;
+  background: transparent;
+}
+
+.nav-item:hover {
+  background: #0b1120;
+  transform: translateY(-1px);
+}
+
+.nav-item.active {
+  background: #1d4ed8;
+  color: #f9fafb;
+}
+
+.nav-icon {
+  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-label {
+  flex: 1;
+}
+
+/* ========== MAIN ========== */
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Topbar */
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.topbar-left h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.topbar-left p {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.topbar-right {
+  position: relative;
+}
+
+/* user chip */
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #f9fafb;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
+}
+
+.chip-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.chip-text {
+  text-align: left;
+}
+
+.chip-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.chip-role {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.chevron {
+  font-size: 18px;
+}
+
+/* popup user menu */
+
+.user-menu {
+  position: absolute;
+  right: 0;
+  margin-top: 0.5rem;
+  width: 260px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18),
+  0 0 0 1px rgba(148, 163, 184, 0.25);
+  overflow: hidden;
+  z-index: 50;
+}
+
+.user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.menu-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f9fafb;
+  font-weight: 600;
+}
+
+.menu-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.menu-role {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.user-menu-body,
+.user-menu-footer {
+  padding: 0.4rem 0;
+}
+
+.menu-item {
+  width: 100%;
+  padding: 0.55rem 1rem;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #111827;
+}
+
+.menu-item:hover {
+  background: #f3f4ff;
+}
+
+.menu-icon {
+  font-size: 20px;
+  color: #4b5563;
+}
+
+.menu-item.logout {
+  color: #b91c1c;
+}
+
+.menu-item.logout .menu-icon {
+  color: #b91c1c;
+}
+
+/* ========== CONTENU ========= */
+
+.content {
+  padding: 1.5rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.welcome-card {
+  background: radial-gradient(circle at top left, #e0f2fe, #eef2ff);
+  border-radius: 22px;
+  padding: 1.5rem 1.75rem;
+}
+
+.welcome-card h1 {
+  margin: 0 0 0.25rem;
+}
+
+.welcome-card p {
+  margin: 0;
+  color: #4b5563;
+}
+
+/* stats */
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.stat-card h3 {
+  margin: 0 0 0.2rem;
+  font-size: 0.95rem;
+}
+
+.stat-card p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.stat-value {
+  margin-top: 0.9rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* recent requests */
+
+.recent-requests {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.3rem 1.5rem 1.4rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.recent-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.primary-btn {
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  border: none;
+  background: #2563eb;
+  color: #f9fafb;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.request-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0.2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.request-item:last-child {
+  border-bottom: none;
+}
+
+.request-title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.request-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.status-chip {
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-chip.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-chip.progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-chip.done {
+  background: #dcfce7;
+  color: #166534;
+}

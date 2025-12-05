@@ -1,106 +1,108 @@
 package sn.uasz.uasz_maintenance_backend.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JwtService {
 
-    @Value("${application.security.jwt.secret}")
-    private String secretKeyString;
+    // Chaîne assez longue pour HMAC (tu peux la changer, mais garde-la secrète)
+    private static final String SECRET_KEY =
+            "cette_cle_est_tres_longue_pour_le_hmac_et_utilisee_en_UTF8_uniquement_pour_signer_les_tokens";
 
-    @Value("${application.security.jwt.expiration}")
-    private long jwtExpirationMillis;
-
-    private SecretKey signingKey;
-
-    @PostConstruct
-    void initKey() {
-        // génère une clé HMAC à partir de la chaîne (minimum 32 caractères recommandé)
-        this.signingKey = Keys.hmacShaKeyFor(secretKeyString.getBytes(StandardCharsets.UTF_8));
+    // ✅ On n'essaie plus de décoder en Base64
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes); // -> SecretKey HMAC valide
     }
 
-    // ===================== PUBLIC =====================
+    // ================== EXTRACTION ==================
 
-    /**
-     * Génère un JWT simple (sans claims supplémentaires) pour un utilisateur.
-     */
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
-    }
-
-    /**
-     * Génère un JWT avec des claims supplémentaires.
-     */
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        Instant now = Instant.now();
-        Instant expiration = now.plusMillis(jwtExpirationMillis);
-
-        return Jwts.builder()
-                .claims(extraClaims)
-                .subject(userDetails.getUsername())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiration))
-                .signWith(signingKey, Jwts.SIG.HS256) // nouvelle API jjwt 0.13.0
-                .compact();
-    }
-
-    /**
-     * Extrait le username (subject) du token.
-     */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    /**
-     * Vérifie si le token est valable pour cet utilisateur (username + non expiré).
-     */
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public <T> T extractClaim(String token, Function<Claims, T> resolver) {
+        Claims claims = extractAllClaims(token);
+        return resolver.apply(claims);
     }
 
-    // ===================== PRIVATE / UTILITAIRES =====================
+    // ================== GENERATION ==================
+
+    public String generateToken(UserDetails user) {
+        Instant now = Instant.now();
+        Instant expiration = now.plus(24, ChronoUnit.HOURS); // 24h de validité
+
+        return Jwts.builder()
+                .subject(user.getUsername())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiration))
+                .claim("roles", user.getAuthorities())
+                .signWith(getSigningKey())      // 🔥 utilise la SecretKey ci-dessus
+                .compact();
+    }
+
+    public String generateToken(Utilisateur user) {
+        return generateToken((UserDetails) user);
+    }
+
+    // ================== VALIDATION ==================
+
+    public boolean isTokenValid(String token, UserDetails user) {
+        try {
+            String username = extractUsername(token);
+            return username.equals(user.getUsername()) && !isTokenExpired(token);
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT expiré lors de la validation: {}", e.getMessage());
+            return false;
+        } catch (IllegalArgumentException | JwtException e) {
+            log.warn("JWT invalide lors de la validation: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.error("Erreur lors de la validation du JWT", e);
+            return false;
+        }
+    }
 
     private boolean isTokenExpired(String token) {
-        Date expiration = extractExpiration(token);
-        return expiration.before(new Date());
+        try {
+            return extractExpiration(token).before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        }
     }
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> resolver) {
-        final Claims claims = extractAllClaims(token);
-        return resolver.apply(claims);
-    }
+    // ================== PARSING ==================
 
-    private Claims extractAllClaims(String token) {
+    Claims extractAllClaims(String token) {
         try {
-            // Nouvelle façon de parser en 0.13.0 :
-            // parser().verifyWith(key).build().parseSignedClaims(token)
             return Jwts.parser()
-                    .verifyWith(signingKey)
+                    .verifyWith(getSigningKey())   // ✅ maintenant c'est bien une SecretKey
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-        } catch (JwtException e) {
-            // token invalide (signé avec une autre clé, corrompu, etc.)
+        } catch (ExpiredJwtException e) {
+            throw e;  // laissé pour que le filtre le gère
+        } catch (JwtException | IllegalArgumentException e) {
             throw new IllegalArgumentException("Token JWT invalide", e);
         }
     }

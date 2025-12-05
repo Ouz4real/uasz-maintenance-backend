@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sn.uasz.uasz_maintenance_backend.dtos.ChangePasswordRequest;
+import sn.uasz.uasz_maintenance_backend.dtos.UpdateProfileRequest;
 import sn.uasz.uasz_maintenance_backend.dtos.UtilisateurRequest;
 import sn.uasz.uasz_maintenance_backend.dtos.UtilisateurResponse;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
@@ -66,5 +68,60 @@ public class UtilisateurService {
                 .role(u.getRole())
                 .enabled(u.isEnabled())
                 .build();
+    }
+
+    // ========= RÉCUPÉRATION PAR ID =========
+    public UtilisateurResponse getById(Long id) {
+        Utilisateur user = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+        return toResponse(user);
+    }
+
+    // ========= MISE À JOUR DU PROFIL =========
+    public UtilisateurResponse updateProfile(Long id, UpdateProfileRequest request) {
+        Utilisateur user = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        // ➜ Adapte ces setters aux champs réels de ton entity Utilisateur
+        if (request.getNom() != null) {
+            user.setNom(request.getNom());
+        }
+        if (request.getPrenom() != null) {
+            user.setPrenom(request.getPrenom());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+        if (request.getTelephone() != null) {
+            user.setTelephone(request.getTelephone());
+        }
+        if (request.getServiceUnite() != null) {
+            user.setServiceUnite(request.getServiceUnite());
+        }
+        if (request.getDepartement() != null) {
+            user.setDepartement(request.getDepartement());
+        }
+
+        Utilisateur saved = utilisateurRepository.save(user);
+        return toResponse(saved);
+    }
+
+    // ========= CHANGEMENT DE MOT DE PASSE =========
+    public void changePassword(Utilisateur utilisateur, ChangePasswordRequest request) {
+
+        // 1) Vérifier l'ancien mot de passe avec le HASH
+        boolean ok = passwordEncoder.matches(
+                request.getCurrentPassword(),
+                utilisateur.getMotDePasse()
+        );
+
+        if (!ok) {
+            throw new IllegalArgumentException("Mot de passe actuel incorrect.");
+        }
+
+        // 2) Enregistrer le nouveau mot de passe hashé
+        String encoded = passwordEncoder.encode(request.getNewPassword());
+        utilisateur.setMotDePasse(encoded);
+        utilisateurRepository.save(utilisateur);
     }
 }

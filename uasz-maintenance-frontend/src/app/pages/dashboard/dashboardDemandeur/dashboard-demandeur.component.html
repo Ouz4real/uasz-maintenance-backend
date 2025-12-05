@@ -1,0 +1,513 @@
+<!-- src/app/pages/dashboard/dashboardDemandeur/dashboard-demandeur.component.html -->
+
+<div class="dashboard-layout">
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar">
+
+    <!-- Header -->
+    <div class="sidebar-header">
+      <div class="avatar-circle">{{ usernameInitial }}</div>
+      <div class="sidebar-title">
+        <h1>Maintenance UASZ</h1>
+        <p>Parc & interventions</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+
+      <!-- Tableau de bord -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'dashboard'"
+        (click)="setActive('dashboard')"
+      >
+        <span class="nav-icon material-icons">dashboard</span>
+        <span class="nav-label">Tableau de bord</span>
+      </button>
+
+      <!-- Mes demandes -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'mes-demandes'"
+        (click)="setActive('mes-demandes')"
+      >
+        <span class="nav-icon material-icons">build</span>
+        <span class="nav-label">Mes demandes</span>
+      </button>
+
+      <!-- Documents -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'documents'"
+        (click)="setActive('documents')"
+      >
+        <span class="nav-icon material-icons">description</span>
+        <span class="nav-label">Documents</span>
+      </button>
+
+      <!-- Aide & support -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'aide'"
+        (click)="setActive('aide')"
+      >
+        <span class="nav-icon material-icons">help</span>
+        <span class="nav-label">Aide & support</span>
+      </button>
+
+    </nav>
+
+  </aside>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Tableau de bord · Demandeur</h2>
+        <p>Suivi de vos demandes de maintenance.</p>
+      </div>
+
+      <div class="topbar-right">
+        <div class="user-chip" (click)="toggleUserMenu()">
+          <div class="chip-avatar">{{ usernameInitial }}</div>
+
+          <div class="chip-text">
+            <div class="chip-name">{{ username }}</div>
+            <div class="chip-role">demandeur</div>
+          </div>
+
+          <span class="chevron material-icons">
+            {{ userMenuOpen ? 'expand_less' : 'expand_more' }}
+          </span>
+        </div>
+
+        <!-- MENU UTILISATEUR -->
+        <div *ngIf="userMenuOpen" class="user-menu">
+
+          <div class="user-menu-header">
+            <div class="menu-avatar">{{ usernameInitial }}</div>
+            <div>
+              <div class="menu-name">{{ username }}</div>
+              <div class="menu-role">demandeur</div>
+            </div>
+          </div>
+
+          <div class="user-menu-body">
+
+            <button class="menu-item" (click)="goToDashboard()">
+              <span class="menu-icon material-icons">dashboard</span>
+              Tableau de bord
+            </button>
+
+            <button class="menu-item">
+              <span class="menu-icon material-icons">person</span>
+              Mon profil
+            </button>
+
+          </div>
+
+          <div class="user-menu-footer">
+            <button class="menu-item logout" (click)="logout()">
+              <span class="menu-icon material-icons">logout</span>
+              Se déconnecter
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========== CONTENU PRINCIPAL ========== -->
+    <div class="content">
+
+      <!-- 🟦 PAGE : DASHBOARD -->
+      <ng-container *ngIf="activeItem === 'dashboard'">
+
+        <!-- Welcome -->
+        <div class="welcome-card">
+          <h1>Bienvenue, {{ username }}</h1>
+          <p>Voici votre espace de suivi des demandes de maintenance.</p>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="stats-row">
+
+          <div class="stat-card">
+            <h3>En attente</h3>
+            <p>Demandes non encore prises en charge.</p>
+            <div class="stat-value">{{ enAttente }}</div>
+          </div>
+
+          <div class="stat-card">
+            <h3>En cours de traitement</h3>
+            <p>Demandes actuellement traitées.</p>
+            <div class="stat-value">{{ enCours }}</div>
+          </div>
+
+          <div class="stat-card">
+            <h3>Résolues</h3>
+            <p>Demandes clôturées avec succès.</p>
+            <div class="stat-value">{{ resolues }}</div>
+          </div>
+
+        </div>
+
+        <!-- Demandes récentes -->
+        <div class="recent-requests">
+          <div class="recent-header">
+            <h2>Mes demandes récentes</h2>
+            <button class="primary-btn" (click)="openNewDemandeModal()">
+              Nouvelle demande de panne
+            </button>
+          </div>
+
+          <div class="requests-list">
+            <div
+              *ngFor="let d of demandes"
+              class="request-item request-clickable"
+              (click)="openDemandeDetails(d)"
+            >
+              <div>
+                <h3 class="request-title">{{ d.titre }}</h3>
+                <p class="request-meta">
+                  Créée le {{ d.dateCreation | date:'yyyy-MM-dd' }} · {{ d.lieu }}
+                </p>
+              </div>
+
+              <span
+                class="status-chip"
+                [ngClass]="{
+                  'pending': d.statut === 'EN_ATTENTE',
+                  'progress': d.statut === 'EN_COURS',
+                  'done': d.statut === 'RESOLUE'
+                }"
+              >
+                {{
+                  d.statut === 'EN_ATTENTE' ? 'En attente' :
+                    d.statut === 'EN_COURS' ? 'En cours' :
+                      'Résolue'
+                }}
+              </span>
+
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
+
+      <!-- 🟦 PAGE : MES DEMANDES -->
+      <ng-container *ngIf="activeItem === 'mes-demandes'">
+
+        <div class="recent-requests">
+          <div class="recent-header">
+            <h2>Toutes mes demandes</h2>
+            <button class="primary-btn" (click)="openNewDemandeModal()">
+              Nouvelle demande de panne
+            </button>
+          </div>
+
+          <div class="requests-list">
+            <div
+              *ngFor="let d of demandes"
+              class="request-item request-clickable"
+              (click)="openDemandeDetails(d)"
+            >
+              <div>
+                <h3 class="request-title">{{ d.titre }}</h3>
+                <p class="request-meta">
+                  Créée le {{ d.dateCreation | date:'yyyy-MM-dd' }} · {{ d.lieu }}
+                </p>
+              </div>
+
+              <span
+                class="status-chip"
+                [ngClass]="{
+                  'pending': d.statut === 'EN_ATTENTE',
+                  'progress': d.statut === 'EN_COURS',
+                  'done': d.statut === 'RESOLUE'
+                }"
+              >
+                {{
+                  d.statut === 'EN_ATTENTE' ? 'En attente' :
+                    d.statut === 'EN_COURS' ? 'En cours' :
+                      'Résolue'
+                }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
+
+      <!-- 🟦 PAGE : DOCUMENTS -->
+      <ng-container *ngIf="activeItem === 'documents'">
+        <div class="recent-requests">
+          <div class="recent-header">
+            <h2>Mes documents</h2>
+          </div>
+
+          <p class="request-meta">
+            Cette section permettra de consulter ou télécharger les documents
+            liés à vos demandes (captures, rapports, justificatifs, etc.).
+          </p>
+        </div>
+      </ng-container>
+
+      <!-- 🟦 PAGE : AIDE & SUPPORT -->
+      <ng-container *ngIf="activeItem === 'aide'">
+        <div class="recent-requests">
+          <div class="recent-header">
+            <h2>Aide & support</h2>
+          </div>
+
+          <div class="requests-list">
+            <div class="request-item">
+              <div>
+                <h3 class="request-title">
+                  Comment créer une nouvelle demande ?
+                </h3>
+                <p class="request-meta">
+                  Cliquez sur "Nouvelle demande de panne", remplissez les
+                  informations demandées puis validez. Vous pouvez joindre une
+                  image de l’équipement pour aider l’équipe maintenance.
+                </p>
+              </div>
+            </div>
+
+            <div class="request-item">
+              <div>
+                <h3 class="request-title">
+                  Qui traite mes demandes ?
+                </h3>
+                <p class="request-meta">
+                  Vos demandes sont analysées par le responsable maintenance,
+                  qui décide de l’urgence et les affecte à un technicien.
+                </p>
+              </div>
+            </div>
+
+            <div class="request-item">
+              <div>
+                <h3 class="request-title">
+                  Qui décide du niveau d’urgence ?
+                </h3>
+                <p class="request-meta">
+                  Le niveau d’urgence est défini par le responsable maintenance,
+                  sur la base des informations fournies (description, image,
+                  impact sur les activités).
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ========== MODAL "NOUVELLE DEMANDE" ========== -->
+      <div class="modal-backdrop" *ngIf="showNewDemandeModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2>Nouvelle demande de panne</h2>
+            <button class="icon-btn" (click)="closeNewDemandeModal()">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div class="form-grid">
+
+              <div class="form-field">
+                <label for="titre">Titre de la demande</label>
+                <input
+                  id="titre"
+                  type="text"
+                  name="titre"
+                  [(ngModel)]="newDemande.titre"
+                  placeholder="Ex : Panne PC salle INFO-101"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="lieu">Lieu</label>
+                <input
+                  id="lieu"
+                  type="text"
+                  name="lieu"
+                  [(ngModel)]="newDemande.lieu"
+                  placeholder="Ex : Bloc pédagogique A, salle 12"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="typeEquipement">Type d’équipement</label>
+                <input
+                  id="typeEquipement"
+                  type="text"
+                  name="typeEquipement"
+                  [(ngModel)]="newDemande.typeEquipement"
+                  placeholder="Ordinateur, imprimante, vidéoprojecteur..."
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="image">Image de l’équipement (optionnel)</label>
+                <input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  (change)="onFileSelected($event)"
+                />
+
+                <!-- Aperçu + bouton suppression -->
+                <div
+                  class="image-preview-wrapper"
+                  *ngIf="newDemande.imagePreview"
+                >
+                  <img
+                    [src]="newDemande.imagePreview"
+                    alt="Aperçu de l'image"
+                    class="image-preview"
+                  />
+                  <button
+                    type="button"
+                    class="remove-img-btn"
+                    (click)="removeSelectedImage()"
+                    aria-label="Retirer l'image"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-field form-full">
+                <label for="description">Description de la panne</label>
+                <textarea
+                  id="description"
+                  rows="4"
+                  name="description"
+                  [(ngModel)]="newDemande.description"
+                  placeholder="Décrivez la panne : symptômes, contexte, fréquence, impact sur vos activités…"
+                ></textarea>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" (click)="closeNewDemandeModal()">
+              Annuler
+            </button>
+            <button class="primary-btn" (click)="submitNewDemande()">
+              Enregistrer la demande
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== MODAL "DÉTAILS DEMANDE" ========== -->
+      <div class="modal-backdrop" *ngIf="showDetailsModal && selectedDemande">
+        <div class="modal">
+          <div class="modal-header">
+            <h2>Détails de la demande</h2>
+            <button class="icon-btn" (click)="closeDetailsModal()">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+
+          <div class="modal-body details-body">
+            <h3 class="details-title">
+              {{ selectedDemande.titre }}
+            </h3>
+            <p class="details-meta">
+              Créée le {{ selectedDemande.dateCreation | date:'yyyy-MM-dd' }}
+              · {{ selectedDemande.lieu }}
+            </p>
+
+            <div class="details-grid">
+              <div class="details-item">
+                <span class="details-label">Type d’équipement</span>
+                <span class="details-value">
+                  {{ selectedDemande.typeEquipement }}
+                </span>
+              </div>
+
+              <div class="details-item">
+                <span class="details-label">Statut</span>
+                <span
+                  class="status-chip"
+                  [ngClass]="{
+                    'pending': selectedDemande.statut === 'EN_ATTENTE',
+                    'progress': selectedDemande.statut === 'EN_COURS',
+                    'done': selectedDemande.statut === 'RESOLUE'
+                  }"
+                >
+                  {{ getStatutLabel(selectedDemande.statut) }}
+                </span>
+              </div>
+
+              <div class="details-item details-full">
+                <span class="details-label">Description</span>
+                <p class="details-description">
+                  {{ selectedDemande.description }}
+                </p>
+              </div>
+
+              <div class="details-item details-full">
+                <span class="details-label">Image jointe</span>
+
+                <ng-container *ngIf="selectedDemande.imageUrl; else noImage">
+                  <button
+                    class="secondary-btn small"
+                    type="button"
+                    (click)="showImageInDetails = !showImageInDetails"
+                  >
+                    {{
+                      showImageInDetails
+                        ? "Masquer l'image"
+                        : "Afficher l'image"
+                    }}
+                  </button>
+
+                  <div
+                    class="details-image-wrapper"
+                    *ngIf="showImageInDetails"
+                  >
+                    <img
+                      [src]="selectedDemande.imageUrl"
+                      alt="Image de la demande"
+                      class="details-image"
+                    />
+                  </div>
+                </ng-container>
+
+                <ng-template #noImage>
+                  <span class="details-value">
+                    Aucune image jointe
+                  </span>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" (click)="closeDetailsModal()">
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========== TOAST SUCCÈS ========== -->
+    <div class="toast" *ngIf="showSuccessToast">
+      <span class="toast-icon material-icons">check_circle</span>
+      <span>{{ successMessage }}</span>
+    </div>
+
+  </main>
+</div>

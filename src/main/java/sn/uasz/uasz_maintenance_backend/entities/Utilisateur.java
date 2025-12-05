@@ -31,7 +31,28 @@ public class Utilisateur implements UserDetails {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // accepté en entrée, jamais renvoyé
+    @Column(name = "nom", length = 150, nullable = true)
+    private String nom;
+
+    @Column(name = "prenom", length = 150, nullable = true)
+    private String prenom;
+
+
+// ...
+
+    @Column(name = "departement", length = 150, nullable = true)
+    private String departement;
+
+    @Column(name = "service_unite", length = 150, nullable = true)
+    private String serviceUnite;
+
+    @Column(name = "telephone", length = 150, nullable = true)
+    private String telephone;
+
+
+
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String motDePasse;
 
