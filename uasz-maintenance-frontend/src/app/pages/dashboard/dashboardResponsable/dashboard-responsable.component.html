@@ -32,6 +32,16 @@
         <span class="nav-label">Techniciens</span>
       </button>
 
+      <!-- 🔹 Mes demandes (ajouté ici) -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'mes-demandes'"
+        (click)="setActive('mes-demandes')"
+      >
+        <span class="nav-icon material-icons">assignment</span>
+        <span class="nav-label">Mes demandes</span>
+      </button>
+
       <!-- Gestion stock -->
       <button
         class="nav-item"
@@ -303,20 +313,16 @@
                       </span>
                   </td>
 
-                  <td>
-                      <span
-                        class="resp-urgence-badge"
-                        [ngClass]="{
-                          'resp-urgence-indefinie':
-                            !d.urgence || d.urgence === 'NON_DEFINIE',
-                          'resp-urgence-basse': d.urgence === 'BASSE',
-                          'resp-urgence-moyenne': d.urgence === 'MOYENNE',
-                          'resp-urgence-haute': d.urgence === 'HAUTE'
-                        }"
-                      >
-                        {{ getUrgenceLabel(d.urgence) }}
-                      </span>
+                  <td class="urgency-cell">
+  <span
+    class="urgency-pill"
+    [ngClass]="getUrgenceListClass(d.urgenceDemandeur)"
+  >
+    {{ getUrgenceLabel(d.urgenceDemandeur) }}
+  </span>
                   </td>
+
+
 
                   <td class="resp-actions-col">
                     <button
@@ -488,6 +494,292 @@
           </section>
         </section>
       </ng-container>
+
+      <!-- ========== SECTION MES DEMANDES (RESPONSABLE COMME DEMANDEUR) ========== -->
+      <section *ngIf="activeItem === 'mes-demandes'">
+        <div class="recent-requests">
+          <!-- En-tête : titre + bouton -->
+          <div class="recent-header">
+            <h2>Toutes mes demandes</h2>
+
+            <!-- ouvre la modale "Nouvelle demande" -->
+            <button class="primary-btn" (click)="ouvrirNouvelleDemande()">
+              Nouvelle demande de panne
+            </button>
+          </div>
+
+          <!-- Filtres statut (chips) -->
+          <div class="filters-row">
+            <button
+              class="filter-chip"
+              [class.chip-active]="filtreStatut === 'TOUS'"
+              (click)="changerFiltreStatut('TOUS')"
+            >
+              Toutes ({{ mesDemandes.length }})
+            </button>
+
+            <button
+              class="filter-chip"
+              [class.chip-active]="filtreStatut === 'EN_ATTENTE'"
+              (click)="changerFiltreStatut('EN_ATTENTE')"
+            >
+              En attente ({{ countMesParStatut('EN_ATTENTE') }})
+            </button>
+
+            <button
+              class="filter-chip"
+              [class.chip-active]="filtreStatut === 'EN_COURS'"
+              (click)="changerFiltreStatut('EN_COURS')"
+            >
+              En cours ({{ countMesParStatut('EN_COURS') }})
+            </button>
+
+            <button
+              class="filter-chip"
+              [class.chip-active]="filtreStatut === 'RESOLUE'"
+              (click)="changerFiltreStatut('RESOLUE')"
+            >
+              Résolues ({{ countMesParStatut('RESOLUE') }})
+            </button>
+          </div>
+
+
+          <!-- Liste des demandes du responsable -->
+          <div
+            class="requests-list"
+            *ngIf="mesDemandesFiltrees?.length; else aucuneDemandeResp"
+          >
+            <div
+              class="request-item request-clickable"
+              *ngFor="let demande of mesDemandesFiltrees"
+              (click)="ouvrirDetailDemande(demande)"
+            >
+              <div>
+                <h3 class="request-title">{{ demande.titre }}</h3>
+                <p class="request-meta">
+                  Créée le {{ demande.dateCreation | date: 'yyyy-MM-dd' }}
+                  · {{ demande.lieu }}
+                </p>
+              </div>
+
+              <span
+                class="status-chip"
+                [ngClass]="{
+            pending: demande.statut === 'EN_ATTENTE',
+            progress: demande.statut === 'EN_COURS',
+            done: demande.statut === 'RESOLUE'
+          }"
+              >
+          {{ libelleStatut(demande.statut) }}
+        </span>
+            </div>
+          </div>
+
+          <!-- État vide -->
+          <ng-template #aucuneDemandeResp>
+            <div class="empty-state">
+              <p>Vous n'avez encore créé aucune demande de maintenance.</p>
+              <button class="secondary-btn small" (click)="ouvrirNouvelleDemande()">
+                Créer une première demande
+              </button>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- ========== MODAL "NOUVELLE DEMANDE" (RESPONSABLE) ========== -->
+        <div class="modal-backdrop" *ngIf="showMesNewDemandeModal">
+          <div class="modal">
+            <div class="modal-header">
+              <h2>Nouvelle demande de panne</h2>
+              <button class="icon-btn" (click)="closeMesNewDemandeModal()">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label for="titre-resp">Titre de la demande</label>
+                  <input
+                    id="titre-resp"
+                    type="text"
+                    name="titre-resp"
+                    [(ngModel)]="newMesDemande.titre"
+                    placeholder="Ex : Panne PC salle INFO-101"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="lieu-resp">Lieu</label>
+                  <input
+                    id="lieu-resp"
+                    type="text"
+                    name="lieu-resp"
+                    [(ngModel)]="newMesDemande.lieu"
+                    placeholder="Ex : Bloc pédagogique A, salle 12"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="typeEquipement-resp">Type d’équipement</label>
+                  <input
+                    id="typeEquipement-resp"
+                    type="text"
+                    name="typeEquipement-resp"
+                    [(ngModel)]="newMesDemande.typeEquipement"
+                    placeholder="Ordinateur, imprimante, vidéoprojecteur..."
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="image-resp">Image de l’équipement (optionnel)</label>
+                  <input
+                    id="image-resp"
+                    type="file"
+                    accept="image/*"
+                    (change)="onMesFileSelected($event)"
+                  />
+
+                  <!-- Aperçu + bouton suppression -->
+                  <div
+                    class="image-preview-wrapper"
+                    *ngIf="newMesDemande.imagePreview"
+                  >
+                    <img
+                      [src]="newMesDemande.imagePreview"
+                      alt="Aperçu de l'image"
+                      class="image-preview"
+                    />
+                    <button
+                      type="button"
+                      class="remove-img-btn"
+                      (click)="removeMesSelectedImage()"
+                      aria-label="Retirer l'image"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-field form-full">
+                  <label for="description-resp">Description de la panne</label>
+                  <textarea
+                    id="description-resp"
+                    rows="4"
+                    name="description-resp"
+                    [(ngModel)]="newMesDemande.description"
+                    placeholder="Décrivez la panne : symptômes, contexte, fréquence, impact sur vos activités…"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="secondary-btn" (click)="closeMesNewDemandeModal()">
+                Annuler
+              </button>
+              <button class="primary-btn" (click)="submitMesNewDemande()">
+                Enregistrer la demande
+              </button>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ========== MODAL "DÉTAILS DE LA DEMANDE" (RESPONSABLE) ========== -->
+        <div
+          class="modal-backdrop"
+          *ngIf="showMesDetailsModal && selectedMesDemande"
+        >
+          <div class="modal">
+            <div class="modal-header">
+              <h2>Détails de la demande</h2>
+              <button class="icon-btn" (click)="closeMesDetailsModal()">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <div class="modal-body details-body">
+              <h3 class="details-title">
+                {{ selectedMesDemande?.titre }}
+              </h3>
+              <p class="details-meta">
+                Créée le
+                {{ selectedMesDemande?.dateCreation | date: 'yyyy-MM-dd' }}
+                · {{ selectedMesDemande?.lieu }}
+              </p>
+
+              <div class="details-grid">
+                <div class="details-item">
+                  <span class="details-label">Type d’équipement</span>
+                  <span class="details-value">
+              {{ selectedMesDemande?.typeEquipement }}
+            </span>
+                </div>
+
+                <div class="details-item">
+                  <span class="details-label">Statut</span>
+                  <span
+                    class="status-chip"
+                    [ngClass]="badgeClass(selectedMesDemande!.statut)"
+                  >
+              {{ libelleStatut(selectedMesDemande!.statut) }}
+            </span>
+                </div>
+
+                <div class="details-item details-full">
+                  <span class="details-label">Description</span>
+                  <p class="details-description">
+                    {{ selectedMesDemande?.description }}
+                  </p>
+                </div>
+
+                <div class="details-item details-full">
+                  <span class="details-label">Image jointe</span>
+
+                  <ng-container
+                    *ngIf="selectedMesDemande?.imageUrl; else noMesImage"
+                  >
+                    <button
+                      type="button"
+                      class="secondary-btn small"
+                      (click)="showMesImageInDetails = !showMesImageInDetails"
+                    >
+                      {{
+                        showMesImageInDetails
+                          ? "Masquer l'image"
+                          : "Afficher l'image"
+                      }}
+                    </button>
+
+                    <div class="details-image-wrapper" *ngIf="showMesImageInDetails">
+                      <img
+                        [src]="selectedMesDemande?.imageUrl"
+                        alt="Image de la demande"
+                        class="details-image"
+                      />
+                    </div>
+                  </ng-container>
+
+                  <ng-template #noMesImage>
+              <span class="details-value details-muted">
+                Aucune image jointe
+              </span>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="secondary-btn" (click)="closeMesDetailsModal()">
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
 
       <!-- 🟦 PAGE : GESTION STOCK -->
       <ng-container *ngIf="activeItem === 'equipements'">
@@ -1062,20 +1354,26 @@
                   {{ getStatutLabel(selectedDemande!.statut) }}
                 </span>
               </div>
+              <div class="field">
+                <div class="field-label">Urgence du demandeur</div>
 
-              <div class="details-item">
-                <span class="details-label">Urgence</span>
-                <select
-                  class="select-field"
-                  [(ngModel)]="modalUrgence"
-                  [disabled]="selectedDemande?.statut === 'RESOLUE'"
-                >
+                <div class="urgency-pill" [ngClass]="getUrgencePillClass(selectedDemande?.urgenceDemandeur)">
+                  {{ getUrgenceLabel(selectedDemande?.urgenceDemandeur) }}
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field-label">Urgence (Responsable)</label>
+
+                <select class="field-select" [(ngModel)]="modalUrgenceResponsable">
                   <option value="">Non définie</option>
                   <option value="BASSE">Basse</option>
                   <option value="MOYENNE">Moyenne</option>
                   <option value="HAUTE">Haute</option>
                 </select>
               </div>
+
+
 
               <div class="details-item">
                 <span class="details-label">Technicien affecté</span>
@@ -1132,10 +1430,17 @@
                     *ngIf="showImageInDetails"
                   >
                     <img
-                      [src]="selectedDemande?.imageUrl"
-                      alt="Image de la demande"
+                      *ngIf="showImageInDetails && selectedDemande?.imageUrl"
                       class="details-image"
+                      [src]="selectedDemande.imageUrl"
+                      alt="Image panne"
+                      (click)="openImageLightbox(selectedDemande.imageUrl)"
                     />
+
+
+
+
+
                   </div>
                 </ng-container>
 
@@ -1366,6 +1671,25 @@
               Fermer
             </button>
           </div>
+        </div>
+      </div>
+
+      <!-- ✅ LIGHTBOX -->
+      <div
+        class="lightbox-backdrop"
+        *ngIf="isImageLightboxOpen"
+        (click)="closeImageLightbox()"
+      >
+        <div class="lightbox-content" (click)="$event.stopPropagation()">
+          <button class="lightbox-close" type="button" (click)="closeImageLightbox()">
+            ✕
+          </button>
+
+          <img
+            class="lightbox-image"
+            [src]="lightboxImageSrc!"
+            alt="Zoom image panne"
+          />
         </div>
       </div>
 

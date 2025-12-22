@@ -46,16 +46,17 @@ public class JwtService {
 
     public String generateToken(UserDetails user) {
         Instant now = Instant.now();
-        Instant expiration = now.plus(24, ChronoUnit.HOURS); // 24h de validité
+        Instant expiration = now.plus(24, ChronoUnit.HOURS);
 
         return Jwts.builder()
-                .subject(user.getUsername())
+                .subject(user.getUsername())   // ✅ TOUJOURS le username
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .claim("roles", user.getAuthorities())
-                .signWith(getSigningKey())      // 🔥 utilise la SecretKey ci-dessus
+                .signWith(getSigningKey())
                 .compact();
     }
+
 
     public String generateToken(Utilisateur user) {
         return generateToken((UserDetails) user);

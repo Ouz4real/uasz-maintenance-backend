@@ -35,9 +35,7 @@ public class GlobalDashboardService {
         long pannesResolues = pannes.stream()
                 .filter(p -> p.getStatut() == StatutPanne.RESOLUE)
                 .count();
-        long pannesAnnulees = pannes.stream()
-                .filter(p -> p.getStatut() == StatutPanne.ANNULEE)
-                .count();
+
 
         long totalInterventions = interventions.size();
         long interventionsPlanifiees = interventions.stream()
@@ -58,7 +56,6 @@ public class GlobalDashboardService {
                 .pannesOuvertes(pannesOuvertes)
                 .pannesEnCours(pannesEnCours)
                 .pannesResolues(pannesResolues)
-                .pannesAnnulees(pannesAnnulees)
                 .totalInterventions(totalInterventions)
                 .interventionsPlanifiees(interventionsPlanifiees)
                 .interventionsEnCours(interventionsEnCours)

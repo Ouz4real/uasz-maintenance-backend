@@ -84,7 +84,6 @@ public class SuperviseurDashboardService {
         long pannesOuvertes = pannes.stream().filter(p -> p.getStatut() == StatutPanne.OUVERTE).count();
         long pannesEnCours = pannes.stream().filter(p -> p.getStatut() == StatutPanne.EN_COURS).count();
         long pannesResolues = pannes.stream().filter(p -> p.getStatut() == StatutPanne.RESOLUE).count();
-        long pannesAnnulees = pannes.stream().filter(p -> p.getStatut() == StatutPanne.ANNULEE).count();
 
         long pannesPrioriteHaute = pannes.stream().filter(p -> p.getPriorite() == Priorite.HAUTE).count();
         long pannesPrioriteMoyenne = pannes.stream().filter(p -> p.getPriorite() == Priorite.MOYENNE).count();
@@ -167,7 +166,6 @@ public class SuperviseurDashboardService {
                 .pannesOuvertes(pannesOuvertes)
                 .pannesEnCours(pannesEnCours)
                 .pannesResolues(pannesResolues)
-                .pannesAnnulees(pannesAnnulees)
                 .pannesPrioriteHaute(pannesPrioriteHaute)
                 .pannesPrioriteMoyenne(pannesPrioriteMoyenne)
                 .pannesPrioriteBasse(pannesPrioriteBasse)

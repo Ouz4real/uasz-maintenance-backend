@@ -3,6 +3,7 @@ package sn.uasz.uasz_maintenance_backend.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import sn.uasz.uasz_maintenance_backend.dtos.PanneRequest;
 import sn.uasz.uasz_maintenance_backend.entities.Equipement;
 import sn.uasz.uasz_maintenance_backend.entities.Panne;
@@ -14,8 +15,11 @@ import sn.uasz.uasz_maintenance_backend.repositories.EquipementRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.PanneRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
 
+import java.io.IOException;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -50,46 +54,59 @@ public class PanneService {
     public List<Panne> getPannesByDemandeurAndStatut(Long demandeurId, StatutPanne statut) {
         return panneRepository.findByDemandeurIdAndStatut(demandeurId, statut);
     }
+    public Panne updatePrioriteResponsable(Long id, Priorite priorite) {
+        Panne panne = getPanneById(id);
+        panne.setPrioriteResponsable(priorite);
+        return panneRepository.save(panne);
+    }
 
-    // 🔹 création à partir du DTO
-    public Panne createPanne(PanneRequest request) {
-        Equipement equipement = equipementRepository.findById(request.getEquipementId())
+
+    // ✅ CREATE avec image
+    public Panne createPanne(PanneRequest request, MultipartFile image) {
+
+        // ✅ Demandeur obligatoire
+        if (request.getDemandeurId() == null) {
+            throw new IllegalArgumentException("demandeurId est obligatoire (doit venir du JWT).");
+        }
+
+        Utilisateur demandeur = utilisateurRepository.findById(request.getDemandeurId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Equipement non trouvé avec id = " + request.getEquipementId()
+                        "Demandeur non trouvé avec id = " + request.getDemandeurId()
                 ));
 
-        Utilisateur demandeur = null;
-        if (request.getDemandeurId() != null) {
-            demandeur = utilisateurRepository.findById(request.getDemandeurId())
+        Equipement equipement = null;
+        if (request.getEquipementId() != null) {
+            equipement = equipementRepository.findById(request.getEquipementId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Demandeur non trouvé avec id = " + request.getDemandeurId()
+                            "Equipement non trouvé avec id = " + request.getEquipementId()
                     ));
         }
 
         Panne panne = new Panne();
-        panne.setCode(request.getCode());
         panne.setTitre(request.getTitre());
         panne.setDescription(request.getDescription());
         panne.setSignaleePar(request.getSignaleePar());
         panne.setEquipement(equipement);
         panne.setDemandeur(demandeur);
 
-        // valeurs par défaut
+        panne.setTypeEquipement(request.getTypeEquipement());
+        panne.setLieu(request.getLieu());
+
         panne.setDateSignalement(LocalDateTime.now());
+        panne.setPriorite(request.getPriorite() != null ? request.getPriorite() : Priorite.MOYENNE);
+        panne.setStatut(request.getStatut() != null ? request.getStatut() : StatutPanne.OUVERTE);
 
-        if (request.getPriorite() != null) {
-            panne.setPriorite(request.getPriorite());
-        } else {
-            panne.setPriorite(Priorite.MOYENNE);
+        // 1) on sauvegarde une première fois pour avoir l’ID
+        Panne saved = panneRepository.save(panne);
+
+        // 2) si image => on enregistre le fichier et on met imagePath
+        if (image != null && !image.isEmpty()) {
+            String imagePath = savePanneImage(saved.getId(), image);
+            saved.setImagePath(imagePath);
+            saved = panneRepository.save(saved);
         }
 
-        if (request.getStatut() != null) {
-            panne.setStatut(request.getStatut());
-        } else {
-            panne.setStatut(StatutPanne.OUVERTE);
-        }
-
-        return panneRepository.save(panne);
+        return saved;
     }
 
     public Panne updatePanne(Long id, PanneRequest request) {
@@ -100,6 +117,9 @@ public class PanneService {
         if (request.getSignaleePar() != null) existing.setSignaleePar(request.getSignaleePar());
         if (request.getPriorite() != null) existing.setPriorite(request.getPriorite());
         if (request.getStatut() != null) existing.setStatut(request.getStatut());
+
+        if (request.getTypeEquipement() != null) existing.setTypeEquipement(request.getTypeEquipement());
+        if (request.getLieu() != null) existing.setLieu(request.getLieu());
 
         if (request.getEquipementId() != null) {
             Equipement equipement = equipementRepository.findById(request.getEquipementId())
@@ -126,10 +146,33 @@ public class PanneService {
     }
 
     public Panne updateStatut(Long id, StatutPanne nouveauStatut) {
-        Panne panne = panneRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Panne non trouvée avec id " + id));
-
+        Panne panne = getPanneById(id);
         panne.setStatut(nouveauStatut);
         return panneRepository.save(panne);
+    }
+
+    // ======== util image ========
+    private String savePanneImage(Long panneId, MultipartFile file) {
+        try {
+            String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "image";
+            String ext = "";
+
+            int dot = original.lastIndexOf('.');
+            if (dot >= 0) ext = original.substring(dot);
+
+            String filename = "panne-" + panneId + "-" + UUID.randomUUID() + ext;
+
+            Path dir = Paths.get("uploads", "pannes").toAbsolutePath().normalize();
+            Files.createDirectories(dir);
+
+            Path target = dir.resolve(filename);
+            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+
+            // ✅ chemin PUBLIC (servi par /uploads/**)
+            return "/uploads/pannes/" + filename;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur enregistrement image panne", e);
+        }
     }
 }

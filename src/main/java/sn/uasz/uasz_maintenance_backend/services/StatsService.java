@@ -30,7 +30,6 @@ public class StatsService {
         long pannesOuvertes   = panneRepository.countByStatut(StatutPanne.OUVERTE);
         long pannesEnCours    = panneRepository.countByStatut(StatutPanne.EN_COURS);
         long pannesResolues   = panneRepository.countByStatut(StatutPanne.RESOLUE);
-        long pannesAnnulees   = panneRepository.countByStatut(StatutPanne.ANNULEE);
 
         // ===== INTERVENTIONS =====
         long totalInterventions        = interventionRepository.count();
@@ -44,7 +43,6 @@ public class StatsService {
                 .pannesOuvertes(pannesOuvertes)
                 .pannesEnCours(pannesEnCours)
                 .pannesResolues(pannesResolues)
-                .pannesAnnulees(pannesAnnulees)
                 .totalInterventions(totalInterventions)
                 .interventionsPlanifiees(interPlanifiees)
                 .interventionsEnCours(interEnCours)

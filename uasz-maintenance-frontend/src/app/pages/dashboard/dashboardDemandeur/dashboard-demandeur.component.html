@@ -70,20 +70,23 @@
         <h2>Tableau de bord · Demandeur</h2>
         <p>Suivi de vos demandes de maintenance.</p>
       </div>
-
       <div class="topbar-right">
-        <div class="user-chip" (click)="toggleUserMenu()">
-          <div class="chip-avatar">{{ usernameInitial }}</div>
+        <!-- Bouton rond avec les 3 bandes horizontales -->
+        <button
+          class="topbar-menu-btn"
+          (click)="toggleUserMenu()"
+          aria-label="Menu utilisateur"
+        >
+          <!-- Icône toujours en "menu" (pas de croix) -->
+          <span class="material-icons">menu</span>
+        </button>
 
-          <div class="chip-text">
-            <div class="chip-name">{{ username }}</div>
-            <div class="chip-role">demandeur</div>
-          </div>
-
-          <span class="chevron material-icons">
-            {{ userMenuOpen ? 'expand_less' : 'expand_more' }}
-          </span>
-        </div>
+        <!-- Overlay clic extérieur pour fermer le menu -->
+        <div
+          class="user-menu-overlay"
+          *ngIf="userMenuOpen"
+          (click)="closeUserMenu()"
+        ></div>
 
         <!-- MENU UTILISATEUR -->
         <div *ngIf="userMenuOpen" class="user-menu">
@@ -103,10 +106,11 @@
               Tableau de bord
             </button>
 
-            <button class="menu-item">
+            <button class="menu-item" (click)="openProfile()">
               <span class="menu-icon material-icons">person</span>
               Mon profil
             </button>
+
 
           </div>
 
@@ -120,9 +124,10 @@
         </div>
 
       </div>
+
     </div>
 
-    <!-- ========== CONTENU PRINCIPAL ========== -->
+    <!-- ========== CONTENU PRINCIPAL (SCROLLABLE) ========== -->
     <div class="content">
 
       <!-- 🟦 PAGE : DASHBOARD -->
@@ -161,9 +166,6 @@
         <div class="recent-requests">
           <div class="recent-header">
             <h2>Mes demandes récentes</h2>
-            <button class="primary-btn" (click)="openNewDemandeModal()">
-              Nouvelle demande de panne
-            </button>
           </div>
 
           <div class="requests-list">
@@ -179,20 +181,22 @@
                 </p>
               </div>
 
-              <span
-                class="status-chip"
-                [ngClass]="{
-                  'pending': d.statut === 'EN_ATTENTE',
-                  'progress': d.statut === 'EN_COURS',
-                  'done': d.statut === 'RESOLUE'
-                }"
-              >
-                {{
-                  d.statut === 'EN_ATTENTE' ? 'En attente' :
-                    d.statut === 'EN_COURS' ? 'En cours' :
-                      'Résolue'
-                }}
-              </span>
+              <div class="request-right">
+                <span
+                  class="status-chip"
+                  [ngClass]="{
+                    'pending': d.statut === 'EN_ATTENTE',
+                    'progress': d.statut === 'EN_COURS',
+                    'done': d.statut === 'RESOLUE'
+                  }"
+                >
+                  {{
+                    d.statut === 'EN_ATTENTE' ? 'En attente' :
+                      d.statut === 'EN_COURS' ? 'En cours' :
+                        'Résolue'
+                  }}
+                </span>
+              </div>
 
             </div>
           </div>
@@ -211,9 +215,104 @@
             </button>
           </div>
 
+          <!-- 🔍 Filtres statut / urgence / recherche -->
+          <div class="filters-card">
+            <!-- Ligne statuts -->
+            <div class="filters-row status-row">
+              <button
+                class="filter-chip"
+                [class.active]="statutFilter === 'TOUTES'"
+                (click)="setStatutFilter('TOUTES')"
+              >
+                <span class="status-dot dot-all"></span>
+                <span>Toutes ({{ demandes.length }})</span>
+              </button>
+
+              <button
+                class="filter-chip"
+                [class.active]="statutFilter === 'EN_ATTENTE'"
+                (click)="setStatutFilter('EN_ATTENTE')"
+              >
+                <span class="status-dot dot-pending"></span>
+                <span>En attente ({{ enAttente }})</span>
+              </button>
+
+              <button
+                class="filter-chip"
+                [class.active]="statutFilter === 'EN_COURS'"
+                (click)="setStatutFilter('EN_COURS')"
+              >
+                <span class="status-dot dot-progress"></span>
+                <span>En cours ({{ enCours }})</span>
+              </button>
+
+              <button
+                class="filter-chip"
+                [class.active]="statutFilter === 'RESOLUE'"
+                (click)="setStatutFilter('RESOLUE')"
+              >
+                <span class="status-dot dot-done"></span>
+                <span>Résolues ({{ resolues }})</span>
+              </button>
+            </div>
+
+            <!-- Ligne urgences + recherche -->
+            <div class="filters-row urgency-row">
+              <div class="urg-left">
+                <span class="urg-label">Urgence :</span>
+
+                <div class="urg-chips">
+                  <button
+                    class="filter-chip"
+                    [class.active]="urgenceFilter === 'TOUTES'"
+                    (click)="setUrgenceFilter('TOUTES')"
+                  >
+                    Toutes
+                  </button>
+
+                  <button
+                    class="filter-chip"
+                    [class.active]="urgenceFilter === 'BASSE'"
+                    (click)="setUrgenceFilter('BASSE')"
+                  >
+                    Basse
+                  </button>
+
+                  <button
+                    class="filter-chip"
+                    [class.active]="urgenceFilter === 'MOYENNE'"
+                    (click)="setUrgenceFilter('MOYENNE')"
+                  >
+                    Moyenne
+                  </button>
+
+                  <button
+                    class="filter-chip"
+                    [class.active]="urgenceFilter === 'HAUTE'"
+                    (click)="setUrgenceFilter('HAUTE')"
+                  >
+                    Haute
+                  </button>
+                </div>
+              </div>
+
+              <div class="filters-search">
+                <div class="search-wrapper">
+                  <span class="material-icons search-icon">search</span>
+                  <input
+                    type="text"
+                    placeholder="Rechercher par titre, lieu, statut..."
+                    [(ngModel)]="searchTerm"
+                    (ngModelChange)="onSearchChange($event)"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="requests-list">
             <div
-              *ngFor="let d of demandes"
+              *ngFor="let d of pagedDemandes"
               class="request-item request-clickable"
               (click)="openDemandeDetails(d)"
             >
@@ -224,25 +323,267 @@
                 </p>
               </div>
 
-              <span
-                class="status-chip"
-                [ngClass]="{
-                  'pending': d.statut === 'EN_ATTENTE',
-                  'progress': d.statut === 'EN_COURS',
-                  'done': d.statut === 'RESOLUE'
-                }"
-              >
-                {{
-                  d.statut === 'EN_ATTENTE' ? 'En attente' :
-                    d.statut === 'EN_COURS' ? 'En cours' :
-                      'Résolue'
-                }}
-              </span>
+              <div class="request-right">
+                <span
+                  class="status-chip"
+                  [ngClass]="{
+                    'pending': d.statut === 'EN_ATTENTE',
+                    'progress': d.statut === 'EN_COURS',
+                    'done': d.statut === 'RESOLUE'
+                  }"
+                >
+                  {{
+                    d.statut === 'EN_ATTENTE' ? 'En attente' :
+                      d.statut === 'EN_COURS' ? 'En cours' :
+                        'Résolue'
+                  }}
+                </span>
+              </div>
+
             </div>
           </div>
+
+          <!-- 🔢 Pagination -->
+          <div
+            class="pagination-bar"
+            *ngIf="filteredDemandes.length > pageSize"
+          >
+            <div class="pagination-info">
+              Page {{ currentPage }} sur {{ totalPages }}
+            </div>
+
+            <div class="pagination-actions">
+              <button
+                class="secondary-btn pagination-btn"
+                (click)="goToPreviousPage()"
+                [disabled]="currentPage === 1"
+              >
+                Précédent
+              </button>
+
+              <button
+                class="secondary-btn pagination-btn"
+                (click)="goToNextPage()"
+                [disabled]="currentPage === totalPages"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+
         </div>
 
       </ng-container>
+
+      <!-- 🟦 PAGE : MON PROFIL -->
+      <ng-container *ngIf="activeItem === 'profil'">
+        <!-- Header profil -->
+        <div class="profile-page-header">
+          <div>
+            <h2>Mon profil</h2>
+            <p>
+              Gérez vos informations personnelles et les paramètres de votre compte Demandeur.
+            </p>
+          </div>
+
+          <button
+            class="secondary-btn profile-back-btn"
+            type="button"
+            (click)="setActive('dashboard')"
+          >
+            <span class="material-icons">arrow_back</span>
+            Retour au tableau de bord
+          </button>
+        </div>
+
+        <!-- Grille principale : infos perso + rôle -->
+        <div class="profile-grid">
+          <!-- Carte informations personnelles -->
+          <div class="profile-card">
+            <h3 class="profile-card-title">Informations personnelles</h3>
+            <p class="profile-card-subtitle">
+              Ces informations permettent d’identifier le demandeur dans l’application.
+            </p>
+
+            <div class="form-grid profile-form-grid">
+              <div class="form-field">
+                <label for="profilNom">Nom</label>
+                <input
+                  id="profilNom"
+                  type="text"
+                  [(ngModel)]="profilForm.nom"
+                  placeholder="Ex : Mané"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="profilPrenom">Prénom</label>
+                <input
+                  id="profilPrenom"
+                  type="text"
+                  [(ngModel)]="profilForm.prenom"
+                  placeholder="Ex : Ousmane"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="profilEmail">Adresse e-mail</label>
+                <input
+                  id="profilEmail"
+                  type="email"
+                  [(ngModel)]="profilForm.email"
+                  placeholder="Ex : demandeur@uasz.sn"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="profilTelephone">Téléphone</label>
+                <input
+                  id="profilTelephone"
+                  type="text"
+                  [(ngModel)]="profilForm.telephone"
+                  placeholder="Ex : +221 77 000 00 00"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="profilService">Service / Unité</label>
+                <input
+                  id="profilService"
+                  type="text"
+                  [(ngModel)]="profilForm.service"
+                  placeholder="Ex : UFR Sciences et Technologies"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="profilDepartement">Département / Filière</label>
+                <input
+                  id="profilDepartement"
+                  type="text"
+                  [(ngModel)]="profilForm.departement"
+                  placeholder="Ex : Département Informatique"
+                />
+              </div>
+            </div>
+
+            <div class="profile-actions-row">
+              <button
+                type="button"
+                class="secondary-btn"
+                (click)="resetProfilForm()"
+              >
+                Réinitialiser
+              </button>
+              <button
+                type="button"
+                class="primary-btn"
+                (click)="enregistrerProfil()"
+              >
+                Enregistrer les modifications
+              </button>
+            </div>
+          </div>
+
+          <!-- Carte rôle et compte -->
+          <div class="profile-card profile-summary-card">
+            <h3 class="profile-card-title">Rôle et compte</h3>
+            <p class="profile-card-subtitle">
+              Résumé de votre rôle dans le système de maintenance UASZ.
+            </p>
+
+            <div class="profile-user-block">
+              <div class="profile-user-avatar">
+                {{ usernameInitial }}
+              </div>
+              <div>
+                <div class="profile-user-label">Utilisateur</div>
+                <div class="profile-user-email">
+                  {{ profilForm.email }}
+                </div>
+                <div class="profile-role-line">
+                  <span class="profile-role-chip">
+                    DEMANDEUR
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <ul class="profile-role-list">
+              <li>
+                <span class="material-icons profile-role-icon">assignment</span>
+                Créer des demandes de maintenance pour les équipements utilisés.
+              </li>
+              <li>
+                <span class="material-icons profile-role-icon">visibility</span>
+                Suivre l’avancement des demandes (en attente, en cours, résolues).
+              </li>
+              <li>
+                <span class="material-icons profile-role-icon">schedule</span>
+                Relancer une demande si elle reste en attente trop longtemps.
+              </li>
+              <li>
+                <span class="material-icons profile-role-icon">email</span>
+                Recevoir des notifications liées aux interventions sur vos demandes.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Carte sécurité -->
+        <div class="profile-card profile-security-card">
+          <h3 class="profile-card-title">Sécurité & mot de passe</h3>
+          <p class="profile-card-subtitle">
+            Modifiez régulièrement votre mot de passe pour sécuriser votre compte.
+          </p>
+
+          <div class="form-grid profile-form-grid">
+            <div class="form-field form-full">
+              <label for="profilOldPwd">Mot de passe actuel</label>
+              <input
+                id="profilOldPwd"
+                type="password"
+                [(ngModel)]="profilForm.motDePasseActuel"
+                placeholder="Saisissez votre mot de passe actuel"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="profilNewPwd">Nouveau mot de passe</label>
+              <input
+                id="profilNewPwd"
+                type="password"
+                [(ngModel)]="profilForm.nouveauMotDePasse"
+                placeholder="Nouveau mot de passe"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="profilConfirmPwd">Confirmation</label>
+              <input
+                id="profilConfirmPwd"
+                type="password"
+                [(ngModel)]="profilForm.confirmationMotDePasse"
+                placeholder="Confirmez le nouveau mot de passe"
+              />
+            </div>
+          </div>
+
+          <div class="profile-actions-row">
+            <button
+              type="button"
+              class="primary-btn"
+              (click)="enregistrerProfil()"
+            >
+              Mettre à jour le mot de passe
+            </button>
+          </div>
+
+          <!-- TODO: plus tard, on branchera sur une API :
+               this.authService.changePassword(...).subscribe(...) -->
+        </div>
+      </ng-container>
+
 
       <!-- 🟦 PAGE : DOCUMENTS -->
       <ng-container *ngIf="activeItem === 'documents'">
@@ -251,56 +592,267 @@
             <h2>Mes documents</h2>
           </div>
 
-          <p class="request-meta">
-            Cette section permettra de consulter ou télécharger les documents
-            liés à vos demandes (captures, rapports, justificatifs, etc.).
-          </p>
+          <!-- Filtres documents -->
+          <div class="filters-card docs-filters">
+            <div class="filters-row">
+              <button
+                class="filter-chip"
+                [class.active]="docTypeFilter === 'TOUS'"
+                (click)="setDocTypeFilter('TOUS')"
+              >
+                Tous ({{ documents.length }})
+              </button>
+
+              <button
+                class="filter-chip"
+                [class.active]="docTypeFilter === 'IMAGE'"
+                (click)="setDocTypeFilter('IMAGE')"
+              >
+                Images
+              </button>
+
+              <button
+                class="filter-chip"
+                [class.active]="docTypeFilter === 'PDF'"
+                (click)="setDocTypeFilter('PDF')"
+              >
+                PDF
+              </button>
+
+              <button
+                class="filter-chip"
+                [class.active]="docTypeFilter === 'RAPPORT'"
+                (click)="setDocTypeFilter('RAPPORT')"
+              >
+                Rapports
+              </button>
+
+              <button
+                class="filter-chip"
+                [class.active]="docTypeFilter === 'AUTRE'"
+                (click)="setDocTypeFilter('AUTRE')"
+              >
+                Autres
+              </button>
+            </div>
+
+            <div class="filters-row docs-search-row">
+              <div class="filters-search">
+                <div class="search-wrapper">
+                  <span class="material-icons search-icon">search</span>
+                  <input
+                    type="text"
+                    placeholder="Rechercher par nom de document ou demande…"
+                    [(ngModel)]="docSearchTerm"
+                    (ngModelChange)="onDocSearchChange($event)"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Liste des documents -->
+          <div class="requests-list" *ngIf="filteredDocuments.length > 0; else noDocs">
+            <div
+              *ngFor="let doc of filteredDocuments"
+              class="request-item document-item"
+            >
+              <div class="document-left">
+                <div class="document-icon">
+                  <span class="material-icons">
+                    {{ doc.type === 'IMAGE' ? 'image'
+                    : doc.type === 'PDF' ? 'picture_as_pdf'
+                      : doc.type === 'RAPPORT' ? 'description'
+                        : 'insert_drive_file' }}
+                  </span>
+                </div>
+                <div>
+                  <h3 class="request-title">{{ doc.nom }}</h3>
+                  <p class="request-meta">
+                    Lié à :
+                    <button
+                      class="link-unstyled"
+                      type="button"
+                      (click)="allerVersDemande(doc)"
+                    >
+                      {{ doc.demandeTitre }}
+                    </button>
+                    · Déposé le {{ doc.dateDepot | date:'yyyy-MM-dd' }}
+                    <span *ngIf="doc.taille"> · {{ doc.taille }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div class="document-right">
+                <span
+                  class="doc-type-chip"
+                  [ngClass]="{
+                    'doc-image': doc.type === 'IMAGE',
+                    'doc-pdf': doc.type === 'PDF',
+                    'doc-rapport': doc.type === 'RAPPORT',
+                    'doc-autre': doc.type === 'AUTRE'
+                  }"
+                >
+                  {{ doc.type === 'IMAGE' ? 'Image'
+                  : doc.type === 'PDF' ? 'PDF'
+                    : doc.type === 'RAPPORT' ? 'Rapport'
+                      : 'Autre' }}
+                </span>
+
+                <button
+                  class="secondary-btn small"
+                  type="button"
+                  (click)="ouvrirDocument(doc)"
+                  [disabled]="!doc.url"
+                  title="Télécharger ou ouvrir le document"
+                >
+                  {{ doc.url ? 'Ouvrir' : 'Téléchargement bientôt' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aucun document -->
+          <ng-template #noDocs>
+            <div class="docs-empty-state">
+              <p class="docs-empty-title">Aucun document disponible pour le moment</p>
+              <p class="docs-empty-text">
+                Les documents apparaîtront ici lorsque vous ajouterez des images
+                à vos demandes ou que l’équipe maintenance déposera des rapports.
+              </p>
+            </div>
+          </ng-template>
         </div>
       </ng-container>
 
-      <!-- 🟦 PAGE : AIDE & SUPPORT -->
+
+
+      <!-- 🟦 PAGE : AIDE & SUPPORT (améliorée) -->
       <ng-container *ngIf="activeItem === 'aide'">
         <div class="recent-requests">
           <div class="recent-header">
             <h2>Aide & support</h2>
+            <p class="section-subtitle">
+              Retrouvez ici des réponses rapides sur la création, le suivi, la relance et les
+              pièces jointes (images) de vos demandes.
+            </p>
           </div>
 
-          <div class="requests-list">
-            <div class="request-item">
-              <div>
-                <h3 class="request-title">
-                  Comment créer une nouvelle demande ?
-                </h3>
-                <p class="request-meta">
-                  Cliquez sur "Nouvelle demande de panne", remplissez les
-                  informations demandées puis validez. Vous pouvez joindre une
-                  image de l’équipement pour aider l’équipe maintenance.
-                </p>
+          <div class="help-grid">
+            <!-- Colonne gauche : FAQ rapide -->
+            <div class="help-column">
+              <div class="help-section-title">
+                <span class="material-icons help-icon">help_outline</span>
+                <div>
+                  <h3>Questions fréquentes</h3>
+                  <p>Quelques réponses rapides avant de contacter le support.</p>
+                </div>
+              </div>
+
+              <div class="help-faq-list">
+                <div class="request-item help-item">
+                  <div>
+                    <h3 class="request-title">Comment créer une nouvelle demande ?</h3>
+                    <p class="request-meta">
+                      Depuis votre tableau de bord ou l’onglet <strong>“Mes demandes”</strong>,
+                      cliquez sur <strong>“Nouvelle demande de panne”</strong>, renseignez les champs
+                      obligatoires (<strong>titre</strong>, <strong>lieu</strong>, <strong>type d’équipement</strong>,
+                      <strong>urgence</strong>) puis ajoutez une <strong>image de l’équipement</strong> (obligatoire).
+                      Le bouton <strong>“Enregistrer la demande”</strong> s’active uniquement si tout est valide.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="request-item help-item">
+                  <div>
+                    <h3 class="request-title">Comment suivre l’avancement d’une demande ?</h3>
+                    <p class="request-meta">
+                      Le statut de chaque demande (<em>En attente</em>, <em>En cours</em>, <em>Résolue</em>)
+                      est visible dans vos listes. Cliquez sur une demande pour voir le détail (infos + image)
+                      et, si besoin, <strong>la relancer</strong> lorsqu’elle est bloquée trop longtemps.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- 🆕 FAQ spécifique sur la relance -->
+                <div class="request-item help-item">
+                  <div>
+                    <h3 class="request-title">Comment relancer une demande en attente ?</h3>
+                    <p class="request-meta">
+                      Ouvrez l’onglet <strong>“Mes demandes”</strong>, cliquez sur la demande concernée
+                      (statut <em>En attente</em>), puis utilisez le bouton
+                      <strong>“Relancer cette demande”</strong> dans la fenêtre de détails.
+                      (Le bouton devient actif après une certaine durée d’attente, par exemple 5 jours.)
+                    </p>
+                  </div>
+                </div>
+
+                <div class="request-item help-item">
+                  <div>
+                    <h3 class="request-title">Quand utiliser l’urgence “Haute” ?</h3>
+                    <p class="request-meta">
+                      Utilisez l’urgence <strong>Haute</strong> uniquement si la panne bloque un cours,
+                      un examen ou une activité critique (salle de TP, serveur pédagogique, etc.).
+                      Sinon, privilégiez <strong>Basse</strong> ou <strong>Moyenne</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="request-item help-item">
+                  <div>
+                    <h3 class="request-title">Et si mon équipement n’est pas dans la liste ?</h3>
+                    <p class="request-meta">
+                      Sélectionnez <strong>“Autre”</strong> puis précisez le nom de l’équipement.
+                      Exemple : <em>“AUTRE: Robinet – Couloir C03”</em>. Votre demande reste valide.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="request-item help-item">
+                  <div>
+                    <h3 class="request-title">Pourquoi mon image est refusée ?</h3>
+                    <p class="request-meta">
+                      Certaines images peuvent être trop volumineuses. Si un message en rouge s’affiche sous le champ
+                      “Image de l’équipement”, choisissez une image plus légère (ou compressez-la) puis réessayez.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="request-item">
-              <div>
-                <h3 class="request-title">
-                  Qui traite mes demandes ?
-                </h3>
+            <!-- Colonne droite : contact / support -->
+            <div class="help-column help-column-right">
+              <div class="help-support-card">
+                <h3>Besoin d’un coup de main ?</h3>
                 <p class="request-meta">
-                  Vos demandes sont analysées par le responsable maintenance,
-                  qui décide de l’urgence et les affecte à un technicien.
+                  Si vous ne trouvez pas la réponse à votre question, vous pouvez contacter l’équipe maintenance
+                  ou créer directement une nouvelle demande.
                 </p>
-              </div>
-            </div>
 
-            <div class="request-item">
-              <div>
-                <h3 class="request-title">
-                  Qui décide du niveau d’urgence ?
-                </h3>
-                <p class="request-meta">
-                  Le niveau d’urgence est défini par le responsable maintenance,
-                  sur la base des informations fournies (description, image,
-                  impact sur les activités).
-                </p>
+                <div class="help-contact-block">
+                  <div class="help-contact-line">
+                    <span class="material-icons">email</span>
+                    <span>maintenance@uasz.sn</span>
+                  </div>
+                  <div class="help-contact-line">
+                    <span class="material-icons">phone</span>
+                    <span>+221 77 123 45 67</span>
+                  </div>
+                  <div class="help-contact-line">
+                    <span class="material-icons">schedule</span>
+                    <span>Lundi – Vendredi, 8h00 – 17h00</span>
+                  </div>
+                </div>
+
+                <div class="help-actions">
+                  <button class="primary-btn" type="button" (click)="openNewDemandeModal()">
+                    Nouvelle demande de panne
+                  </button>
+
+                  <button class="secondary-btn" type="button" (click)="setActive('mes-demandes')">
+                    Voir mes demandes
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -321,46 +873,89 @@
             <div class="form-grid">
 
               <div class="form-field">
-                <label for="titre">Titre de la demande</label>
+                <label for="titre">Titre de la demande<span class="required">*</span></label>
                 <input
                   id="titre"
                   type="text"
                   name="titre"
                   [(ngModel)]="newDemande.titre"
-                  placeholder="Ex : Panne PC salle INFO-101"
+                  placeholder="Ex : PC en panne"
                 />
               </div>
 
               <div class="form-field">
-                <label for="lieu">Lieu</label>
+                <label for="lieu">Lieu<span class="required">*</span></label>
                 <input
                   id="lieu"
                   type="text"
                   name="lieu"
                   [(ngModel)]="newDemande.lieu"
-                  placeholder="Ex : Bloc pédagogique A, salle 12"
+                  placeholder="Ex : PGF-SUP salle 10"
                 />
               </div>
 
+              <!-- Type d'équipement (preset) -->
               <div class="form-field">
-                <label for="typeEquipement">Type d’équipement</label>
+                <label for="equipementPreset">Type d’équipement<span class="required">*</span></label>
+
+                <select
+                  id="equipementPreset"
+                  name="equipementPreset"
+                  [(ngModel)]="selectedEquipementPreset"
+                  (ngModelChange)="selectedEquipementPreset = $event; equipementAutre = ($event === 'AUTRE') ? equipementAutre : ''"
+                >
+
+                <option value="" disabled>Choisissez un équipement…</option>
+
+                  <option *ngFor="let name of equipementsPreset" [value]="name">
+                    {{ name === 'AUTRE' ? 'Autre (équipement non listé)' : name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Champ "Autre" si nécessaire -->
+              <div class="form-field" *ngIf="isAutreEquipement()">
+                <label for="equipementAutre">Précisez l’équipement<span class="required">*</span></label>
                 <input
-                  id="typeEquipement"
+                  id="equipementAutre"
                   type="text"
-                  name="typeEquipement"
-                  [(ngModel)]="newDemande.typeEquipement"
-                  placeholder="Ordinateur, imprimante, vidéoprojecteur..."
+                  name="equipementAutre"
+                  [(ngModel)]="equipementAutre"
+                  placeholder="Ex : Lampe"
                 />
               </div>
 
+
+              <!-- Urgence du demandeur -->
               <div class="form-field">
-                <label for="image">Image de l’équipement (optionnel)</label>
+                <label for="urgenceDemandeur">Urgence (votre estimation)<span class="required">*</span></label>
+                <select
+                  id="urgenceDemandeur"
+                  name="urgenceDemandeur"
+                  [(ngModel)]="newDemande.urgenceDemandeur"
+                >
+                  <option [ngValue]="null" disabled>Choisissez une urgence…</option>
+                  <option [ngValue]="'BASSE'">Basse</option>
+                  <option [ngValue]="'MOYENNE'">Moyenne</option>
+                  <option [ngValue]="'HAUTE'">Haute</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="image">
+                  Image de l’équipement <span class="required">*</span>
+                </label>
                 <input
                   id="image"
                   type="file"
                   accept="image/*"
                   (change)="onFileSelected($event)"
                 />
+
+                <p class="error-text" *ngIf="imageErrorMessage">
+                  {{ imageErrorMessage }}
+                </p>
+
 
                 <!-- Aperçu + bouton suppression -->
                 <div
@@ -401,9 +996,14 @@
             <button class="secondary-btn" (click)="closeNewDemandeModal()">
               Annuler
             </button>
-            <button class="primary-btn" (click)="submitNewDemande()">
+            <button
+              class="primary-btn"
+              (click)="submitNewDemande()"
+              [disabled]="!isNewDemandeValid()"
+            >
               Enregistrer la demande
             </button>
+
           </div>
         </div>
       </div>
@@ -432,6 +1032,20 @@
                 <span class="details-label">Type d’équipement</span>
                 <span class="details-value">
                   {{ selectedDemande.typeEquipement }}
+                </span>
+              </div>
+
+              <!-- Urgence demandeur -->
+              <div class="details-item">
+                <span class="details-label">Urgence (demandeur)</span>
+                <span class="details-value">
+                  <span
+                    class="urgence-chip"
+                    [ngClass]="getUrgenceChipClass(selectedDemande?.urgenceDemandeur)"
+                    *ngIf="selectedDemande?.urgenceDemandeur"
+                  >
+                    {{ getUrgenceLabel(selectedDemande?.urgenceDemandeur) }}
+                  </span>
                 </span>
               </div>
 
@@ -496,6 +1110,14 @@
           <div class="modal-footer">
             <button class="secondary-btn" (click)="closeDetailsModal()">
               Fermer
+            </button>
+
+            <button
+              class="primary-btn relance-modal-btn"
+              (click)="relancerSelectedDemande()"
+              [disabled]="!selectedDemande || !peutRelancer(selectedDemande)"
+            >
+              Relancer cette demande
             </button>
           </div>
         </div>

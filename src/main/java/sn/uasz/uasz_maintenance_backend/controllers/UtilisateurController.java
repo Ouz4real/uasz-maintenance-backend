@@ -10,6 +10,8 @@ import sn.uasz.uasz_maintenance_backend.dtos.UtilisateurResponse;
 import sn.uasz.uasz_maintenance_backend.dtos.ChangePasswordRequest;
 import sn.uasz.uasz_maintenance_backend.dtos.UpdateProfileRequest;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
+import sn.uasz.uasz_maintenance_backend.enums.Role;
+import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
 import sn.uasz.uasz_maintenance_backend.services.UtilisateurService;
 
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.List;
 public class UtilisateurController {
 
     private final UtilisateurService utilisateurService;
+    private final UtilisateurRepository utilisateurRepository;
 
     // ================== CRUD de base ==================
 
@@ -28,11 +31,6 @@ public class UtilisateurController {
     @ResponseStatus(HttpStatus.CREATED)
     public UtilisateurResponse create(@RequestBody UtilisateurRequest request) {
         return utilisateurService.create(request);
-    }
-
-    @GetMapping
-    public List<UtilisateurResponse> getAll() {
-        return utilisateurService.getAll();
     }
 
     // ========= PROFIL DU USER CONNECTÉ =========
@@ -81,4 +79,14 @@ public class UtilisateurController {
     public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
+
+    @GetMapping
+    public ResponseEntity<List<UtilisateurResponse>> getAll(@RequestParam(required = false) Role role) {
+        if (role == null) {
+            return ResponseEntity.ok(utilisateurService.getAll());
+        }
+        return ResponseEntity.ok(utilisateurService.getByRole(role)); // à créer si pas déjà
+    }
+
+
 }

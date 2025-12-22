@@ -9,6 +9,7 @@ import sn.uasz.uasz_maintenance_backend.dtos.UpdateProfileRequest;
 import sn.uasz.uasz_maintenance_backend.dtos.UtilisateurRequest;
 import sn.uasz.uasz_maintenance_backend.dtos.UtilisateurResponse;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
+import sn.uasz.uasz_maintenance_backend.enums.Role;
 import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
 
 import java.util.List;
@@ -124,4 +125,14 @@ public class UtilisateurService {
         utilisateur.setMotDePasse(encoded);
         utilisateurRepository.save(utilisateur);
     }
+
+    public List<UtilisateurResponse> getByRole(Role role) {
+        return utilisateurRepository.findByRole(role)
+                .stream()
+                .map(this::toResponse) // ta méthode mapper existante
+                .toList();
+    }
+
+
+
 }

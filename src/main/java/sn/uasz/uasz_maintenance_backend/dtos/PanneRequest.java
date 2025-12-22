@@ -7,15 +7,17 @@ import sn.uasz.uasz_maintenance_backend.enums.StatutPanne;
 @Data
 public class PanneRequest {
 
-    private Long equipementId;
-    private Long demandeurId;      // id de l’utilisateur demandeur
+    private Long equipementId;   // nullable si AUTRE
+    private Long demandeurId;    // rempli depuis JWT dans le controller
 
-    private String code;
     private String titre;
     private String description;
 
-    private Priorite priorite;     // optionnel → par défaut MOYENNE si null
-    private StatutPanne statut;    // optionnel → par défaut OUVERTE si null
+    private String typeEquipement; // ex: "IMPRIMANTE" ou "AUTRE: Videoprojecteur"
+    private String lieu;           // ex: "Amphi 1"
 
-    private String signaleePar;    // optionnel (texte libre)
+    private Priorite priorite;     // BASSE/MOYENNE/HAUTE (si tu utilises Priorite comme urgence)
+    private StatutPanne statut;    // OUVERTE/EN_COURS/RESOLUE
+
+    private String signaleePar;
 }

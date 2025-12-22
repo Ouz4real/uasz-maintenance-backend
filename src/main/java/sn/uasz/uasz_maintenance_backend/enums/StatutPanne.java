@@ -4,5 +4,4 @@ public enum StatutPanne {
     OUVERTE,
     EN_COURS,
     RESOLUE,
-    ANNULEE
 }

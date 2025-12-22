@@ -72,9 +72,7 @@ public class DemandeurDashboardService {
         long pannesResolues = pannes.stream()
                 .filter(p -> p.getStatut() == StatutPanne.RESOLUE)
                 .count();
-        long pannesAnnulees = pannes.stream()
-                .filter(p -> p.getStatut() == StatutPanne.ANNULEE)
-                .count();
+
 
         // Dernière panne créée
         LocalDateTime dernierePanneCree = pannes.stream()
@@ -138,7 +136,6 @@ public class DemandeurDashboardService {
                 .pannesOuvertes(pannesOuvertes)
                 .pannesEnCours(pannesEnCours)
                 .pannesResolues(pannesResolues)
-                .pannesAnnulees(pannesAnnulees)
                 .tempsMoyenResolutionMinutes(tempsMoyenResolutionMinutes)
                 .dernierePanneCree(dernierePanneCree)
                 .dernierePanneResolue(dernierePanneResolue)

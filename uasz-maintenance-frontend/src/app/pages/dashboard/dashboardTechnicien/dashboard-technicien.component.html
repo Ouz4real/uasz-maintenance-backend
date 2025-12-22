@@ -2,7 +2,7 @@
 
 <div class="dashboard-layout">
   <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.hidden]="activeItem === 'profile'">
     <div class="sidebar-header">
       <div class="avatar-circle">{{ usernameInitial }}</div>
       <div class="sidebar-title">
@@ -12,42 +12,27 @@
     </div>
 
     <nav class="sidebar-nav">
-      <!-- Tableau de bord -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'dashboard'"
-        (click)="setActive('dashboard')"
-      >
+      <button class="nav-item" [class.active]="activeItem === 'dashboard'" (click)="setActive('dashboard')">
         <span class="nav-icon material-icons">dashboard</span>
         <span class="nav-label">Tableau de bord</span>
       </button>
 
-      <!-- Mes interventions -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'interventions'"
-        (click)="setActive('interventions')"
-      >
+      <button class="nav-item" [class.active]="activeItem === 'interventions'" (click)="setActive('interventions')">
         <span class="nav-icon material-icons">build</span>
         <span class="nav-label">Mes interventions</span>
       </button>
 
-      <!-- Équipements -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'equipements'"
-        (click)="setActive('equipements')"
-      >
+      <button class="nav-item" [class.active]="activeItem === 'equipements'" (click)="setActive('equipements')">
         <span class="nav-icon material-icons">devices</span>
         <span class="nav-label">Équipements</span>
       </button>
 
-      <!-- Aide & support -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'help'"
-        (click)="setActive('help')"
-      >
+      <button class="nav-item" [class.active]="activeItem === 'historique'" (click)="setActive('historique')">
+        <span class="nav-icon material-icons">history</span>
+        <span class="nav-label">Historique</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeItem === 'help'" (click)="setActive('help')">
         <span class="nav-icon material-icons">help_outline</span>
         <span class="nav-label">Aide &amp; Support</span>
       </button>
@@ -55,7 +40,7 @@
   </aside>
 
   <!-- ===== MAIN ===== -->
-  <main class="main">
+  <main class="main" [class.full]="activeItem === 'profile'">
     <!-- Topbar -->
     <header class="topbar">
       <div class="topbar-left">
@@ -64,17 +49,18 @@
       </div>
 
       <div class="topbar-right">
-        <div class="user-chip" (click)="toggleUserMenu()">
+        <div class="user-chip icon-only" (click)="toggleUserMenu()">
           <div class="chip-avatar">{{ usernameInitial }}</div>
           <div class="chip-text">
             <div class="chip-name">{{ username }}</div>
             <div class="chip-role">technicien</div>
           </div>
-          <span class="material-icons chevron">expand_more</span>
+          <span class="material-icons burger">menu</span>
         </div>
 
-        <div class="user-menu" *ngIf="userMenuOpen">
-          <div class="user-menu-header">
+        <div class="user-menu" *ngIf="userMenuOpen" (click)="$event.stopPropagation()">
+
+        <div class="user-menu-header">
             <div class="menu-avatar">{{ usernameInitial }}</div>
             <div>
               <div class="menu-name">{{ username }}</div>
@@ -83,14 +69,15 @@
           </div>
 
           <div class="user-menu-body">
-            <button class="menu-item">
-              <span class="menu-icon material-icons">person</span>
-              <span>Mon profil</span>
-            </button>
-
             <button class="menu-item" (click)="goToDashboard()">
               <span class="menu-icon material-icons">space_dashboard</span>
               <span>Tableau de bord</span>
+            </button>
+
+
+            <button class="menu-item" (click)="goToProfile()">
+              <span class="menu-icon material-icons">person</span>
+              <span>Mon profil</span>
             </button>
           </div>
 
@@ -104,77 +91,997 @@
       </div>
     </header>
 
+    <div
+      class="menu-backdrop"
+      *ngIf="userMenuOpen"
+      (click)="closeUserMenu()"
+    ></div>
+
+
     <!-- Contenu principal -->
     <section class="content">
-      <!-- Carte de bienvenue -->
-      <section class="welcome-card">
-        <h1>Bienvenue, {{ username.toLowerCase() }}</h1>
-        <p>
-          Voici votre espace de suivi des interventions qui vous sont assignées.
-        </p>
-      </section>
 
-      <!-- Stats -->
-      <section class="stats-row">
-        <article class="stat-card">
-          <h3>À faire</h3>
-          <p>Interventions qui n'ont pas encore démarré.</p>
-          <div class="stat-value">{{ aFaire }}</div>
-        </article>
+      <!-- Dashboard : bienvenue + stats -->
+      <ng-container *ngIf="activeItem === 'dashboard'">
+        <section class="welcome-card">
+          <h1>Bienvenue, {{ username.toLowerCase() }}</h1>
+          <p>Voici votre espace de suivi des interventions qui vous sont assignées.</p>
+        </section>
 
-        <article class="stat-card">
-          <h3>En cours</h3>
-          <p>Interventions actuellement en traitement.</p>
-          <div class="stat-value">{{ enCours }}</div>
-        </article>
+        <section class="stats-row">
+          <article class="stat-card">
+            <h3>À faire</h3>
+            <p>Interventions qui n'ont pas encore démarré.</p>
+            <div class="stat-value">{{ aFaire }}</div>
+          </article>
 
-        <article class="stat-card">
-          <h3>Terminées</h3>
-          <p>Interventions clôturées avec succès.</p>
-          <div class="stat-value">{{ terminees }}</div>
-        </article>
-      </section>
+          <article class="stat-card">
+            <h3>En cours</h3>
+            <p>Interventions actuellement en traitement.</p>
+            <div class="stat-value">{{ enCours }}</div>
+          </article>
 
-      <!-- Interventions récentes -->
-      <section class="recent-requests">
-        <div class="recent-header">
-          <h2>Mes interventions récentes</h2>
-          <button class="primary-btn">
-            Nouvelle intervention (bientôt)
-          </button>
-        </div>
+          <article class="stat-card">
+            <h3>Terminées</h3>
+            <p>Interventions clôturées avec succès.</p>
+            <div class="stat-value">{{ terminees }}</div>
+          </article>
+        </section>
+      </ng-container>
 
-        <div class="requests-list">
-          <div class="request-item" *ngFor="let i of interventions">
+      <!-- Liste interventions : affichée sur Dashboard ET Mes interventions -->
+      <ng-container *ngIf="activeItem === 'dashboard' || activeItem === 'interventions'">
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>{{ activeItem === 'dashboard' ? 'Signalements' : 'Mes interventions' }}</h2>
+            <p class="recent-subtitle">
+              Vue synthétique des demandes en fonction de leur statut et de leur niveau d’urgence.
+            </p>
+          </div>
+
+          <!-- Capsule filtres + recherche -->
+          <div class="filters-shell">
+            <!-- Ligne 1 : filtres statut -->
+            <div class="filters-row top-row">
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'TOUS'" (click)="setStatutFilter('TOUS')">
+                <span class="status-dot all"></span>
+                Toutes ({{ interventions.length }})
+              </button>
+
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'A_FAIRE'" (click)="setStatutFilter('A_FAIRE')">
+                <span class="status-dot pending"></span>
+                À faire ({{ aFaire }})
+              </button>
+
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'EN_COURS'" (click)="setStatutFilter('EN_COURS')">
+                <span class="status-dot progress"></span>
+                En cours ({{ enCours }})
+              </button>
+
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'TERMINEE'" (click)="setStatutFilter('TERMINEE')">
+                <span class="status-dot done"></span>
+                Terminées ({{ terminees }})
+              </button>
+            </div>
+
+            <!-- Ligne 2 : urgences + recherche -->
+            <div class="filters-row bottom-row">
+              <div class="filters-left">
+                <span class="filter-label">Urgence :</span>
+
+                <button type="button" class="chip-filter" [class.active]="urgenceFilter === 'TOUTES'" (click)="setUrgenceFilter('TOUTES')">
+                  Toutes
+                </button>
+                <button type="button" class="chip-filter" [class.active]="urgenceFilter === 'BASSE'" (click)="setUrgenceFilter('BASSE')">
+                  Basse
+                </button>
+                <button type="button" class="chip-filter" [class.active]="urgenceFilter === 'MOYENNE'" (click)="setUrgenceFilter('MOYENNE')">
+                  Moyenne
+                </button>
+                <button type="button" class="chip-filter" [class.active]="urgenceFilter === 'HAUTE'" (click)="setUrgenceFilter('HAUTE')">
+                  Haute
+                </button>
+              </div>
+
+              <div class="filters-search">
+                <span class="material-icons search-icon">search</span>
+                <input type="text" placeholder="Rechercher par titre, lieu..." [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableau des interventions -->
+          <div class="signals-table">
+            <div class="signals-header-row">
+              <div class="col-title">Titre</div>
+              <div class="col-status">Statut</div>
+              <div class="col-urgency">Urgence</div>
+              <div class="col-actions">Actions</div>
+            </div>
+
+            <div class="signals-row" *ngFor="let i of paginatedInterventions">
+              <div class="col-title">
+                <div class="request-title">{{ i.titre }}</div>
+                <div class="request-meta">
+                  Créée le {{ i.dateCreation | date: 'yyyy-MM-dd' }} · {{ i.lieu }}
+                </div>
+              </div>
+
+              <div class="col-status">
+                <span class="status-chip" [ngClass]="{ pending: i.statut === 'A_FAIRE', progress: i.statut === 'EN_COURS', done: i.statut === 'TERMINEE' }">
+                  {{ i.statut === 'A_FAIRE' ? 'À faire' : i.statut === 'EN_COURS' ? 'En cours' : 'Terminée' }}
+                </span>
+              </div>
+
+              <div class="col-urgency">
+                <span class="urgence-chip" [ngClass]="{ low: i.urgence === 'BASSE', medium: i.urgence === 'MOYENNE', high: i.urgence === 'HAUTE' }">
+                  {{ i.urgence === 'BASSE' ? 'Basse' : i.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+                </span>
+              </div>
+
+              <div class="col-actions">
+                <button type="button" class="details-btn" (click)="openDetails(i)">
+                  <span class="material-icons">visibility</span>
+                  <span>Voir détails</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pagination" *ngIf="totalPages > 1">
+            <button type="button" class="icon-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+              <span class="material-icons">chevron_left</span>
+            </button>
+
+            <span class="pagination-info">Page {{ currentPage }} / {{ totalPages }}</span>
+
+            <button type="button" class="icon-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+              <span class="material-icons">chevron_right</span>
+            </button>
+          </div>
+        </section>
+      </ng-container>
+      <ng-container *ngIf="activeItem === 'profile'">
+        <section class="profile-page">
+          <!-- Header -->
+          <div class="profile-top">
             <div>
-              <h3 class="request-title">{{ i.titre }}</h3>
-              <p class="request-meta">
-                Créée le {{ i.dateCreation | date: 'yyyy-MM-dd' }} ·
-                {{ i.lieu }}
+              <h2>Mon profil</h2>
+              <p>
+                Gérez vos informations personnelles et les paramètres de votre compte
+                Technicien.
               </p>
             </div>
 
-            <div>
-              <span
-                class="status-chip"
-                [ngClass]="{
-                  pending: i.statut === 'A_FAIRE',
-                  progress: i.statut === 'EN_COURS',
-                  done: i.statut === 'TERMINEE'
-                }"
-              >
-                {{
-                  i.statut === 'A_FAIRE'
-                    ? 'À faire'
-                    : i.statut === 'EN_COURS'
-                      ? 'En cours'
-                      : 'Terminée'
-                }}
+            <button type="button" class="secondary-btn" (click)="goToDashboard()">
+              <span class="material-icons">arrow_back</span>
+              Retour au tableau de bord
+            </button>
+          </div>
+
+          <div class="profile-grid-v2">
+            <!-- LEFT: Infos personnelles -->
+            <article class="profile-card-v2">
+              <div class="card-title">
+                <h3>Informations personnelles</h3>
+                <p>
+                  Ces informations permettent d’identifier le technicien dans
+                  l’application.
+                </p>
+              </div>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label>Nom</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="profileDraft.lastName"
+                    placeholder="Ex : Mané"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Prénom</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="profileDraft.firstName"
+                    placeholder="Ex : Ousmane"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Adresse e-mail</label>
+                  <input
+                    type="email"
+                    [(ngModel)]="profileDraft.email"
+                    placeholder="ex: technicien@uasz.sn"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Téléphone</label>
+                  <input
+                    type="tel"
+                    [(ngModel)]="profileDraft.phone"
+                    placeholder="Ex : +221 77 000 00 00"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Service / Unité</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="profileDraft.service"
+                    placeholder="Ex : Service Informatique"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Département / Composante</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="profileDraft.department"
+                    placeholder="Ex : UFR Sciences et Technologies"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Spécialité</label>
+                  <select [(ngModel)]="profileDraft.speciality">
+                    <option value="">Non définie</option>
+                    <option value="BUREAUTIQUE">Bureautique</option>
+                    <option value="RESEAU">Réseau</option>
+                    <option value="AUDIOVISUEL">Audiovisuel</option>
+                    <option value="ELECTRICITE">Électricité</option>
+                    <option value="AUTRE">Autre</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Disponibilité</label>
+                  <select [(ngModel)]="profileDraft.availability">
+                    <option value="DISPONIBLE">Disponible</option>
+                    <option value="EN_INTERVENTION">En intervention</option>
+                    <option value="INDISPONIBLE">Indisponible</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="actions-row">
+                <button type="button" class="secondary-btn" (click)="resetProfileDraft()">
+                  Réinitialiser
+                </button>
+
+                <button type="button" class="primary-btn" (click)="saveProfileV2()">
+                  Enregistrer les modifications
+                </button>
+              </div>
+
+              <div class="profile-toast" *ngIf="profileSavedMsg">
+                <span class="material-icons">check_circle</span>
+                <span>{{ profileSavedMsg }}</span>
+              </div>
+            </article>
+
+            <!-- RIGHT column -->
+            <div class="right-col">
+              <!-- Role & account -->
+              <article class="profile-card-v2">
+                <div class="card-title">
+                  <h3>Rôle et compte</h3>
+                  <p>Résumé de votre rôle dans le système de maintenance UASZ.</p>
+                </div>
+
+                <div class="role-box">
+                  <div class="role-avatar">{{ usernameInitial }}</div>
+
+                  <div class="role-meta">
+                    <div class="role-name">Utilisateur</div>
+                    <div class="role-email">{{ profileDraft.email || '—' }}</div>
+
+                    <div class="role-badge-row">
+                      <span class="role-label">Rôle</span>
+                      <span class="role-chip">TECHNICIEN</span>
+                    </div>
+                  </div>
+                </div>
+
+                <ul class="role-list">
+                  <li>
+                    <span class="material-icons">task_alt</span>
+                    Prioriser les interventions et suivre leur avancement.
+                  </li>
+                  <li>
+                    <span class="material-icons">assignment</span>
+                    Traiter les signalements qui vous sont affectés.
+                  </li>
+                  <li>
+                    <span class="material-icons">inventory_2</span>
+                    Consommer des pièces du stock si nécessaire.
+                  </li>
+                  <li>
+                    <span class="material-icons">insights</span>
+                    Renseigner des notes et clôturer l’intervention.
+                  </li>
+                </ul>
+              </article>
+
+              <!-- Security -->
+              <article class="profile-card-v2">
+                <div class="card-title">
+                  <h3>Sécurité &amp; mot de passe</h3>
+                  <p>Modifiez régulièrement votre mot de passe pour sécuriser votre compte.</p>
+                </div>
+
+                <div class="security-grid">
+                  <div class="field">
+                    <label>Mot de passe actuel</label>
+                    <input type="password" [(ngModel)]="passwordForm.current" />
+                  </div>
+
+                  <div class="field">
+                    <label>Nouveau mot de passe</label>
+                    <input
+                      type="password"
+                      [(ngModel)]="passwordForm.new"
+                      placeholder="Minimum 6 caractères"
+                    />
+                  </div>
+
+                  <div class="field full">
+                    <label>Confirmer</label>
+                    <input
+                      type="password"
+                      [(ngModel)]="passwordForm.confirm"
+                      placeholder="Répéter le mot de passe"
+                    />
+                  </div>
+                </div>
+
+                <div class="actions-row right">
+                  <button
+                    type="button"
+                    class="primary-btn"
+                    [disabled]="!canChangePassword()"
+                    (click)="changePassword()"
+                  >
+                    Mettre à jour
+                  </button>
+                </div>
+
+                <div class="profile-toast warn" *ngIf="passwordMsg">
+                  <span class="material-icons">info</span>
+                  <span>{{ passwordMsg }}</span>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+
+
+
+      <!-- ÉQUIPEMENTS -->
+      <ng-container *ngIf="activeItem === 'equipements'">
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>Mes équipements</h2>
+            <p class="recent-subtitle">
+              Équipements liés à vos interventions. Consultation uniquement.
+            </p>
+          </div>
+
+          <div class="equip-top">
+            <div class="filters-search equip-search">
+              <span class="material-icons search-icon">search</span>
+              <input
+                type="text"
+                placeholder="Rechercher par nom, code, lieu..."
+                [(ngModel)]="equipSearch"
+                (ngModelChange)="onEquipSearchChange()"
+              />
+            </div>
+          </div>
+
+          <div class="equip-table" *ngIf="equipementsView.length > 0; else emptyEquip">
+            <div class="equip-header-row">
+              <div class="eq-col-name">Équipement</div>
+              <div class="eq-col-place">Lieu</div>
+              <div class="eq-col-count">Interventions</div>
+              <div class="eq-col-action">Action</div>
+            </div>
+
+            <div class="equip-row" *ngFor="let e of equipementsView">
+              <div class="eq-col-name">
+                <div class="eq-name">{{ e.nom }}</div>
+                <div class="eq-meta">{{ e.type }} · {{ e.code }}</div>
+              </div>
+
+              <div class="eq-col-place">
+                <span class="place-chip">{{ e.lieu }}</span>
+              </div>
+
+              <div class="eq-col-count">
+                <span class="count-pill">{{ e.interventionsCount }}</span>
+              </div>
+
+              <div class="eq-col-action">
+                <button type="button" class="details-btn" (click)="openEquipementDetails(e)">
+                  <span class="material-icons">visibility</span>
+                  <span>Voir détails</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #emptyEquip>
+            <div class="empty-state">
+              <span class="material-icons">devices_other</span>
+              <h3>Aucun équipement trouvé</h3>
+              <p>Essayez une autre recherche ou vérifiez vos interventions.</p>
+            </div>
+          </ng-template>
+        </section>
+      </ng-container>
+
+      <!-- Historique / Help (placeholder propre, sans casser) -->
+      <ng-container *ngIf="activeItem === 'historique'">
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>Historique</h2>
+            <p class="recent-subtitle">
+              Retrouvez vos interventions terminées, avec filtres et détails.
+            </p>
+          </div>
+
+          <!-- Résumé -->
+          <div class="history-summary">
+            <div class="summary-pill">
+              <span class="material-icons">task_alt</span>
+              Total terminées : <strong>{{ terminees }}</strong>
+            </div>
+          </div>
+
+          <!-- Filtres Historique -->
+          <div class="history-filters">
+            <div class="history-row">
+              <div class="filters-left">
+                <span class="filter-label">Urgence :</span>
+
+                <button
+                  type="button"
+                  class="chip-filter"
+                  [class.active]="historiqueUrgence === 'TOUTES'"
+                  (click)="setHistoriqueUrgence('TOUTES')"
+                >
+                  Toutes
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-filter"
+                  [class.active]="historiqueUrgence === 'BASSE'"
+                  (click)="setHistoriqueUrgence('BASSE')"
+                >
+                  Basse
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-filter"
+                  [class.active]="historiqueUrgence === 'MOYENNE'"
+                  (click)="setHistoriqueUrgence('MOYENNE')"
+                >
+                  Moyenne
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-filter"
+                  [class.active]="historiqueUrgence === 'HAUTE'"
+                  (click)="setHistoriqueUrgence('HAUTE')"
+                >
+                  Haute
+                </button>
+              </div>
+
+              <div class="filters-search history-search">
+                <span class="material-icons search-icon">search</span>
+                <input
+                  type="text"
+                  placeholder="Rechercher (titre, lieu...)"
+                  [(ngModel)]="historiqueSearch"
+                  (ngModelChange)="applyHistoriqueFilters()"
+                />
+              </div>
+            </div>
+
+            <div class="history-row date-row">
+              <div class="date-field">
+                <label>Du</label>
+                <input
+                  type="date"
+                  [(ngModel)]="historiqueFrom"
+                  (ngModelChange)="applyHistoriqueFilters()"
+                />
+              </div>
+
+              <div class="date-field">
+                <label>Au</label>
+                <input
+                  type="date"
+                  [(ngModel)]="historiqueTo"
+                  (ngModelChange)="applyHistoriqueFilters()"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableau Historique -->
+          <div class="signals-table" *ngIf="paginatedHistorique.length > 0; else emptyHistory">
+            <div class="signals-header-row">
+              <div class="col-title">Titre</div>
+              <div class="col-status">Statut</div>
+              <div class="col-urgency">Urgence</div>
+              <div class="col-actions">Actions</div>
+            </div>
+
+            <div class="signals-row" *ngFor="let i of paginatedHistorique">
+              <div class="col-title">
+                <div class="request-title">{{ i.titre }}</div>
+                <div class="request-meta">
+                  Terminée le {{ i.dateCreation | date: 'yyyy-MM-dd' }} · {{ i.lieu }}
+                </div>
+              </div>
+
+              <div class="col-status">
+                <span class="status-chip done">Terminée</span>
+              </div>
+
+              <div class="col-urgency">
+          <span
+            class="urgence-chip"
+            [ngClass]="{
+              low: i.urgence === 'BASSE',
+              medium: i.urgence === 'MOYENNE',
+              high: i.urgence === 'HAUTE'
+            }"
+          >
+            {{ i.urgence === 'BASSE' ? 'Basse' : i.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+          </span>
+              </div>
+
+              <div class="col-actions">
+                <button type="button" class="details-btn" (click)="openDetails(i)">
+                  <span class="material-icons">visibility</span>
+                  <span>Voir détails</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #emptyHistory>
+            <div class="empty-state">
+              <span class="material-icons">history</span>
+              <h3>Aucune intervention terminée</h3>
+              <p>Votre historique s’alimentera à mesure que vous clôturez des interventions.</p>
+            </div>
+          </ng-template>
+
+          <!-- Pagination Historique -->
+          <div class="pagination" *ngIf="historiqueTotalPages > 1">
+            <button
+              type="button"
+              class="icon-btn"
+              [disabled]="historiquePage === 1"
+              (click)="goToHistoriquePage(historiquePage - 1)"
+            >
+              <span class="material-icons">chevron_left</span>
+            </button>
+
+            <span class="pagination-info">
+        Page {{ historiquePage }} / {{ historiqueTotalPages }}
+      </span>
+
+            <button
+              type="button"
+              class="icon-btn"
+              [disabled]="historiquePage === historiqueTotalPages"
+              (click)="goToHistoriquePage(historiquePage + 1)"
+            >
+              <span class="material-icons">chevron_right</span>
+            </button>
+          </div>
+        </section>
+      </ng-container>
+
+
+      <ng-container *ngIf="activeItem === 'help'">
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>Aide &amp; support</h2>
+            <p class="recent-subtitle">
+              Guides rapides, contacts et réponses aux questions fréquentes.
+            </p>
+          </div>
+
+          <div class="help-shell">
+            <!-- ================= LEFT : FAQ ================= -->
+            <div class="help-left">
+              <div class="help-section-title">
+                <div class="help-badge material-icons">info</div>
+                <div>
+                  <h3>Questions fréquentes</h3>
+                  <p>Quelques réponses rapides avant de contacter le support.</p>
+                </div>
+              </div>
+
+              <!-- FAQ item 1 -->
+              <div class="faq-card">
+                <h4>Comment traiter une intervention “À faire” ?</h4>
+                <p>
+                  Ouvrez <strong>Mes interventions</strong>, cliquez sur <strong>Voir détails</strong>,
+                  puis <strong>Accepter l’intervention</strong> ou <strong>Refuser</strong>.
+                </p>
+              </div>
+
+              <!-- FAQ item 2 -->
+              <div class="faq-card">
+                <h4>Pourquoi le bouton “Terminer l’intervention” est désactivé ?</h4>
+                <p>
+                  Il devient actif uniquement si vous avez ajouté une <strong>image</strong> et une
+                  <strong>note technicien</strong>. Les pièces utilisées sont <strong>optionnelles</strong>.
+                </p>
+              </div>
+
+              <!-- FAQ item 3 -->
+              <div class="faq-card">
+                <h4>Comment ajouter des pièces utilisées ?</h4>
+                <p>
+                  Dans la modale “En cours”, choisissez une <strong>pièce</strong> dans la liste,
+                  puis saisissez une <strong>quantité ≥ 1</strong>. Vous pouvez ajouter plusieurs pièces.
+                </p>
+              </div>
+
+              <!-- FAQ item 4 -->
+              <div class="faq-card">
+                <h4>Que se passe-t-il si je refuse une intervention ?</h4>
+                <p>
+                  Un message de confirmation s’affiche, puis le Responsable Maintenance est informé.
+                </p>
+              </div>
+            </div>
+
+            <!-- ================= RIGHT : CONTACT BOX ================= -->
+            <div class="help-right">
+              <div class="contact-card">
+                <h3>Besoin d’un coup de main ?</h3>
+                <p>
+                  Si vous ne trouvez pas la réponse à votre question, vous pouvez contacter
+                  l’équipe maintenance.
+                </p>
+
+                <div class="contact-lines">
+                  <div class="contact-line">
+                    <span class="material-icons">mail</span>
+                    <span>maintenance@uasz.sn</span>
+                  </div>
+                  <div class="contact-line">
+                    <span class="material-icons">call</span>
+                    <span>+221 77 123 45 67</span>
+                  </div>
+                  <div class="contact-line">
+                    <span class="material-icons">schedule</span>
+                    <span>Lundi – Vendredi, 8h00 – 17h00</span>
+                  </div>
+                </div>
+
+                <div class="contact-actions">
+                  <button type="button" class="primary-btn" (click)="setActive('interventions')">
+                    Voir mes interventions
+                  </button>
+                  <button type="button" class="secondary-btn" (click)="setActive('dashboard')">
+                    Retour au dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- BACKDROP -->
+      <div
+        class="modal-backdrop"
+        *ngIf="decisionModalOpen || editionModalOpen || refuseModalOpen || equipementModalOpen"
+        (click)="closeModals()"
+      ></div>
+
+      <!-- MODALE 1 : décision -->
+      <section class="modal-card" *ngIf="decisionModalOpen && selectedIntervention">
+        <header class="modal-header">
+          <h3>Détails de la demande</h3>
+          <button type="button" class="modal-close-btn" (click)="closeModals()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="modal-main-title">
+            <h2>{{ selectedIntervention.titre }}</h2>
+            <p class="modal-meta">
+              Créée le {{ selectedIntervention.dateCreation | date: 'yyyy-MM-dd' }} · {{ selectedIntervention.lieu }}
+            </p>
+          </div>
+
+          <div class="modal-tags">
+            <div class="modal-tag-item">
+              <span class="tag-label">Statut actuel</span>
+              <span class="status-chip pending">À faire</span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Urgence</span>
+              <span class="urgence-chip" [ngClass]="{
+                low: selectedIntervention.urgence === 'BASSE',
+                medium: selectedIntervention.urgence === 'MOYENNE',
+                high: selectedIntervention.urgence === 'HAUTE'
+              }">
+                {{ selectedIntervention.urgence === 'BASSE' ? 'Basse' : selectedIntervention.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
               </span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Lieu</span>
+              <span class="place-chip">{{ selectedIntervention.lieu }}</span>
+            </div>
+          </div>
+
+          <p class="modal-help">
+            Voulez-vous prendre en charge cette intervention ? Vous pourrez ensuite ajouter vos notes,
+            pièces utilisées et l’image de l’équipement.
+          </p>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="refuserIntervention()">
+            Refuser l’intervention
+          </button>
+
+          <button type="button" class="primary-btn" (click)="accepterIntervention()">
+            Accepter l’intervention et démarrer
+          </button>
+        </footer>
+      </section>
+
+      <!-- MODALE REFUS -->
+      <section class="modal-card small-modal" *ngIf="refuseModalOpen && selectedIntervention">
+        <header class="modal-header">
+          <h3>Refuser l’intervention ?</h3>
+          <button type="button" class="modal-close-btn" (click)="cancelRefuse()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <p class="modal-alert-text">
+            Vous êtes sur le point de <strong>refuser</strong> l’intervention « {{ selectedIntervention.titre }} ».
+          </p>
+          <p class="modal-help">
+            Le responsable maintenance sera notifié de ce refus. Confirmez-vous cette action ?
+          </p>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="cancelRefuse()">
+            Annuler
+          </button>
+
+          <button type="button" class="primary-btn danger" (click)="confirmRefuse()">
+            Confirmer le refus
+          </button>
+        </footer>
+      </section>
+
+      <!-- MODALE 2 : édition technicien -->
+      <section class="modal-card" *ngIf="editionModalOpen && selectedIntervention">
+        <header class="modal-header">
+          <h3>Intervention en traitement</h3>
+          <button type="button" class="modal-close-btn" (click)="closeModals()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="modal-main-title">
+            <h2>{{ selectedIntervention.titre }}</h2>
+            <p class="modal-meta">
+              Créée le {{ selectedIntervention.dateCreation | date: 'yyyy-MM-dd' }} · {{ selectedIntervention.lieu }}
+            </p>
+          </div>
+
+          <div class="modal-tags">
+            <div class="modal-tag-item">
+              <span class="tag-label">Statut</span>
+              <span class="status-chip progress">En cours</span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Urgence</span>
+              <span class="urgence-chip" [ngClass]="{
+                low: selectedIntervention.urgence === 'BASSE',
+                medium: selectedIntervention.urgence === 'MOYENNE',
+                high: selectedIntervention.urgence === 'HAUTE'
+              }">
+                {{ selectedIntervention.urgence === 'BASSE' ? 'Basse' : selectedIntervention.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+              </span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Lieu</span>
+              <span class="place-chip">{{ selectedIntervention.lieu }}</span>
+            </div>
+          </div>
+
+          <div class="modal-section equipment-section">
+            <h4>Image de l’équipement (obligatoire)</h4>
+            <input #fileInput type="file" accept="image/*" (change)="onImageSelected($event)" />
+            <p class="modal-help">Choisissez une image locale de l’équipement en panne.</p>
+
+            <div class="equipment-image-wrapper" *ngIf="imagePreview">
+              <img [src]="imagePreview" alt="Équipement en panne" />
+              <button type="button" class="clear-image-btn" (click)="clearImage($event)">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <p class="error-text" *ngIf="!imagePreview">L’image de l’équipement est obligatoire.</p>
+          </div>
+
+          <div class="modal-section">
+            <h4>Note technicien (obligatoire)</h4>
+            <textarea
+              [(ngModel)]="updateNote"
+              rows="4"
+              placeholder="Notes internes, diagnostic, actions réalisées, tests effectués..."
+            ></textarea>
+          </div>
+
+          <div class="modal-section">
+            <h4>Pièces utilisées (optionnel)</h4>
+
+            <div class="piece-row" *ngFor="let sel of piecesSelection; index as idx">
+              <select [(ngModel)]="sel.pieceId" class="piece-select" (ngModelChange)="onQuantityChange(sel)">
+                <option [ngValue]="null" disabled>Choisir une pièce...</option>
+                <option *ngFor="let p of piecesStock" [ngValue]="p.id">
+                  {{ p.nom }} (stock : {{ p.stock }})
+                </option>
+              </select>
+
+              <input
+                type="number"
+                min="1"
+                [(ngModel)]="sel.quantite"
+                (ngModelChange)="onQuantityChange(sel)"
+                class="piece-qty"
+                placeholder="Qté"
+                [disabled]="!sel.pieceId"
+              />
+
+              <button type="button" class="icon-btn remove-piece" *ngIf="piecesSelection.length > 1" (click)="removePieceRow(idx)">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <button type="button" class="secondary-btn add-piece-btn" (click)="addPieceRow()">
+              + Ajouter une pièce
+            </button>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="closeModals()">Fermer</button>
+
+          <button
+            type="button"
+            class="primary-btn"
+            (click)="terminerIntervention()"
+            [disabled]="!imagePreview || !updateNote || !updateNote.trim()"
+          >
+            Terminer l’intervention
+          </button>
+        </footer>
+      </section>
+
+      <!-- MODALE ÉQUIPEMENT -->
+      <section class="modal-card" *ngIf="equipementModalOpen && selectedEquipement">
+        <header class="modal-header">
+          <h3>Détails équipement</h3>
+          <button type="button" class="modal-close-btn" (click)="closeModals()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="modal-main-title">
+            <h2>{{ selectedEquipement.nom }}</h2>
+            <p class="modal-meta">
+              {{ selectedEquipement.type }} · {{ selectedEquipement.code }} · {{ selectedEquipement.lieu }}
+            </p>
+          </div>
+
+          <div class="equip-modal-grid">
+            <div class="equip-modal-image" *ngIf="selectedEquipement.imageUrl">
+              <img [src]="selectedEquipement.imageUrl" alt="Équipement" />
+            </div>
+
+            <div class="equip-modal-info">
+              <div class="modal-tags">
+                <div class="modal-tag-item">
+                  <span class="tag-label">Type</span>
+                  <span class="place-chip">{{ selectedEquipement.type }}</span>
+                </div>
+                <div class="modal-tag-item">
+                  <span class="tag-label">Code</span>
+                  <span class="place-chip">{{ selectedEquipement.code }}</span>
+                </div>
+                <div class="modal-tag-item">
+                  <span class="tag-label">Lieu</span>
+                  <span class="place-chip">{{ selectedEquipement.lieu }}</span>
+                </div>
+              </div>
+
+              <p class="modal-help">
+                Historique des interventions liées à cet équipement :
+              </p>
+
+              <div class="mini-list" *ngIf="equipInterventions.length > 0; else noEquipInterv">
+                <div class="mini-item" *ngFor="let it of equipInterventions">
+                  <div class="mini-left">
+                    <div class="mini-title">{{ it.titre }}</div>
+                    <div class="mini-meta">
+                      {{ it.dateCreation | date:'yyyy-MM-dd' }} · {{ it.lieu }}
+                    </div>
+                  </div>
+                  <div class="mini-right">
+                    <span class="status-chip" [ngClass]="{
+                      pending: it.statut === 'A_FAIRE',
+                      progress: it.statut === 'EN_COURS',
+                      done: it.statut === 'TERMINEE'
+                    }">
+                      {{ it.statut === 'A_FAIRE' ? 'À faire' : it.statut === 'EN_COURS' ? 'En cours' : 'Terminée' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <ng-template #noEquipInterv>
+                <div class="empty-inline">
+                  Aucune intervention liée trouvée.
+                </div>
+              </ng-template>
             </div>
           </div>
         </div>
+
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="closeModals()">Fermer</button>
+        </footer>
       </section>
+
+      <!-- TOAST -->
+      <div
+        class="toast"
+        *ngIf="toastVisible"
+        [ngClass]="{ success: toastType === 'success', danger: toastType === 'danger', info: toastType === 'info' }"
+      >
+        <span class="material-icons toast-icon">
+          {{ toastType === 'success' ? 'check_circle' : toastType === 'danger' ? 'error' : 'info' }}
+        </span>
+        <span class="toast-message">{{ toastMessage }}</span>
+      </div>
     </section>
   </main>
 </div>

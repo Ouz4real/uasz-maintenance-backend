@@ -99,8 +99,12 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-}
 
+  /* pour laisser la place au sidebar fixe */
+  margin-left: 5px;
+  height: 100vh;
+}
+/* Topbar reste collée en haut du main */
 /* Topbar */
 
 .topbar {
@@ -125,7 +129,41 @@
 
 .topbar-right {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
+
+/* Bouton cercle avec les 3 bandes (menu) */
+
+.topbar-menu-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  transition:
+    background 0.15s ease,
+    transform 0.06s ease,
+    box-shadow 0.15s ease;
+}
+
+.topbar-menu-btn .material-icons {
+  font-size: 22px;
+  color: #0f172a;
+}
+
+.topbar-menu-btn:hover {
+  background: #eef2ff;
+  transform: translateY(-1px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+}
+
 
 /* user chip */
 
@@ -173,18 +211,30 @@
 
 /* popup user menu */
 
+/* popup user menu – en overlay fixe comme sur le Responsable */
 .user-menu {
-  position: absolute;
-  right: 0;
-  margin-top: 0.5rem;
+  position: fixed;
+  top: 80px;       /* distance par rapport au haut de la fenêtre */
+  right: 40px;     /* décollé du bord droit comme sur la capture Responsable */
   width: 260px;
   background: #ffffff;
   border-radius: 18px;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18),
-  0 0 0 1px rgba(148, 163, 184, 0.25);
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.18),
+    0 0 0 1px rgba(148, 163, 184, 0.25);
   overflow: hidden;
-  z-index: 50;
+  z-index: 2000;   /* passe au-dessus du contenu défilant */
 }
+/* Overlay derrière le menu utilisateur :
+   clic dessus = fermeture du menu */
+.user-menu-overlay {
+  position: fixed;
+  inset: 0;              /* top:0; right:0; bottom:0; left:0 */
+  background: transparent;  /* pas de voile gris, juste une zone cliquable */
+  z-index: 1500;         /* en dessous du menu (2000), au-dessus du contenu */
+}
+
+
 
 .user-menu-header {
   display: flex;
@@ -253,11 +303,15 @@
 
 /* ========== CONTENU ========= */
 
+/* La content devient la zone scrollable */
 .content {
   padding: 1.5rem 2rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+
+  flex: 1;
+  overflow-y: auto;
 }
 
 .welcome-card {
@@ -316,6 +370,282 @@
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
+/* ====== PAGE PROFIL DEMANDEUR ====== */
+
+.profile-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+
+.profile-page-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.profile-page-header p {
+  margin: 0.3rem 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.profile-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.profile-back-btn .material-icons {
+  font-size: 18px;
+}
+
+/* grille principale */
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* cartes profil */
+
+.profile-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.4rem 1.6rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.profile-card-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.profile-card-subtitle {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* on réutilise .form-grid mais avec un petit ajustement */
+
+.profile-form-grid {
+  margin-top: 0.5rem;
+}
+
+/* bloc utilisateur à droite */
+
+.profile-user-block {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0.8rem 0 1.2rem;
+}
+
+.profile-user-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: #4f46e5;
+  color: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.profile-user-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.profile-user-email {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.profile-role-line {
+  margin-top: 0.4rem;
+}
+
+.profile-role-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.75rem;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* liste des capacités */
+
+.profile-role-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.profile-role-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.profile-role-icon {
+  font-size: 18px;
+  color: #2563eb;
+  margin-top: 1px;
+}
+
+.profile-actions-row {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* carte sécurité */
+
+.profile-security-card {
+  margin-bottom: 0.5rem;
+}
+
+/* ====== BARRE DE FILTRES "MES DEMANDES" ====== */
+
+.filters-card {
+  background: #f9fafb;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Chips filtres (statut + urgence) */
+.filter-chip {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 0.25rem 0.85rem;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
+}
+
+.filter-chip:hover {
+  background: #f3f4ff;
+  transform: translateY(-1px);
+}
+
+.filter-chip.active {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+/* Petits points de couleur devant les statuts */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.dot-all {
+  background: #0ea5e9;
+}
+
+.dot-pending {
+  background: #f97316;
+}
+
+.dot-progress {
+  background: #2563eb;
+}
+
+.dot-done {
+  background: #16a34a;
+}
+
+/* Urgences + recherche */
+
+.urg-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.urg-label {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.urg-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.filters-search {
+  margin-left: auto;
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #f3f4f6;
+  padding: 0.25rem 0.75rem;
+  max-width: 320px;
+  width: 100%;
+  border: 1px solid #e5e7eb;
+}
+
+.search-wrapper input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.85rem;
+  flex: 1;
+  padding: 0.25rem 0.3rem;
+}
+
+.search-icon {
+  font-size: 18px;
+  color: #9ca3af;
+}
+
+
 .recent-header {
   display: flex;
   justify-content: space-between;
@@ -336,6 +666,27 @@
   color: #f9fafb;
   font-size: 0.9rem;
   cursor: pointer;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* bouton relance dans le modal (utilise .primary-btn + une classe en plus si tu veux l'ajuster plus tard) */
+.relance-modal-btn {
+  /* pour l'instant, même style que primary-btn */
 }
 
 .secondary-btn {
@@ -346,18 +697,276 @@
   color: #111827;
   font-size: 0.9rem;
   cursor: pointer;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
 }
+
+.secondary-btn:hover:not(:disabled) {
+  background: #f3f4ff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
+}
+
+.secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 
 .secondary-btn.small {
   padding: 0.3rem 0.8rem;
   font-size: 0.8rem;
 }
+/* 👉 Style spécifique pour le bouton "Relancer" */
+.relance-btn {
+  border-color: #4f46e5;
+  color: #4f46e5;
+  font-size: 0.78rem;
+  padding-inline: 0.9rem;
+}
+
+.relance-btn:hover {
+  background: #eef2ff;
+}
+
 
 .requests-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
+/* ====== DOCUMENTS ====== */
+
+.docs-filters {
+  margin-bottom: 1rem;
+}
+
+.docs-search-row {
+  margin-top: 0.6rem;
+}
+
+.document-item {
+  align-items: center;
+}
+
+.document-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.document-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #eef2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.document-icon .material-icons {
+  font-size: 20px;
+  color: #4f46e5;
+}
+
+.document-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* chip type de document */
+
+.doc-type-chip {
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.doc-image {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.doc-pdf {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.doc-rapport {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.doc-autre {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* petit lien texte cliquable (vers la demande) */
+
+.link-unstyled {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.link-unstyled:hover {
+  text-decoration: underline;
+}
+
+/* état vide */
+
+.docs-empty-state {
+  margin-top: 1.2rem;
+  padding: 1rem 1.2rem;
+  border-radius: 16px;
+  background: #f9fafb;
+  text-align: left;
+}
+
+.docs-empty-title {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.docs-empty-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+
+/* ====== AIDE & SUPPORT ====== */
+
+.help-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+  gap: 1.25rem;
+}
+
+.help-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.help-section-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.help-section-title h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.help-section-title p {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.help-icon {
+  font-size: 22px;
+  color: #2563eb;
+  background: #eff6ff;
+  border-radius: 999px;
+  padding: 0.3rem;
+}
+
+.help-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.help-item {
+  border-bottom: none;
+  padding: 0.75rem 0.75rem;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.help-item .request-title {
+  font-size: 0.95rem;
+}
+
+.help-item .request-meta {
+  font-size: 0.82rem;
+}
+
+/* Colonne droite : carte contact */
+
+.help-column-right {
+  align-self: stretch;
+}
+
+.help-support-card {
+  background: radial-gradient(circle at top left, #e0f2fe, #eef2ff);
+  border-radius: 18px;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.help-support-card h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.help-contact-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.help-contact-line {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.help-contact-line .material-icons {
+  font-size: 18px;
+  color: #4b5563;
+}
+
+.help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+/* Responsive : une colonne sur mobile */
+@media (max-width: 900px) {
+  .help-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .main {
+    margin-left: 220px; /* si tu réduis le sidebar sur mobile, ajuste ici ou gère un autre breakpoint */
+  }
+}
+
 
 .request-item {
   display: flex;
@@ -366,6 +975,14 @@
   padding: 0.7rem 0.2rem;
   border-bottom: 1px solid #e5e7eb;
 }
+/* 👉 À ajouter sous .request-item / .request-item.request-clickable */
+.request-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+
 
 .request-item:last-child {
   border-bottom: none;
@@ -429,6 +1046,39 @@
   color: #166534;
 }
 
+/* 👉 Chips d'urgence (BASSE / MOYENNE / HAUTE) */
+.urgence-chip {
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Urgence choisie par le demandeur */
+.urgence-basse {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.urgence-moyenne {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.urgence-haute {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Variante visuelle pour l'urgence du responsable (léger halo) */
+.urgence-resp {
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.4);
+}
+
+
 /* ========== MODALS ========== */
 
 .modal-backdrop {
@@ -470,7 +1120,25 @@
   border: none;
   background: transparent;
   cursor: pointer;
+  border-radius: 999px;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s ease,
+    transform 0.05s ease;
 }
+
+.icon-btn .material-icons {
+  font-size: 20px;
+}
+
+.icon-btn:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
 
 .modal-body {
   padding: 1.2rem 1.5rem;
@@ -505,18 +1173,30 @@
   color: #374151;
 }
 
+/* 👉 À la place de .form-field input, textarea */
 .form-field input,
-.form-field textarea {
+.form-field textarea,
+.form-field select {
   border-radius: 999px;
   border: 1px solid #d1d5db;
   padding: 0.55rem 0.9rem;
   font-size: 0.9rem;
   outline: none;
+  background: #ffffff;
 }
 
 .form-field textarea {
   border-radius: 18px;
   resize: vertical;
+}
+
+/* Optionnel : enlever le style natif du select pour rester “pill” propre */
+.form-field select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
 }
 
 .form-field input:focus,
@@ -651,4 +1331,34 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ====== PAGINATION ====== */
+
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.pagination-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.pagination-btn {
+  padding: 0.3rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+.error-text {
+  color: #d32f2f;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+.required {
+  color: #d32f2f;
 }

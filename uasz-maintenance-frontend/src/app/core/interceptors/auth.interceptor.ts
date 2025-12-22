@@ -1,11 +1,6 @@
 // src/app/core/interceptors/auth.interceptor.ts
 import { inject } from '@angular/core';
-import {
-  HttpEvent,
-  HttpHandlerFn,
-  HttpInterceptorFn,
-  HttpRequest,
-} from '@angular/common/http';
+import { HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from '../services/auth';
 
@@ -20,11 +15,9 @@ export const authInterceptor: HttpInterceptorFn = (
     return next(req);
   }
 
-  const cloned = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return next(cloned);
+  return next(
+    req.clone({
+      setHeaders: { Authorization: `Bearer ${token}` },
+    })
+  );
 };

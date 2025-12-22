@@ -86,7 +86,6 @@ public class ResponsableDashboardService {
         long pannesOuvertes = pannes.stream().filter(p -> p.getStatut() == StatutPanne.OUVERTE).count();
         long pannesEnCours = pannes.stream().filter(p -> p.getStatut() == StatutPanne.EN_COURS).count();
         long pannesResolues = pannes.stream().filter(p -> p.getStatut() == StatutPanne.RESOLUE).count();
-        long pannesAnnulees = pannes.stream().filter(p -> p.getStatut() == StatutPanne.ANNULEE).count();
 
         // Pannes sans intervention
         long pannesSansIntervention = pannes.stream()
@@ -152,7 +151,6 @@ public class ResponsableDashboardService {
                 .pannesOuvertes(pannesOuvertes)
                 .pannesEnCours(pannesEnCours)
                 .pannesResolues(pannesResolues)
-                .pannesAnnulees(pannesAnnulees)
                 .pannesSansIntervention(pannesSansIntervention)
                 .pannesOuvertesHautePriorite(pannesOuvertesHautePriorite)
                 .totalInterventions(totalInterventions)

@@ -20,8 +20,7 @@ public class Panne {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String code;
+    // ✅ supprimé : code
 
     @Column(nullable = false, length = 200)
     private String titre;
@@ -37,17 +36,31 @@ public class Panne {
     private Priorite priorite;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "priorite_responsable", length = 20)
+    private Priorite prioriteResponsable;
+
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private StatutPanne statut;
 
     @Column(length = 150)
-    private String signaleePar;   // texte libre (ex: “Technicien labo info”)
+    private String signaleePar;
 
     @ManyToOne
-    @JoinColumn(name = "equipement_id", nullable = false)
+    @JoinColumn(name = "equipement_id", nullable = true)
     private Equipement equipement;
 
-    // 🔹 nouveau : lien vers le vrai utilisateur demandeur
+    @Column(length = 100)
+    private String typeEquipement;
+
+    @Column(length = 150)
+    private String lieu;
+
+    // ✅ image persistée
+    @Column(name = "image_path", length = 255)
+    private String imagePath;
+
     @ManyToOne
     @JoinColumn(name = "demandeur_id")
     private Utilisateur demandeur;
