@@ -66,10 +66,19 @@ public class UtilisateurService {
                 .id(u.getId())
                 .username(u.getUsername())
                 .email(u.getEmail())
+
+                // ✅ Ajouts
+                .nom(u.getNom())
+                .prenom(u.getPrenom())
+                .departement(u.getDepartement())
+                .serviceUnite(u.getServiceUnite())
+                .telephone(u.getTelephone())
+
                 .role(u.getRole())
                 .enabled(u.isEnabled())
                 .build();
     }
+
 
     // ========= RÉCUPÉRATION PAR ID =========
     public UtilisateurResponse getById(Long id) {

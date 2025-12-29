@@ -17,10 +17,29 @@ import {
 import {UtilisateurDto} from '../../../core/services/utilisateurs.service'
 import { environment } from '../../../../environments/environment';
 import {UtilisateursService} from '../../../core/services/utilisateurs.service';
+import {InterventionDto, InterventionsService} from '../../../core/services/interventions.service';
+import { StatsTechnicienResponse } from '../../../core/services/stats-technicien-response';
 
 
 // --- MES DEMANDES RESPONSABLE ---
 export type MesDemandeStatut = 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE';
+
+export interface InterventionUI {
+  id: number;
+  titre: string;
+  lieu?: string;
+  statut?: string;
+
+  resultat?: string | null;
+
+  // ✅ AJOUT
+  dateDebut?: string | null;
+  dateFin?: string | null;
+}
+
+
+
+
 
 export interface MesDemandeResponsable {
   id: number;
@@ -85,8 +104,8 @@ interface Technicien {
   nbInterventionsEnCours: number;
   nbInterventionsTerminees: number;
   tempsMoyenResolutionHeures: number;
-  interventionsEnCours?: Intervention[];
-  dernieresInterventions?: Intervention[];
+  interventionsEnCours?: InterventionUI[];
+  dernieresInterventions?: InterventionUI[];
 }
 
 interface Equipement {
@@ -109,6 +128,7 @@ interface PieceDetachee {
 
 type StatutPreventive = 'PLANIFIEE' | 'EN_RETARD' | 'REALISEE';
 
+
 interface MaintenancePreventive {
   id: number;
   equipementReference: string | null;
@@ -125,16 +145,52 @@ interface DemandesParMois {
   total: number;
 }
 
-type TechnicienUI = {
+
+
+
+
+export type TechnicienUI = {
   id: number;
-  nom: string;
-  categorie: string;
-  specialites: string[];
+
+  // Affichage
+  nom: string;                 // ex: "Moussa Ba"
+  categorie: string;           // ex: "Plomberie" (ou "Maintenance")
+  serviceUnite?: string;       // ex: "Plomberie" (affiché entre parenthèses)
+  departement?: string;        // ex: "Maintenance"
+  username?: string;           // ex: "tech-plomb-1"
+
+  // Détails / spécialités
+  specialites: string[];       // ex: ["Plomberie"] (tu peux y mettre serviceUnite)
   disponible: boolean;
+
+  // Stats affichées dans la LISTE (cartes)
   nbInterventionsEnCours: number;
   nbInterventionsTerminees: number;
   tempsMoyenResolutionHeures: number;
+
+  // Interventions (modale détails technicien)
+  interventionsEnCours?: InterventionUI[];
+  dernieresInterventions?: InterventionUI[];
+
+  // ✅ Stats “riches” (modale détails technicien)
+  stats?: {
+    enCours: number;
+    terminees: number;
+    tempsMoyen: string;        // ex: "1 h 30 min"
+    tempsMoyenMinutes?: number; // ✅ utile si tu veux recalculer côté front
+  };
+
+  // ✅ Pour gérer l'UI proprement (loading/erreur par technicien)
+  loadingInterventions?: boolean;
+  errorInterventions?: string | null;
+
+  loadingStats?: boolean;
+  errorStats?: string | null;
+
+  sousCategorie?: string;
 };
+
+
 
 
 
@@ -157,12 +213,17 @@ export class DashboardResponsableComponent implements OnInit {
   loadingTechniciens = false;
   errorTechniciens: string | null = null;
 
+  loadingTechStats = false;
+  errorTechStats: string | null = null;
+
+
 
   showMesNewDemandeModal = false;
   showMesDetailsModal = false;
   selectedMesDemande: MesDemandeResponsable | null = null;
   showMesImageInDetails = false;
   techniciens: TechnicienUI[] = [];
+  techniciensAffectables: TechnicienUI[] = [];
   filteredTechniciens: TechnicienUI[] = [];
 
 
@@ -176,6 +237,13 @@ export class DashboardResponsableComponent implements OnInit {
     imageFile: null,
     imagePreview: null,
   };
+
+  interventionsEnCours?: InterventionUI[];
+  dernieresInterventions?: InterventionUI[];
+  loadingTechInterventions = false;
+  errorTechInterventions: string | null = null;
+
+
 
   /* ========== INFOS UTILISATEUR / LAYOUT ========== */
 
@@ -294,35 +362,40 @@ export class DashboardResponsableComponent implements OnInit {
     this.filteredTechniciens = list;
   }
 
-
   private chargerTechniciensDepuisApi(): void {
     this.loadingTechniciens = true;
     this.errorTechniciens = null;
 
     this.utilisateursService.getTechniciens().subscribe({
       next: (list: UtilisateurDto[]) => {
-        // Sécurité supplémentaire (même si backend filtre)
-        const onlyTech = (list ?? []).filter(u =>
+        const onlyTech: UtilisateurDto[] = (list ?? []).filter((u: UtilisateurDto) =>
           String(u?.role ?? '').toUpperCase() === 'TECHNICIEN'
         );
 
-        const items = onlyTech.map(u => this.mapUserToTechnicienUI(u));
+        const items: TechnicienUI[] = onlyTech.map((u: UtilisateurDto) =>
+          this.mapUserToTechnicienUI(u)
+        );
 
         this.techniciens = items;
+        this.techniciensAffectables = [...items];
         this.filteredTechniciens = [...items];
 
         this.technicienCategories = Array.from(
-          new Set(items.map(t => t.categorie).filter(Boolean))
-        ).sort((a, b) => a.localeCompare(b));
+          new Set(items.map((t: TechnicienUI) => t.categorie).filter(Boolean))
+        ).sort((a: string, b: string) => a.localeCompare(b));
 
         this.applyTechnicienFilters();
 
         this.loadingTechniciens = false;
+
+        // ✅ IMPORTANT : charger les stats APRÈS avoir la liste
+        this.chargerStatsTechniciens();
       },
       error: (err) => {
         console.error('Erreur chargement techniciens:', err);
         this.errorTechniciens = 'Impossible de charger les techniciens.';
         this.techniciens = [];
+        this.techniciensAffectables = [];
         this.filteredTechniciens = [];
         this.technicienCategories = [];
         this.applyTechnicienFilters();
@@ -330,6 +403,60 @@ export class DashboardResponsableComponent implements OnInit {
       },
     });
   }
+
+
+  private chargerStatsTechniciens(): void {
+    if (!this.techniciens || this.techniciens.length === 0) return;
+
+    this.loadingTechStats = true;
+    this.errorTechStats = null;
+
+    const requests = this.techniciens.map((t) =>
+      this.interventionsService.getStatsByTechnicien(t.id)
+    );
+
+    forkJoin(requests).subscribe({
+      next: (statsList) => {
+        // On crée un map pour accéder vite par technicienId
+        const statsMap = new Map<number, StatsTechnicienResponse>();
+        (statsList ?? []).forEach((s) => statsMap.set(s.technicienId, s));
+
+        // On injecte dans chaque technicien
+        this.techniciens = this.techniciens.map((t) => {
+          const s = statsMap.get(t.id);
+
+          return {
+            ...t,
+            stats: {
+              enCours: s?.interventionsEnCours ?? 0,
+              terminees: s?.interventionsTerminees ?? 0,
+              tempsMoyen: s?.tempsMoyenAffichage ?? '0 h',
+            },
+
+            // si tu veux aussi remplir tes anciens champs (optionnel)
+            nbInterventionsEnCours: s?.interventionsEnCours ?? t.nbInterventionsEnCours ?? 0,
+            nbInterventionsTerminees: s?.interventionsTerminees ?? t.nbInterventionsTerminees ?? 0,
+            tempsMoyenResolutionHeures: s?.tempsMoyenMinutes
+              ? Math.round((s.tempsMoyenMinutes / 60) * 10) / 10
+              : (t.tempsMoyenResolutionHeures ?? 0),
+          };
+        });
+
+        // si tu utilises filteredTechniciens ailleurs, on la rafraîchit
+        this.filteredTechniciens = [...this.techniciens];
+
+        this.loadingTechStats = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement stats techniciens:', err);
+        this.errorTechStats = 'Impossible de charger les statistiques des techniciens.';
+        this.loadingTechStats = false;
+      },
+    });
+  }
+
+
+
 
 
 
@@ -567,7 +694,8 @@ export class DashboardResponsableComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private pannesRespApi: PannesResponsableService,
-    private utilisateursService: UtilisateursService
+    private utilisateursService: UtilisateursService,
+    private interventionsService: InterventionsService
   ) {}
 
   goToProfile(): void {
@@ -599,24 +727,19 @@ export class DashboardResponsableComponent implements OnInit {
   ngOnInit(): void {
     this.usernameInitial = this.username.charAt(0).toUpperCase();
 
+    // 1) demandes
     forkJoin({
       pannes: this.pannesRespApi.getAllPannes(),
       mesPannes: this.pannesRespApi.getMyPannes(),
-      techs: this.pannesRespApi.getTechniciens(),
     }).subscribe({
-      next: ({ pannes, mesPannes, techs }) => {
-        // 1) demandes globales
+      next: ({ pannes, mesPannes }) => {
         this.demandes = this.mapPannesToDemandes(pannes);
         this.recalculateDemandesStats();
         this.applyDemandesFilters();
         this.recalculateStatusPercentages();
 
-        // 2) mes demandes
         this.mesDemandes = this.mapPannesToMesDemandes(mesPannes);
         this.appliquerFiltreMesDemandes();
-
-
-        this.filterTechniciens();
 
         this.filterEquipements();
         this.refreshEquipementOptions();
@@ -629,7 +752,13 @@ export class DashboardResponsableComponent implements OnInit {
         this.paginatedDemandes = [];
       },
     });
+
+    // 2) techniciens (séparé → plus robuste)
+    this.chargerTechniciensDepuisApi();
   }
+
+
+
 
   openImageLightbox(src: string | null | undefined): void {
     if (!src) return;
@@ -1067,16 +1196,26 @@ export class DashboardResponsableComponent implements OnInit {
   openDemandeDetails(d: Demande): void {
     this.selectedDemande = { ...d };
     this.selectedDemande.imageUrl = this.resolveImageUrl(
-      this.selectedDemande.imageUrl || this.selectedDemande.imagePath
+      this.selectedDemande.imageUrl || (this.selectedDemande as any).imagePath
     );
-    this.modalUrgence = (d.urgence ?? '') as any;
-    this.modalUrgenceResponsable = ((d as any).prioriteResponsable ?? '') as any;
+
     this.modalTechnicienId = null;
     this.modalCommentaire = '';
     this.showImageInDetails = false;
     this.markAsResolved = d.statut === 'RESOLUE';
     this.showDetailsModal = true;
+
+    // ✅ Urgence responsable : par défaut "Non définie"
+    this.modalUrgenceResponsable = '';
+
+    // ✅ dropdown intelligent + fallback
+    const filtered = this.filterTechniciensForDemande(this.selectedDemande);
+
+    this.techniciensAffectables =
+      (filtered && filtered.length > 0) ? filtered : [...this.techniciens];
   }
+
+
 
   closeDetailsModal(): void {
     this.showDetailsModal = false;
@@ -1167,6 +1306,8 @@ export class DashboardResponsableComponent implements OnInit {
     console.log('Export PDF pour la demande', this.selectedDemande.id);
   }
 
+
+
   /* ========== TECHNICIENS ========== */
 
 
@@ -1195,10 +1336,57 @@ export class DashboardResponsableComponent implements OnInit {
     this.filteredTechniciens = list;
   }
 
-  openTechnicienDetails(t: Technicien): void {
-    this.selectedTechnicien = t;
-    this.showTechnicienModal = true;
+  private mapInterventionsToUi(list: any[]): InterventionUI[] {
+    return (list ?? []).map((it: any) => ({
+      id: it.id,
+      titre: it.titre ?? '',
+      lieu: it?.panne?.lieu ?? it?.lieu ?? '',
+      statut: it?.statut ?? '',
+
+      resultat: it?.resultat ?? null,
+
+      // ✅ ICI
+      dateDebut: it?.dateDebut ?? null,
+      dateFin: it?.dateFin ?? null,
+    }));
   }
+
+
+
+  openTechnicienDetails(t: TechnicienUI): void {
+    this.selectedTechnicien = {
+      ...t,
+      interventionsEnCours: [],
+      dernieresInterventions: [],
+    };
+
+    this.showTechnicienModal = true;
+    this.loadingTechInterventions = true;
+    this.errorTechInterventions = null;
+
+    const techId = t.id;
+
+    forkJoin({
+      enCours: this.interventionsService.getEnCoursByTechnicien(techId),
+      recentes: this.interventionsService.getRecentesByTechnicien(techId),
+    }).subscribe({
+      next: ({ enCours, recentes }) => {
+        if (!this.selectedTechnicien) return;
+
+        this.selectedTechnicien.interventionsEnCours = this.mapInterventionsToUi(enCours);
+        this.selectedTechnicien.dernieresInterventions = this.mapInterventionsToUi(recentes);
+
+        this.loadingTechInterventions = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement interventions technicien:', err);
+        this.errorTechInterventions = "Impossible de charger les interventions du technicien.";
+        this.loadingTechInterventions = false;
+      },
+    });
+  }
+
+
 
   closeTechnicienModal(): void {
     this.showTechnicienModal = false;
@@ -1207,25 +1395,162 @@ export class DashboardResponsableComponent implements OnInit {
 
 
 
-
   private mapUserToTechnicienUI(u: any): TechnicienUI {
-    const fullName = `${u?.prenom ?? ''} ${u?.nom ?? ''}`.trim();
+    // =========================
+    // 1) Nom affiché
+    // =========================
+    const prenom = (u?.prenom ?? '').trim();
+    const nom = (u?.nom ?? '').trim();
+
+    const fullName = `${prenom} ${nom}`.trim();
     const nomAffiche = fullName || u?.username || u?.email || '—';
 
-    const categorie = (u?.serviceUnite || u?.departement || 'Général').trim();
+    // =========================
+    // 2) Service / Département
+    // =========================
+    const serviceUnite = (u?.serviceUnite ?? '').trim();
+    const departement = (u?.departement ?? '').trim();
 
-    // ⚠️ Ton backend ne fournit pas encore ces stats, donc valeurs par défaut
+    /**
+     * ✅ Règle recommandée (propre et stable) :
+     * - categorie = departement (si présent)
+     * - sinon serviceUnite
+     * - sinon "Général"
+     *
+     * ✅ Et on met `sousCategorie` = serviceUnite seulement si différent de categorie
+     */
+    const categorie = departement || serviceUnite || 'Général';
+
+    const sousCategorie =
+      serviceUnite && serviceUnite.toLowerCase() !== categorie.toLowerCase()
+        ? serviceUnite
+        : undefined;
+
+    // =========================
+    // 3) Spécialités (optionnel)
+    // =========================
+    /**
+     * ✅ Ici on évite la répétition :
+     * - On met en spécialités uniquement la sousCategorie (si elle existe)
+     * - Sinon on laisse vide (ça évite "Général · Général")
+     */
+    const specialites = sousCategorie ? [sousCategorie] : [];
+
+    // =========================
+    // 4) Disponibilité
+    // =========================
+    const nbEnCours = Number(u?.nbInterventionsEnCours ?? 0);
+
+    const disponible =
+      typeof u?.disponible === 'boolean'
+        ? u.disponible
+        : nbEnCours === 0;
+
+    // =========================
+    // 5) Construction finale
+    // =========================
     return {
-      id: u?.id,
+      id: Number(u?.id),
+
+      // affichage
       nom: nomAffiche,
       categorie,
-      specialites: [],
-      disponible: u?.disponible ?? true,
-      nbInterventionsEnCours: 0,
-      nbInterventionsTerminees: 0,
-      tempsMoyenResolutionHeures: 0,
-    };
+      sousCategorie,
+      serviceUnite: serviceUnite || undefined,
+      departement: departement || undefined,
+      username: u?.username,
+
+      // spécialités
+      specialites,
+
+      // état
+      disponible,
+
+      // stats simples (liste techniciens)
+      nbInterventionsEnCours: nbEnCours,
+      nbInterventionsTerminees: Number(u?.nbInterventionsTerminees ?? 0),
+      tempsMoyenResolutionHeures: Number(u?.tempsMoyenResolutionHeures ?? 0),
+
+      // détails (chargés plus tard)
+      interventionsEnCours: [],
+      dernieresInterventions: [],
+
+      // stats détaillées (chargées via /technicien/{id}/stats)
+      stats: undefined,
+
+      // états UI (si tu les utilises)
+      loadingInterventions: false,
+      errorInterventions: null,
+      loadingStats: false,
+      errorStats: null,
+    } as TechnicienUI;
   }
+
+
+
+
+
+
+
+
+  formatTechnicienOption(t: TechnicienUI): string {
+    const base = t.username ? t.username : t.nom;
+    const service = (t.serviceUnite || t.categorie || '').trim();
+    return service ? `${base} (${service})` : base;
+  }
+
+  /** Essaie de déduire le domaine du signalement à partir du typeEquipement */
+  private guessDomaineFromDemande(d: Demande | null): 'INFO' | 'BUREAUTIQUE' | 'AUDIOVISUEL' | 'ELEC_CLIM' | 'PLOMBERIE' | 'AUTRE' {
+    const raw = (d?.typeEquipement ?? '').toLowerCase();
+
+    // exemples basés sur tes presets
+    if (raw.includes('ordinateur') || raw.includes('routeur') || raw.includes('wi-fi') || raw.includes('switch') || raw.includes('serveur') || raw.includes('écran') || raw.includes('ecran') || raw.includes('clavier')) {
+      return 'INFO';
+    }
+    if (raw.includes('imprimante') || raw.includes('scanner') || raw.includes('photocopieuse')) {
+      return 'BUREAUTIQUE';
+    }
+    if (raw.includes('vidéoprojecteur') || raw.includes('videoprojecteur')) {
+      return 'AUDIOVISUEL';
+    }
+    if (raw.includes('climatiseur') || raw.includes('onduleur') || raw.includes('ventilateur') || raw.includes('électricité') || raw.includes('electric')) {
+      return 'ELEC_CLIM';
+    }
+    if (raw.includes('robinet') || raw.includes('plomb')) {
+      return 'PLOMBERIE';
+    }
+    return 'AUTRE';
+  }
+
+
+  private filterTechniciensForDemande(d: Demande | null): TechnicienUI[] {
+    const domaine = this.guessDomaineFromDemande(d);
+
+    // Si aucun domaine clair → on propose tout
+    if (domaine === 'AUTRE') return this.techniciens ?? [];
+
+    const norm = (s: string) => (s ?? '').toLowerCase();
+
+    return (this.techniciens ?? []).filter(t => {
+      const blob = `${norm(t.serviceUnite ?? '')} ${norm(t.categorie ?? '')}`; // on cherche dedans
+      switch (domaine) {
+        case 'INFO':
+          return blob.includes('informat') || blob.includes('réseau') || blob.includes('reseau');
+        case 'BUREAUTIQUE':
+          return blob.includes('bureaut') || blob.includes('photocop') || blob.includes('imprim');
+        case 'AUDIOVISUEL':
+          return blob.includes('audiovis') || blob.includes('pédagog') || blob.includes('pedagog');
+        case 'ELEC_CLIM':
+          return blob.includes('électric') || blob.includes('electric') || blob.includes('climat') || blob.includes('onduleur');
+        case 'PLOMBERIE':
+          return blob.includes('plomb') || blob.includes('robinet');
+        default:
+          return true;
+      }
+    });
+  }
+
+
 
   private refreshTechnicienCategoriesAndFilters(): void {
     this.technicienCategories = Array.from(

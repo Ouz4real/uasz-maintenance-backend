@@ -7,10 +7,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import sn.uasz.uasz_maintenance_backend.dtos.InterventionRequest;
+import sn.uasz.uasz_maintenance_backend.dtos.StatsTechnicienResponse;
 import sn.uasz.uasz_maintenance_backend.entities.Intervention;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
 import sn.uasz.uasz_maintenance_backend.enums.StatutIntervention;
 import sn.uasz.uasz_maintenance_backend.exceptions.ResourceNotFoundException;
+import sn.uasz.uasz_maintenance_backend.repositories.InterventionRepository;
 import sn.uasz.uasz_maintenance_backend.services.InterventionService;
 
 import java.util.List;
@@ -22,6 +24,8 @@ import java.util.List;
 public class InterventionController {
 
     private final InterventionService interventionService;
+    private final InterventionRepository interventionRepository;
+
 
     // =====================================================
     // CREATION
@@ -45,6 +49,18 @@ public class InterventionController {
     /**
      * Toutes les interventions (vue globale).
      */
+    @GetMapping("/technicien/{id}/en-cours")
+    public List<Intervention> getEnCours(@PathVariable Long id) {
+        return interventionRepository.findByTechnicienIdAndStatutOrderByDateDebutDesc(
+                id, StatutIntervention.EN_COURS
+        );
+    }
+
+
+    @GetMapping("/technicien/{id}/recentes")
+    public List<Intervention> getRecentes(@PathVariable Long id) {
+        return interventionRepository.findTop5ByTechnicienIdOrderByDateDebutDesc(id);
+    }
     @GetMapping
     @PreAuthorize("hasAnyRole('RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
     public List<Intervention> getAll() {
@@ -78,6 +94,8 @@ public class InterventionController {
     public List<Intervention> getByStatut(@PathVariable StatutIntervention statut) {
         return interventionService.getByStatut(statut);
     }
+
+
 
     // =====================================================
     // VUES TECHNICIEN
@@ -155,5 +173,46 @@ public class InterventionController {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @GetMapping("/technicien/{id}/stats")
+    public StatsTechnicienResponse getStatsTechnicien(@PathVariable Long id) {
+
+        long total = interventionRepository.countByTechnicienId(id);
+
+        long planifiees = interventionRepository.countByTechnicienIdAndStatut(id, StatutIntervention.PLANIFIEE);
+        long enCours = interventionRepository.countByTechnicienIdAndStatut(id, StatutIntervention.EN_COURS);
+        long terminees = interventionRepository.countByTechnicienIdAndStatut(id, StatutIntervention.TERMINEE);
+        long annulees = interventionRepository.countByTechnicienIdAndStatut(id, StatutIntervention.ANNULEE);
+
+        Double tempsMoyenMinutes =
+                interventionRepository.avgDureeMinutesByTechnicienAndStatut(
+                        id,
+                        StatutIntervention.TERMINEE.name()
+                );
+
+        String affichage = formatMinutes(tempsMoyenMinutes);
+
+        return StatsTechnicienResponse.builder()
+                .technicienId(id)
+                .totalInterventions(total)
+                .interventionsPlanifiees(planifiees)
+                .interventionsEnCours(enCours)
+                .interventionsTerminees(terminees)
+                .interventionsAnnulees(annulees)
+                .tempsMoyenMinutes(tempsMoyenMinutes)
+                .tempsMoyenAffichage(affichage)
+                .build();
+    }
+
+    private String formatMinutes(Double minutes) {
+        if (minutes == null) return "0 h";
+        long totalMin = Math.round(minutes);
+        long h = totalMin / 60;
+        long m = totalMin % 60;
+        if (h <= 0 && m <= 0) return "0 h";
+        if (h <= 0) return m + " min";
+        if (m == 0) return h + " h";
+        return h + " h " + m + " min";
     }
 }

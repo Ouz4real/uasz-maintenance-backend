@@ -24,4 +24,8 @@ public class StatsTechnicienResponse {
     private long interventionsEnCours;
     private long interventionsTerminees;
     private long interventionsAnnulees;
+
+    private Double tempsMoyenMinutes;
+    private String tempsMoyenAffichage;
+
 }

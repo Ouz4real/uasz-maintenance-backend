@@ -821,21 +821,28 @@
 }
 
 .resp-tech-badge.dispo {
-  background: #dcfce7;
-  color: #166534;
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
 }
 
+
 .resp-tech-badge.dispo .resp-tech-dot {
-  background: #16a34a;
+  background-color: #16a34a !important;
 }
 
 .resp-tech-badge.non-dispo {
-  background: #fee2e2;
-  color: #b91c1c;
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
 }
 
 .resp-tech-badge.non-dispo .resp-tech-dot {
-  background: #ef4444;
+  background-color: #ef4444 !important;
+}
+
+.resp-tech-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
 }
 
 .resp-tech-stats-row {

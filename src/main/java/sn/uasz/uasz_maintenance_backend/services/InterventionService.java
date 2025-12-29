@@ -124,6 +124,9 @@ public class InterventionService {
         if (statut == StatutIntervention.EN_COURS && intervention.getDateDebut() == null) {
             intervention.setDateDebut(LocalDateTime.now());
         }
+        if (intervention.getDateDebut() == null) {
+            intervention.setDateDebut(LocalDateTime.now());
+        }
 
         if (statut == StatutIntervention.TERMINEE) {
             if (intervention.getDateDebut() == null) {
