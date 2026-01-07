@@ -101,6 +101,8 @@ public class PanneController {
         if (request.getSignaleePar() == null || request.getSignaleePar().isBlank()) {
             request.setSignaleePar(user.getPrenom() + " " + user.getNom());
         }
+        System.out.println("priorite reçue: " + request.getPriorite());
+
 
         return panneService.createPanne(request, image);
     }

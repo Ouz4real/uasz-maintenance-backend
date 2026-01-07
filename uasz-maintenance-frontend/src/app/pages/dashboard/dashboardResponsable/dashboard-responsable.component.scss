@@ -1194,6 +1194,13 @@
   resize: vertical;
 }
 
+.resp-form-error {
+  margin-top: 12px;
+  color: #b91c1c;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 /* badges statut dans la modale */
 
 .resp-status-badge {
@@ -1814,28 +1821,20 @@ button,
   gap: 10px;
 }
 
-/* Boutons génériques */
-.secondary-btn,
+/* Bouton primaire uniquement ici */
 .primary-btn {
   border-radius: 999px;
   padding: 8px 20px;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   border: none;
   cursor: pointer;
   outline: none;
   transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
 }
 
-/* Bouton secondaire */
-.secondary-btn {
-  background: #e2e8f0;
-  color: #0f172a;
 
-  &:hover {
-    background: #cbd5f5;
-  }
-}
+
 
 /* Bouton principal */
 .primary-btn {
@@ -2107,20 +2106,6 @@ button,
   cursor: pointer;
 }
 
-.secondary-btn {
-  border-radius: 999px;
-  padding: 0.45rem 1rem;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #111827;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.secondary-btn.small {
-  padding: 0.3rem 0.8rem;
-  font-size: 0.8rem;
-}
 
 /* Liste de demandes */
 
@@ -2574,20 +2559,7 @@ button,
   cursor: pointer;
 }
 
-.secondary-btn {
-  border-radius: 999px;
-  padding: 0.45rem 1rem;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #111827;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
 
-.secondary-btn.small {
-  padding: 0.3rem 0.8rem;
-  font-size: 0.8rem;
-}
 
 .requests-list {
   display: flex;
@@ -3150,4 +3122,648 @@ button,
 .urgency-none {
   background-color: #e5e7eb;
   color: #374151;
+}
+
+
+
+/* =========================
+   MES DEMANDES (STYLE DEMANDEUR)
+   ========================= */
+
+.recent-requests {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.3rem 1.5rem 1.4rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.recent-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.primary-btn {
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  border: none;
+  background: #2563eb;
+  color: #f9fafb;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ====== BARRE DE FILTRES "MES DEMANDES" ====== */
+
+.filters-card {
+  background: #f9fafb;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Chips filtres (statut + urgence) */
+.filter-chip {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 0.25rem 0.85rem;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
+}
+
+.filter-chip:hover {
+  background: #f3f4ff;
+  transform: translateY(-1px);
+}
+
+.filter-chip.active {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+/* Petits points de couleur devant les statuts */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.dot-all { background: #0ea5e9; }
+.dot-pending { background: #f97316; }
+.dot-progress { background: #2563eb; }
+.dot-done { background: #16a34a; }
+
+/* Urgences + recherche */
+.urg-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.urg-label {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.urg-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.filters-search {
+  margin-left: auto;
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #f3f4f6;
+  padding: 0.25rem 0.75rem;
+  max-width: 320px;
+  width: 100%;
+  border: 1px solid #e5e7eb;
+}
+
+.search-wrapper input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.85rem;
+  flex: 1;
+  padding: 0.25rem 0.3rem;
+}
+
+.search-icon {
+  font-size: 18px;
+  color: #9ca3af;
+}
+
+/* ====== LISTE DES DEMANDES ====== */
+
+.requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.request-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0.2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.request-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+
+/* Effet hover sur les demandes cliquables */
+.request-item.request-clickable {
+  cursor: pointer;
+  border-radius: 14px;
+  padding: 0.7rem 0.75rem;
+  margin: 0 -0.3rem;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.08s ease;
+}
+
+.request-item.request-clickable:hover {
+  background: #f3f4ff;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
+}
+
+.request-title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.request-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* ====== STATUS CHIP (si pas déjà dans ton SCSS global) ====== */
+.status-chip {
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.status-chip.pending {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.status-chip.progress {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.status-chip.done {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+/* ====== PAGINATION ====== */
+
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.pagination-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.pagination-btn {
+  padding: 0.3rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+/* Boutons secondaires */
+/* ===== Bouton secondaire (base unique) ===== */
+.secondary-btn {
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+
+  font-size: 0.9rem;
+  font-weight: 400; /* ✅ plus léger */
+  cursor: pointer;
+
+  transition: background 0.15s ease, border-color 0.15s ease,
+  transform 0.05s ease, box-shadow 0.15s ease;
+}
+
+.secondary-btn:hover:not(:disabled) {
+  background: #f3f4ff;
+  border-color: #9ca3af;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.15);
+  transform: translateY(-1px);
+}
+
+.secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ✅ Variante déjà existante */
+.secondary-btn.small {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+
+/* ====== EMPTY STATE ====== */
+.empty-state {
+  text-align: center;
+  padding: 1.2rem 0.5rem 0.3rem;
+  color: #6b7280;
+}
+
+.empty-state p {
+  margin: 0 0 0.7rem;
+}
+
+.req{
+  color:#ef4444; /* rouge */
+  font-weight:700;
+  margin-left:2px;
+}
+
+.form-control {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+
+textarea.form-control{
+  border-radius: 18px; /* comme Demandeur */
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-control:focus{
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37,99,235,.15);
+}
+
+/* Pour que les select aient la même “hauteur” et look */
+select.form-control{
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.4rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+}
+
+.field-error {
+  margin: 0.35rem 0 0;
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* ==========================
+   MODALES (DÉTAILS) — style Demandeur
+========================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 18px;
+}
+
+.modal {
+  width: min(980px, 96vw);
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 22px 26px;
+  border-bottom: 1px solid #e9eef7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .icon-btn {
+    border: none;
+    background: transparent;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+
+    &:hover {
+      background: #f1f5f9;
+    }
+
+    .material-icons {
+      font-size: 24px;
+      color: #475569;
+    }
+  }
+}
+
+.modal-body {
+  padding: 22px 26px;
+  overflow: auto;
+}
+
+.modal-footer {
+  padding: 18px 26px;
+  border-top: 1px solid #e9eef7;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.details-body {
+  .details-title {
+    margin: 0 0 6px 0;
+    font-size: 28px;
+    font-weight: 900;
+    color: #0f172a;
+  }
+
+  .details-meta {
+    margin: 0 0 18px 0;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+    align-items: start;
+  }
+
+  .details-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .details-full {
+    grid-column: 1 / -1;
+  }
+
+  .details-label {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .details-value {
+    color: #0f172a;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .details-muted {
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  .details-description {
+    margin: 0;
+    color: #0f172a;
+    line-height: 1.5;
+    font-weight: 600;
+  }
+}
+
+/* Statut pill (grand bandeau) */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  width: 100%;
+  justify-content: flex-start;
+  border: 1px solid transparent;
+}
+
+.status-pill.pending {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.status-pill.progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.status-pill.done {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+/* Urgence chip */
+.urgency-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  width: fit-content;
+  border: 1px solid transparent;
+}
+
+.urgency-chip.low {
+  background: #e0f2fe;
+  color: #075985;
+  border-color: #bae6fd;
+}
+
+.urgency-chip.mid {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.urgency-chip.high {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+/* Image section */
+.details-image-wrapper {
+  margin-top: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.details-image {
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Boutons */
+.secondary-btn {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    background: #f8fafc;
+  }
+
+  &.full {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
+/* =========================
+   MODALE DÉTAILS DEMANDE
+   => réduire un peu les écritures
+   ========================= */
+
+.modal .modal-header h2 {
+  font-size: 1.15rem;   /* ↓ */
+  font-weight: 600;     /* ↓ (moins lourd) */
+}
+
+.modal .modal-body.details-body {
+  font-size: 0.92rem;   /* ↓ taille globale dans la modale */
+}
+
+/* Titre demande (gros BBBB...) */
+.modal .details-title {
+  font-size: 1.55rem;   /* ↓ */
+  font-weight: 600;     /* ↓ si tu veux moins bold -> 650 ou 600 */
+  margin-bottom: 0.35rem;
+}
+
+/* “Créée le ...” */
+.modal .details-meta {
+  font-size: 0.9rem;    /* ↓ */
+}
+
+/* labels : Type d’équipement, Statut, etc */
+.modal .details-label,
+.modal .field-label {
+  font-size: 0.85rem;   /* ↓ */
+}
+
+/* valeurs */
+.modal .details-value,
+.modal .details-description {
+  font-size: 0.95rem;   /* ↓ */
+}
+
+/* badges / pill */
+.modal .resp-status-badge,
+.modal .urgency-pill {
+  font-size: 0.85rem;   /* ↓ */
+}
+
+/* inputs */
+.modal .select-field,
+.modal .field-select,
+.modal .textarea-field {
+  font-size: 0.92rem;   /* ↓ */
+}
+
+/* Footer boutons (si tu veux aussi diminuer un peu) */
+.modal .modal-footer .secondary-btn,
+.modal .modal-footer .primary-btn,
+.modal .modal-footer .resp-btn-outline {
+  font-size: 0.9rem;    /* ↓ */
+  font-weight: 500;     /* évite trop gras */
 }

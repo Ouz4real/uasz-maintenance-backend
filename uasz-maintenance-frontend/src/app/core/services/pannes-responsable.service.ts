@@ -14,21 +14,23 @@ export interface PanneDto {
   typeEquipement: string;
   description: string;
 
-  // ton backend : priorite + statut
   priorite: PrioriteApi | null;
   statut: StatutPanneApi;
 
-  // selon ton entity (un des deux peut exister)
+  // ✅ AJOUTE ÇA (c’est ce que ton backend remplit)
+  dateSignalement?: string | null;
+
+  // existants
   dateCreation?: string;
   createdAt?: string;
 
   imageUrl?: string | null;
   imagePath?: string | null;
 
-  // optionnel
   demandeur?: { id: number; prenom?: string; nom?: string };
   signaleePar?: string | null;
 }
+
 
 export interface TechnicienOptionDto {
   id: number;

@@ -19,6 +19,8 @@ export interface InterventionDto {
   dateDebut?: string | null;
   dateFin?: string | null;
   dateCreation?: string | null; // si ton backend l'expose, sinon inutile
+  description?: string | null;   // ✅ AJOUTE
+  type?: string | null;
 
   commentaire?: string | null;
 
@@ -62,4 +64,9 @@ export class InterventionsService {
       `${this.baseUrl}/technicien/${technicienId}/stats`
     );
   }
+
+  getById(id: number): Observable<InterventionDto> {
+    return this.http.get<InterventionDto>(`${this.baseUrl}/${id}`);
+  }
+
 }

@@ -86,6 +86,28 @@ public class InterventionController {
         return interventionService.getByPanne(panneId);
     }
 
+    @PatchMapping("/{id}/equipement")
+    @PreAuthorize("hasAnyRole('RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
+    public ResponseEntity<Void> affecterEquipement(
+            @PathVariable Long id,
+            @RequestParam Long typeId,
+            @RequestParam(required = false, defaultValue = "SALLE") String localisation
+    ) {
+        interventionService.affecterEquipementDepuisStock(id, typeId, localisation);
+        return ResponseEntity.noContent().build();
+    }
+    @PatchMapping("/{id}/equipement-stock")
+    @PreAuthorize("hasAnyRole('RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
+    public ResponseEntity<Void> affecterEquipementDuStock(
+            @PathVariable Long id,
+            @RequestParam Long typeId,
+            @RequestParam String localisation
+    ) {
+        interventionService.affecterEquipementDuStock(id, typeId, localisation);
+        return ResponseEntity.noContent().build();
+    }
+
+
     /**
      * Interventions par statut (toutes pannes confondues).
      */

@@ -31,8 +31,8 @@ public class Equipement {
     private LocalDate dateAcquisition;
 
     @Column(length = 50)
-    private String etat;        // ex : EN_SERVICE, EN_PANNE, HORS_SERVICE
+    private String etat;        // EN_SERVICE, EN_PANNE, HORS_SERVICE
 
     @Column(length = 100)
-    private String localisation; // ex : Amphi A, Salle info 2
+    private String localisation; // Amphi A, Salle info 2
 }

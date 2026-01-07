@@ -493,7 +493,7 @@
 
                 <div class="resp-tech-stat">
                   <div class="label">Temps moyen</div>
-                  <div class="value">{{ s.tempsMoyen }}</div>
+                  <div class="value">{{ s.tempsMoyenHeures }}</div>
                 </div>
               </div>
             </article>
@@ -505,80 +505,138 @@
       <!-- ========== SECTION MES DEMANDES (RESPONSABLE COMME DEMANDEUR) ========== -->
       <section *ngIf="activeItem === 'mes-demandes'">
         <div class="recent-requests">
+
           <!-- En-tête : titre + bouton -->
           <div class="recent-header">
             <h2>Toutes mes demandes</h2>
 
-            <!-- ouvre la modale "Nouvelle demande" -->
             <button class="primary-btn" (click)="ouvrirNouvelleDemande()">
               Nouvelle demande de panne
             </button>
           </div>
 
-          <!-- Filtres statut (chips) -->
-          <div class="filters-row">
-            <button
-              class="filter-chip"
-              [class.chip-active]="filtreStatut === 'TOUS'"
-              (click)="changerFiltreStatut('TOUS')"
-            >
-              Toutes ({{ mesDemandes.length }})
-            </button>
+          <!-- 🔍 Filtres statut / urgence / recherche (IDENTIQUE DEMANDEUR) -->
+          <div class="filters-card">
 
-            <button
-              class="filter-chip"
-              [class.chip-active]="filtreStatut === 'EN_ATTENTE'"
-              (click)="changerFiltreStatut('EN_ATTENTE')"
-            >
-              En attente ({{ countMesParStatut('EN_ATTENTE') }})
-            </button>
+            <!-- Ligne statuts -->
+            <div class="filters-row status-row">
+              <button
+                class="filter-chip"
+                [class.active]="filtreStatut === 'TOUS'"
+                (click)="changerFiltreStatut('TOUS')"
+              >
+                <span class="status-dot dot-all"></span>
+                <span>Toutes ({{ mesDemandes.length }})</span>
+              </button>
 
-            <button
-              class="filter-chip"
-              [class.chip-active]="filtreStatut === 'EN_COURS'"
-              (click)="changerFiltreStatut('EN_COURS')"
-            >
-              En cours ({{ countMesParStatut('EN_COURS') }})
-            </button>
+              <button
+                class="filter-chip"
+                [class.active]="filtreStatut === 'EN_ATTENTE'"
+                (click)="changerFiltreStatut('EN_ATTENTE')"
+              >
+                <span class="status-dot dot-pending"></span>
+                <span>En attente ({{ countMesParStatut('EN_ATTENTE') }})</span>
+              </button>
 
-            <button
-              class="filter-chip"
-              [class.chip-active]="filtreStatut === 'RESOLUE'"
-              (click)="changerFiltreStatut('RESOLUE')"
-            >
-              Résolues ({{ countMesParStatut('RESOLUE') }})
-            </button>
+              <button
+                class="filter-chip"
+                [class.active]="filtreStatut === 'EN_COURS'"
+                (click)="changerFiltreStatut('EN_COURS')"
+              >
+                <span class="status-dot dot-progress"></span>
+                <span>En cours ({{ countMesParStatut('EN_COURS') }})</span>
+              </button>
+
+              <button
+                class="filter-chip"
+                [class.active]="filtreStatut === 'RESOLUE'"
+                (click)="changerFiltreStatut('RESOLUE')"
+              >
+                <span class="status-dot dot-done"></span>
+                <span>Résolues ({{ countMesParStatut('RESOLUE') }})</span>
+              </button>
+            </div>
+
+            <!-- Ligne urgences + recherche -->
+            <div class="filters-row urgency-row">
+              <div class="urg-left">
+                <span class="urg-label">Urgence :</span>
+
+                <div class="urg-chips">
+                  <button
+                    class="filter-chip"
+                    [class.active]="filtreUrgence === 'TOUTES'"
+                    (click)="changerFiltreUrgence('TOUTES')"
+                  >
+                    Toutes
+                  </button>
+
+                  <button
+                    class="filter-chip"
+                    [class.active]="filtreUrgence === 'BASSE'"
+                    (click)="changerFiltreUrgence('BASSE')"
+                  >
+                    Basse
+                  </button>
+
+                  <button
+                    class="filter-chip"
+                    [class.active]="filtreUrgence === 'MOYENNE'"
+                    (click)="changerFiltreUrgence('MOYENNE')"
+                  >
+                    Moyenne
+                  </button>
+
+                  <button
+                    class="filter-chip"
+                    [class.active]="filtreUrgence === 'HAUTE'"
+                    (click)="changerFiltreUrgence('HAUTE')"
+                  >
+                    Haute
+                  </button>
+                </div>
+              </div>
+
+              <div class="filters-search">
+                <div class="search-wrapper">
+                  <span class="material-icons search-icon">search</span>
+                  <input
+                    type="text"
+                    placeholder="Rechercher par titre, lieu, statut..."
+                    [(ngModel)]="mesSearchTerm"
+                    (ngModelChange)="onMesSearchChange($event)"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-
           <!-- Liste des demandes du responsable -->
-          <div
-            class="requests-list"
-            *ngIf="mesDemandesFiltrees?.length; else aucuneDemandeResp"
-          >
+          <div class="requests-list" *ngIf="mesDemandesPaged?.length; else aucuneDemandeResp">
             <div
+              *ngFor="let demande of mesDemandesPaged"
               class="request-item request-clickable"
-              *ngFor="let demande of mesDemandesFiltrees"
               (click)="ouvrirDetailDemande(demande)"
             >
               <div>
                 <h3 class="request-title">{{ demande.titre }}</h3>
                 <p class="request-meta">
-                  Créée le {{ demande.dateCreation | date: 'yyyy-MM-dd' }}
-                  · {{ demande.lieu }}
+                  Créée le {{ demande.dateCreation | date:'yyyy-MM-dd' }} · {{ demande.lieu }}
                 </p>
               </div>
 
-              <span
-                class="status-chip"
-                [ngClass]="{
-            pending: demande.statut === 'EN_ATTENTE',
-            progress: demande.statut === 'EN_COURS',
-            done: demande.statut === 'RESOLUE'
-          }"
-              >
-          {{ libelleStatut(demande.statut) }}
-        </span>
+              <div class="request-right">
+          <span
+            class="status-chip"
+            [ngClass]="{
+              pending: demande.statut === 'EN_ATTENTE',
+              progress: demande.statut === 'EN_COURS',
+              done: demande.statut === 'RESOLUE'
+            }"
+          >
+            {{ libelleStatut(demande.statut) }}
+          </span>
+              </div>
             </div>
           </div>
 
@@ -591,6 +649,32 @@
               </button>
             </div>
           </ng-template>
+
+          <!-- 🔢 Pagination (IDENTIQUE DEMANDEUR) -->
+          <div class="pagination-bar" *ngIf="(mesDemandesFiltrees?.length || 0) > mesPageSize">
+            <div class="pagination-info">
+              Page {{ mesCurrentPage }} sur {{ mesTotalPages }}
+            </div>
+
+            <div class="pagination-actions">
+              <button
+                class="secondary-btn small pagination-btn"
+                (click)="mesGoToPreviousPage()"
+                [disabled]="mesCurrentPage === 1"
+              >
+                Précédent
+              </button>
+
+              <button
+                class="secondary-btn small pagination-btn"
+                (click)="mesGoToNextPage()"
+                [disabled]="mesCurrentPage === mesTotalPages"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+
         </div>
 
         <!-- ========== MODAL "NOUVELLE DEMANDE" (RESPONSABLE) ========== -->
@@ -605,41 +689,88 @@
 
             <div class="modal-body">
               <div class="form-grid">
+                <!-- Titre (obligatoire) -->
                 <div class="form-field">
-                  <label for="titre-resp">Titre de la demande</label>
+                  <label for="titre-resp">Titre de la demande <span class="req">*</span></label>
                   <input
                     id="titre-resp"
                     type="text"
                     name="titre-resp"
                     [(ngModel)]="newMesDemande.titre"
-                    placeholder="Ex : Panne PC salle INFO-101"
+                    (ngModelChange)="onMesFormChange()"
+                    placeholder="Ex : PC en panne"
                   />
                 </div>
 
+                <!-- Lieu (obligatoire) -->
                 <div class="form-field">
-                  <label for="lieu-resp">Lieu</label>
+                  <label for="lieu-resp">Lieu <span class="req">*</span></label>
                   <input
                     id="lieu-resp"
                     type="text"
                     name="lieu-resp"
                     [(ngModel)]="newMesDemande.lieu"
-                    placeholder="Ex : Bloc pédagogique A, salle 12"
+                    (ngModelChange)="onMesFormChange()"
+                    placeholder="Ex : PGF-SUP salle 10"
                   />
                 </div>
 
+                <!-- Type d’équipement (obligatoire) : SELECT + AUTRE -->
                 <div class="form-field">
-                  <label for="typeEquipement-resp">Type d’équipement</label>
-                  <input
+                  <label for="typeEquipement-resp">Type d’équipement <span class="req">*</span></label>
+
+                  <select
                     id="typeEquipement-resp"
-                    type="text"
                     name="typeEquipement-resp"
+                    class="form-control"
                     [(ngModel)]="newMesDemande.typeEquipement"
-                    placeholder="Ordinateur, imprimante, vidéoprojecteur..."
+                    (ngModelChange)="onMesEquipementChange($event)"
+                  >
+                    <option value="" disabled>Choisissez un équipement...</option>
+
+                    <option *ngFor="let e of equipementTypesUniversite" [value]="e">
+                      {{ e }}
+                    </option>
+
+                    <option value="Autre">Autre</option>
+                  </select>
+                </div>
+
+                <!-- Champ texte si Autre -->
+                <div class="form-field" *ngIf="newMesDemande.typeEquipement === 'Autre'">
+                  <label for="typeEquipementAutre-resp">Précisez l’équipement <span class="req">*</span></label>
+                  <input
+                    id="typeEquipementAutre-resp"
+                    type="text"
+                    name="typeEquipementAutre-resp"
+                    class="form-control"
+                    [(ngModel)]="newMesDemande.typeEquipementAutre"
                   />
                 </div>
 
+
+                <!-- Urgence (obligatoire) -->
                 <div class="form-field">
-                  <label for="image-resp">Image de l’équipement (optionnel)</label>
+                  <label for="urgence-resp">Urgence (votre estimation) <span class="req">*</span></label>
+
+                  <select
+                    id="urgence-resp"
+                    name="urgence-resp"
+                    class="form-control"
+                    [(ngModel)]="newMesDemande.urgence"
+                  >
+                    <option value="" disabled>Choisissez une urgence...</option>
+                    <option value="BASSE">Basse</option>
+                    <option value="MOYENNE">Moyenne</option>
+                    <option value="HAUTE">Haute</option>
+                  </select>
+                </div>
+
+
+                <!-- Image (obligatoire) -->
+                <div class="form-field">
+                  <label for="image-resp">Image de l’équipement <span class="req">*</span></label>
+
                   <input
                     id="image-resp"
                     type="file"
@@ -647,27 +778,19 @@
                     (change)="onMesFileSelected($event)"
                   />
 
-                  <!-- Aperçu + bouton suppression -->
-                  <div
-                    class="image-preview-wrapper"
-                    *ngIf="newMesDemande.imagePreview"
-                  >
-                    <img
-                      [src]="newMesDemande.imagePreview"
-                      alt="Aperçu de l'image"
-                      class="image-preview"
-                    />
-                    <button
-                      type="button"
-                      class="remove-img-btn"
-                      (click)="removeMesSelectedImage()"
-                      aria-label="Retirer l'image"
-                    >
-                      ✕
-                    </button>
+                  <!-- ✅ message rouge si erreur -->
+                  <p class="field-error" *ngIf="mesImageError">
+                    {{ mesImageError }}
+                  </p>
+
+                  <div class="image-preview-wrapper" *ngIf="newMesDemande.imagePreview">
+                    <img [src]="newMesDemande.imagePreview" class="image-preview" />
+                    <button type="button" class="remove-img-btn" (click)="removeMesSelectedImage()">✕</button>
                   </div>
                 </div>
 
+
+                <!-- Description (optionnelle) -->
                 <div class="form-field form-full">
                   <label for="description-resp">Description de la panne</label>
                   <textarea
@@ -682,16 +805,21 @@
             </div>
 
             <div class="modal-footer">
-              <button class="secondary-btn" (click)="closeMesNewDemandeModal()">
+              <button class="secondary-btn small pagination-btn" (click)="closeMesNewDemandeModal()">
                 Annuler
               </button>
-              <button class="primary-btn" (click)="submitMesNewDemande()">
-                Enregistrer la demande
+
+              <!-- ✅ Désactivé tant que champs obligatoires pas OK (Description ignorée) -->
+              <button
+                class="primary-btn"
+                (click)="submitMesNewDemande()"
+                [disabled]="!isMesNewDemandeValid() || !!mesImageError || loadingMesCreate"
+              >
+                {{ loadingMesCreate ? 'Enregistrement...' : 'Enregistrer la demande' }}
               </button>
             </div>
           </div>
         </div>
-
 
         <!-- ========== MODAL "DÉTAILS DE LA DEMANDE" (RESPONSABLE) ========== -->
         <div
@@ -710,53 +838,68 @@
               <h3 class="details-title">
                 {{ selectedMesDemande?.titre }}
               </h3>
+
               <p class="details-meta">
-                Créée le
-                {{ selectedMesDemande?.dateCreation | date: 'yyyy-MM-dd' }}
+                Créée le {{ selectedMesDemande?.dateCreation | date:'yyyy-MM-dd' }}
                 · {{ selectedMesDemande?.lieu }}
               </p>
 
               <div class="details-grid">
+                <!-- Type équipement -->
                 <div class="details-item">
                   <span class="details-label">Type d’équipement</span>
                   <span class="details-value">
-              {{ selectedMesDemande?.typeEquipement }}
-            </span>
+            {{ selectedMesDemande?.typeEquipement }}
+          </span>
                 </div>
 
-                <div class="details-item">
+                <!-- Urgence (demandeur) -->
+                <div class="field">
+                  <div class="field-label">Urgence</div>
+
+                  <div class="urgency-pill" [ngClass]="getUrgenceListClassAny(selectedMesDemande?.urgence)">
+                    {{ libelleUrgence(selectedMesDemande?.urgence) }}
+                  </div>
+                </div>
+
+
+
+                <!-- Statut -->
+                <div class="details-item details-full">
                   <span class="details-label">Statut</span>
+
                   <span
-                    class="status-chip"
-                    [ngClass]="badgeClass(selectedMesDemande!.statut)"
+                    class="status-pill"
+                    [ngClass]="badgeClass(selectedMesDemande?.statut)"
                   >
-              {{ libelleStatut(selectedMesDemande!.statut) }}
-            </span>
+            {{ libelleStatut(selectedMesDemande?.statut) }}
+          </span>
                 </div>
 
+                <!-- Description -->
                 <div class="details-item details-full">
                   <span class="details-label">Description</span>
-                  <p class="details-description">
+
+                  <p class="details-description" *ngIf="selectedMesDemande?.description; else noDesc">
                     {{ selectedMesDemande?.description }}
                   </p>
+
+                  <ng-template #noDesc>
+                    <span class="details-muted">Aucune description</span>
+                  </ng-template>
                 </div>
 
+                <!-- Image jointe -->
                 <div class="details-item details-full">
                   <span class="details-label">Image jointe</span>
 
-                  <ng-container
-                    *ngIf="selectedMesDemande?.imageUrl; else noMesImage"
-                  >
+                  <ng-container *ngIf="selectedMesDemande?.imageUrl; else noMesImage">
                     <button
                       type="button"
-                      class="secondary-btn small"
-                      (click)="showMesImageInDetails = !showMesImageInDetails"
+                      class="secondary-btn small pagination-btn"
+                      (click)="toggleMesImageDetails()"
                     >
-                      {{
-                        showMesImageInDetails
-                          ? "Masquer l'image"
-                          : "Afficher l'image"
-                      }}
+                      {{ showMesImageInDetails ? "Masquer l'image" : "Afficher l'image" }}
                     </button>
 
                     <div class="details-image-wrapper" *ngIf="showMesImageInDetails">
@@ -769,21 +912,21 @@
                   </ng-container>
 
                   <ng-template #noMesImage>
-              <span class="details-value details-muted">
-                Aucune image jointe
-              </span>
+                    <span class="details-muted">Aucune image jointe</span>
                   </ng-template>
                 </div>
               </div>
             </div>
 
             <div class="modal-footer">
-              <button class="secondary-btn" (click)="closeMesDetailsModal()">
+              <button class="secondary-btn small pagination-btn" (click)="closeMesDetailsModal()">
                 Fermer
               </button>
             </div>
           </div>
         </div>
+
+
       </section>
 
 
@@ -841,7 +984,7 @@
               <button
                 type="button"
                 class="resp-btn-outline"
-                (click)="openEquipementForm()"
+                (click)="openCreateStockTypeModal()"
               >
                 <span class="material-icons">add</span>
                 Ajouter un équipement
@@ -861,55 +1004,115 @@
                 <table class="resp-demandes-table">
                   <thead>
                   <tr>
-                    <th>Référence</th>
                     <th>Type</th>
                     <th>Quantité</th>
                     <th class="resp-actions-col">Actions</th>
                   </tr>
                   </thead>
-                  <tbody>
-                  <tr *ngFor="let e of filteredEquipements">
-                    <td>{{ e.reference }}</td>
-                    <td>{{ e.type }}</td>
-                    <td>{{ e.quantite }}</td>
-                    <td class="resp-actions-col">
-                      <div class="equip-actions">
-                        <button
-                          type="button"
-                          class="resp-btn-ghost"
-                          (click)="editEquipement(e)"
-                        >
-                          <span class="material-icons">edit</span>
-                          <span>Modifier</span>
-                        </button>
 
-                        <button
-                          type="button"
-                          class="resp-btn-outline danger"
-                          (click)="deleteEquipement(e)"
-                        >
-                          <span class="material-icons">delete</span>
-                          <span>Supprimer</span>
-                        </button>
-                      </div>
+                  <tbody>
+                  <tr *ngFor="let e of filteredEquipementsStock">
+                    <td>{{ e.type }}</td>
+                    <td>{{ e.total }}</td>
+                    <td class="resp-actions-col">
+                      <button type="button" class="resp-btn-ghost" (click)="openStockDetails(e.typeId)">
+                        <span class="material-icons">visibility</span>
+                        <span>Voir détails</span>
+                      </button>
                     </td>
                   </tr>
 
-                  <tr *ngIf="filteredEquipements.length === 0">
-                    <td colspan="4" class="resp-no-data">
+                  <tr *ngIf="filteredEquipementsStock.length === 0">
+                    <td colspan="3" class="resp-no-data">
                       <div class="resp-no-data-icon">
                         <span class="material-icons">inventory_2</span>
                       </div>
-                      <div>Aucun équipement ne correspond aux filtres.</div>
+                      <div>Aucun équipement ne correspond à la recherche.</div>
                     </td>
                   </tr>
                   </tbody>
                 </table>
+
               </div>
             </article>
           </div>
         </section>
       </ng-container>
+
+      <!-- ========================= -->
+      <!-- ✅ MODALE AJOUT ÉQUIPEMENT -->
+      <!-- ========================= -->
+      <!-- ===== MODAL AJOUT TYPE EQUIPEMENT (STOCK) ===== -->
+      <div class="modal-backdrop" *ngIf="showCreateStockTypeModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2>Ajouter un équipement</h2>
+            <button class="icon-btn" (click)="closeCreateStockTypeModal()">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div class="details-grid" style="grid-template-columns: 1fr 1fr;">
+              <!-- Type -->
+              <div class="field">
+                <label class="field-label">Type <span class="req">*</span></label>
+                <input
+                  class="field-input"
+                  type="text"
+                  placeholder="Ex: Imprimante"
+                  [(ngModel)]="createStockForm.type"
+                />
+              </div>
+
+              <!-- Quantité -->
+              <div class="field">
+                <label class="field-label">Quantité <span class="req">*</span></label>
+                <input
+                  class="field-input"
+                  type="number"
+                  min="1"
+                  step="1"
+                  [(ngModel)]="createStockForm.quantite"
+                  (ngModelChange)="normalizeStockQuantity()"
+                />
+                <small class="field-hint">Minimum : 1</small>
+              </div>
+
+              <!-- Description -->
+              <div class="field" style="grid-column: 1 / -1;">
+                <label class="field-label">Description (optionnel)</label>
+                <textarea
+                  class="textarea-field"
+                  rows="3"
+                  placeholder="Infos utiles sur ce type…"
+                  [(ngModel)]="createStockForm.description"
+                ></textarea>
+              </div>
+            </div>
+
+            <p class="details-meta" style="margin-top: 10px;">
+              Les nouveaux équipements sont enregistrés automatiquement au <strong>magasin</strong> avec le statut
+              <strong>Hors service</strong>.
+            </p>
+          </div>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" (click)="closeCreateStockTypeModal()">
+              Annuler
+            </button>
+
+            <button
+              class="primary-btn"
+              (click)="createStockTypeWithQuantity()"
+              [disabled]="isCreateStockInvalid()"
+            >
+              Enregistrer
+            </button>
+          </div>
+        </div>
+      </div>
+
 
       <!-- 🟦 PAGE : MAINTENANCE PRÉVENTIVE -->
       <ng-container *ngIf="activeItem === 'preventives'">
@@ -972,7 +1175,7 @@
                   </thead>
                   <tbody>
                   <tr *ngFor="let m of filteredMaintenancesPreventives">
-                    <td>{{ m.typeEquipement }}</td>
+                    <td>{{ m.typeEquipement || m.equipementReference }}</td>
                     <td>{{ m.frequence }}</td>
                     <td>{{ m.prochaineDate | date: 'yyyy-MM-dd' }}</td>
                     <td>{{ m.responsable }}</td>
@@ -1370,7 +1573,7 @@
               </div>
 
               <div class="field">
-                <label class="field-label">Urgence (Responsable)</label>
+                <label class="field-label">Urgence (Responsable)  <span class="req">*</span></label>
 
                 <select class="field-select" [(ngModel)]="modalUrgenceResponsable">
                   <option value="">Non définie</option>
@@ -1383,21 +1586,19 @@
 
 
               <div class="details-item">
-                <span class="details-label">Technicien affecté</span>
+                <span class="details-label">Technicien affecté  <span class="req">*</span></span>
                 <select
                   class="select-field"
                   [(ngModel)]="modalTechnicienId"
                   [disabled]="selectedDemande?.statut === 'RESOLUE'"
                 >
-                  <option [ngValue]="null">Non affecté</option>
+                  <option [ngValue]="null">Choisissez un technicien</option>
 
                   <option *ngFor="let t of techniciens" [ngValue]="t.id">
                     {{ t.nom }}
                     <ng-container *ngIf="t.serviceUnite"> ({{ t.serviceUnite }})</ng-container>
                     <ng-container *ngIf="!t.serviceUnite && t.categorie"> ({{ t.categorie }})</ng-container>
                   </option>
-
-
                 </select>
               </div>
 
@@ -1426,7 +1627,7 @@
                   *ngIf="selectedDemande?.imageUrl; else noImage"
                 >
                   <button
-                    class="secondary-btn small"
+                    class="secondary-btn small pagination-btn"
                     type="button"
                     (click)="showImageInDetails = !showImageInDetails"
                   >
@@ -1448,10 +1649,6 @@
                       alt="Image panne"
                       (click)="openImageLightbox(selectedDemande.imageUrl)"
                     />
-
-
-
-
 
                   </div>
                 </ng-container>
@@ -1509,107 +1706,125 @@
       </div>
 
       <!-- ===== MODAL GESTION ÉQUIPEMENT ===== -->
-      <div class="modal-backdrop" *ngIf="showEquipementModal">
+      <!-- ========================= -->
+      <!-- MODALE : DETAILS STOCK -->
+      <!-- ========================= -->
+      <div class="modal-backdrop" *ngIf="showStockDetailsModal">
         <div class="modal">
           <div class="modal-header">
-            <h2>
-              {{
-                isEditingEquipement
-                  ? 'Modifier un équipement'
-                  : 'Ajouter un équipement'
-              }}
-            </h2>
-            <button class="icon-btn" (click)="closeEquipementForm()">
+            <h2>Détails de l’équipement</h2>
+
+            <button class="icon-btn" type="button" (click)="closeStockDetailsModal()">
               <span class="material-icons">close</span>
             </button>
           </div>
 
-          <div class="modal-body details-body">
-            <div class="details-grid">
-              <div class="details-item">
-                <span class="details-label">Référence</span>
-                <input
-                  class="input-field"
-                  type="text"
-                  [(ngModel)]="equipementForm.reference"
-                  [readonly]="isEditingEquipement"
-                  placeholder="Ex : PC-001"
-                />
-              </div>
-
-              <div class="details-item">
-                <span class="details-label">Type d'équipement</span>
-                <select
-                  class="select-field"
-                  [(ngModel)]="equipementTypeSelection"
-                  (change)="onEquipementTypeSelectionChange()"
-                >
-                  <option value="">Sélectionner un type</option>
-                  <option
-                    *ngFor="let t of equipementTypesUniversite"
-                    [ngValue]="t"
-                  >
-                    {{ t }}
-                  </option>
-                  <option value="AUTRE">Autre...</option>
-                </select>
-              </div>
-
-              <div
-                class="details-item"
-                *ngIf="equipementTypeSelection === 'AUTRE'"
-              >
-                <span class="details-label">Type personnalisé</span>
-                <input
-                  class="input-field"
-                  type="text"
-                  [(ngModel)]="equipementForm.type"
-                  placeholder="Ex : Tablette, Switch spécifique..."
-                />
-              </div>
-
-              <div class="details-item">
-                <span class="details-label">Localisation</span>
-                <input
-                  class="input-field"
-                  type="text"
-                  [(ngModel)]="equipementForm.localisation"
-                  placeholder="Ex : Salle info 1"
-                />
-              </div>
-
-              <div class="details-item">
-                <span class="details-label">Quantité en stock</span>
-                <input
-                  class="input-field"
-                  type="number"
-                  min="0"
-                  [(ngModel)]="equipementForm.quantite"
-                />
-              </div>
+          <div class="modal-body">
+            <!-- Loading -->
+            <div *ngIf="loadingStockDetails" class="resp-muted">
+              Chargement des détails...
             </div>
+
+            <!-- Error -->
+            <div *ngIf="!loadingStockDetails && errorStockDetails" class="resp-error">
+              {{ errorStockDetails }}
+            </div>
+
+            <!-- Content -->
+            <ng-container *ngIf="!loadingStockDetails && !errorStockDetails && selectedStockDetails">
+              <h3 class="details-title">{{ selectedStockDetails.type }}</h3>
+
+              <div class="details-grid">
+                <div class="details-item">
+                  <span class="details-label">Date d’acquisition</span>
+                  <span class="details-value">
+      {{ selectedStockDetails?.dateAcquisition || '-' }}
+    </span>
+                </div>
+
+                <div class="details-item details-full" *ngIf="selectedStockDetails?.description">
+                  <span class="details-label">Description</span>
+                  <p class="details-description">
+                    {{ selectedStockDetails?.description }}
+                  </p>
+                </div>
+
+                <div class="details-item">
+                  <span class="details-label">Quantité totale</span>
+                  <span class="details-value">{{ selectedStockDetails?.total }}</span>
+                </div>
+
+                <div class="details-item">
+                  <span class="details-label">En service</span>
+                  <span class="details-value">{{ selectedStockDetails?.enService }}</span>
+                </div>
+
+                <div class="details-item">
+                  <span class="details-label">Hors service</span>
+                  <span class="details-value">{{ selectedStockDetails?.horsService }}</span>
+                </div>
+              </div>
+
+
+              <div style="margin-top: 12px;" *ngIf="selectedStockDetails.enServiceItems?.length">
+                <div class="details-label" style="margin-bottom: 6px;">Exemplaires en service</div>
+
+                <div class="resp-table-wrapper">
+                  <table class="resp-demandes-table">
+                    <thead>
+                    <tr>
+                      <th>Statut</th>
+                      <th>Localisation</th>
+                      <th>Date mise en service</th>
+                      <th>Intervention</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr *ngFor="let it of selectedStockDetails.enServiceItems">
+                      <td>{{ it.statut }}</td>
+                      <td>{{ it.localisation || '-' }}</td>
+                      <td>{{ it.dateMiseEnService || '-' }}</td>
+
+                      <td>
+                        <button
+                          *ngIf="it.interventionId"
+                          type="button"
+                          class="resp-btn-ghost"
+                          (click)="openInterventionDetails(it.interventionId)"
+                        >
+                          <span class="material-icons">visibility</span>
+                          <span>Voir intervention</span>
+                        </button>
+
+                        <span *ngIf="!it.interventionId" class="resp-muted">-</span>
+                      </td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div *ngIf="!selectedStockDetails.enServiceItems?.length" class="resp-muted" style="margin-top: 12px;">
+                Aucun exemplaire en service.
+              </div>
+
+
+              <div *ngIf="!selectedStockDetails.enServiceItems?.length"
+                   class="resp-muted" style="margin-top: 12px;">
+                Aucun exemplaire trouvé.
+              </div>
+            </ng-container>
           </div>
 
           <div class="modal-footer">
-            <button class="secondary-btn" (click)="closeEquipementForm()">
-              Annuler
-            </button>
-
-            <button
-              class="primary-btn"
-              type="button"
-              [disabled]="!isEquipementFormValid"
-              (click)="saveEquipement()"
-            >
-              {{
-                isEditingEquipement
-                  ? 'Enregistrer les modifications'
-                  : 'Ajouter'
-              }}
+            <button class="secondary-btn" type="button" (click)="closeStockDetailsModal()">
+              Fermer
             </button>
           </div>
         </div>
       </div>
+
 
       <!-- ===== MODAL DÉTAILS TECHNICIEN ===== -->
       <div
@@ -1780,6 +1995,13 @@
                   }}
                 </span>
               </div>
+              <div class="details-item">
+                <span class="details-label">Technicien affecté</span>
+                <div class="details-value">
+                  {{ selectedPreventiveTechnicienLabel }}
+                </div>
+              </div>
+
 
               <div class="details-item details-full">
                 <span class="details-label">Description</span>
@@ -1800,6 +2022,71 @@
           </div>
         </div>
       </div>
+
+      <!-- ========================= -->
+      <!-- MODALE : DETAILS INTERVENTION -->
+      <!-- ========================= -->
+      <div class="modal-backdrop" *ngIf="showInterventionDetailsModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2>Détails de l’intervention</h2>
+
+            <button class="icon-btn" type="button" (click)="closeInterventionDetailsModal()">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div *ngIf="loadingInterventionDetails" class="resp-muted">
+              Chargement...
+            </div>
+
+            <div *ngIf="!loadingInterventionDetails && errorInterventionDetails" class="resp-error">
+              {{ errorInterventionDetails }}
+            </div>
+
+            <ng-container *ngIf="!loadingInterventionDetails && !errorInterventionDetails && selectedInterventionDetails">
+              <h3 class="details-title">
+                {{ selectedInterventionDetails.titre || ('Intervention #' + selectedInterventionDetails.id) }}
+              </h3>
+
+              <div class="details-grid">
+                <div class="details-item">
+                  <span class="details-label">Statut</span>
+                  <span class="details-value">{{ selectedInterventionDetails.statut }}</span>
+                </div>
+
+                <div class="details-item">
+                  <span class="details-label">Type</span>
+                  <span class="details-value">{{ selectedInterventionDetails.type }}</span>
+                </div>
+
+                <div class="details-item">
+                  <span class="details-label">Début</span>
+                  <span class="details-value">{{ selectedInterventionDetails.dateDebut || '-' }}</span>
+                </div>
+
+                <div class="details-item">
+                  <span class="details-label">Fin</span>
+                  <span class="details-value">{{ selectedInterventionDetails.dateFin || '-' }}</span>
+                </div>
+
+                <div class="details-item details-full" *ngIf="selectedInterventionDetails.description">
+                  <span class="details-label">Description</span>
+                  <p class="details-description">{{ selectedInterventionDetails.description }}</p>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" type="button" (click)="closeInterventionDetailsModal()">
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+
 
       <!-- ===== MODAL CONFIRMATION DÉCONNEXION (NOUVEAU DESIGN) ===== -->
       <div class="modal-backdrop logout-backdrop" *ngIf="showLogoutConfirm">
@@ -1848,58 +2135,72 @@
         </div>
       </div>
 
-      <!-- MODAL NOUVELLE MAINTENANCE PRÉVENTIVE -->
+      <!-- ===== MODAL NOUVELLE MAINTENANCE PRÉVENTIVE ===== -->
       <div class="modal-backdrop" *ngIf="showPreventiveForm">
         <div class="modal">
           <div class="modal-header">
             <h2>Nouvelle maintenance préventive</h2>
-            <button
-              class="icon-btn"
-              type="button"
-              (click)="closePreventiveForm()"
-            >
+            <button class="icon-btn" type="button" (click)="closePreventiveForm()">
               <span class="material-icons">close</span>
             </button>
           </div>
 
           <div class="modal-body">
             <div class="details-grid">
+              <!-- Équipement -->
               <div class="details-item">
-                <span class="details-label">Équipement</span>
+                <span class="details-label">Équipement <span class="req">*</span></span>
                 <select
                   class="select-field"
+                  name="equipementReference"
                   [(ngModel)]="newPreventive.equipementReference"
                   required
                 >
-                  <option [ngValue]="null">Choisir un équipement</option>
+                  <option [ngValue]="null" disabled>Choisissez un équipement</option>
                   <option *ngFor="let e of equipementOptions" [ngValue]="e">
                     {{ e }}
                   </option>
                 </select>
               </div>
 
+              <!-- Technicien affecté -->
               <div class="details-item">
-                <span class="details-label">Type d’équipement</span>
+                <span class="details-label">Technicien affecté <span class="req">*</span></span>
+
+                <!-- Loading / erreur (optionnel mais propre) -->
+                <div *ngIf="loadingTechniciens" class="hint-text">Chargement des techniciens...</div>
+                <div *ngIf="!loadingTechniciens && techniciens?.length === 0" class="hint-text">
+                  Impossible de charger la liste des techniciens.
+                </div>
+
                 <select
                   class="select-field"
-                  [(ngModel)]="newPreventive.typeEquipement"
+                  name="technicienId"
+                  [(ngModel)]="modalTechnicienId"
                   required
+                  [disabled]="loadingTechniciens || (techniciens?.length === 0)"
                 >
-                  <option [ngValue]="null">Sélectionner un type</option>
-                  <option *ngFor="let t of equipementTypes" [ngValue]="t">
-                    {{ t }}
+                  <option [ngValue]="null" disabled>Choisissez un technicien</option>
+
+                  <option *ngFor="let t of techniciens" [ngValue]="t.id">
+                    {{ t.nom }}
+                    <ng-container *ngIf="t.serviceUnite"> ({{ t.serviceUnite }})</ng-container>
+                    <ng-container *ngIf="!t.serviceUnite && t.categorie"> ({{ t.categorie }})</ng-container>
                   </option>
+
                 </select>
               </div>
 
+              <!-- Fréquence -->
               <div class="details-item">
-                <span class="details-label">Fréquence</span>
+                <span class="details-label">Fréquence <span class="req">*</span></span>
                 <select
                   class="select-field"
+                  name="frequence"
                   [(ngModel)]="newPreventive.frequence"
                   required
                 >
-                  <option [ngValue]="null">Choisir une fréquence</option>
+                  <option [ngValue]="null" disabled>Choisir une fréquence</option>
                   <option [ngValue]="'Mensuelle'">Mensuelle</option>
                   <option [ngValue]="'Trimestrielle'">Trimestrielle</option>
                   <option [ngValue]="'Semestrielle'">Semestrielle</option>
@@ -1907,31 +2208,37 @@
                 </select>
               </div>
 
+              <!-- Prochaine date -->
               <div class="details-item">
-                <span class="details-label">Prochaine date</span>
+                <span class="details-label">Prochaine date <span class="req">*</span></span>
                 <input
                   type="date"
                   class="input-field"
+                  name="prochaineDate"
                   [(ngModel)]="newPreventive.prochaineDate"
                   required
                 />
               </div>
 
+              <!-- Responsable -->
               <div class="details-item">
                 <span class="details-label">Responsable</span>
                 <input
                   type="text"
                   class="input-field"
+                  name="responsable"
                   [(ngModel)]="newPreventive.responsable"
                   [readonly]="true"
                 />
               </div>
 
+              <!-- Description -->
               <div class="details-item details-full">
-                <span class="details-label">Description</span>
+                <span class="details-label">Description <span class="req">*</span></span>
                 <textarea
                   class="textarea-field"
                   rows="3"
+                  name="description"
                   [(ngModel)]="newPreventive.description"
                   required
                 ></textarea>
@@ -1940,17 +2247,13 @@
           </div>
 
           <div class="modal-footer">
-            <button
-              class="secondary-btn"
-              type="button"
-              (click)="closePreventiveForm()"
-            >
+            <button class="secondary-btn" type="button" (click)="closePreventiveForm()">
               Annuler
             </button>
             <button
               class="primary-btn"
               type="button"
-              [disabled]="!isNewPreventiveValid"
+              [disabled]="!isNewPreventiveValid || loadingPreventives"
               (click)="saveNewPreventive()"
             >
               Enregistrer
@@ -1959,6 +2262,8 @@
         </div>
       </div>
       <!-- ===== FIN MODAL NOUVELLE MAINTENANCE PRÉVENTIVE ===== -->
+
+
     </section>
   </main>
 </div>

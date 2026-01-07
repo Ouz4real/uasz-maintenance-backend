@@ -2,10 +2,8 @@ package sn.uasz.uasz_maintenance_backend.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sn.uasz.uasz_maintenance_backend.entities.Equipement;
-import sn.uasz.uasz_maintenance_backend.exceptions.ResourceNotFoundException;
 import sn.uasz.uasz_maintenance_backend.services.EquipementService;
 
 import java.util.List;
@@ -13,7 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/equipements")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // temporaire, pour autoriser le frontend plus tard
+@CrossOrigin(origins = "*")
 public class EquipementController {
 
     private final EquipementService equipementService;
@@ -48,11 +46,5 @@ public class EquipementController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         equipementService.deleteEquipement(id);
-    }
-
-    // Gestion simple de l'exception ResourceNotFoundException
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }

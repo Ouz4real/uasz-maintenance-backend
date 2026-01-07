@@ -19,10 +19,24 @@ import { environment } from '../../../../environments/environment';
 import {UtilisateursService} from '../../../core/services/utilisateurs.service';
 import {InterventionDto, InterventionsService} from '../../../core/services/interventions.service';
 import { StatsTechnicienResponse } from '../../../core/services/stats-technicien-response';
+import { EquipementStockService } from '../../../core/services/equipements-stock.service';
+import { EquipementDetailsDto } from '../../../core/services/equipements-stock.service';
+import { TechniciensService, TechnicienOptionDto } from '../../../core/services/techniciens.service';
+import { TechnicienUI } from '../../../core/models/technicien-ui.model';
+import {PreventivesService} from '../../../core/services/preventives.service';
+import { MaintenancePreventive } from '../../../core/models/maintenance-preventive.model';
+
+
+
+
+
 
 
 // --- MES DEMANDES RESPONSABLE ---
 export type MesDemandeStatut = 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE';
+
+
+
 
 export interface InterventionUI {
   id: number;
@@ -38,9 +52,6 @@ export interface InterventionUI {
 }
 
 
-
-
-
 export interface MesDemandeResponsable {
   id: number;
   titre: string;
@@ -51,16 +62,67 @@ export interface MesDemandeResponsable {
   typeEquipement: string;
   description: string;
   imageUrl?: string;
+  urgence?: 'BASSE' | 'MOYENNE' | 'HAUTE' | string;
+
 }
 
-interface NouvelleDemandeResponsableForm {
+type TechnicienDetails = TechnicienUI & {
+  interventionsEnCours: any[];
+  dernieresInterventions: any[];
+};
+
+
+export interface NouvelleDemandeResponsableForm {
   titre: string;
   lieu: string;
+
+  // select: valeur choisie OU "AUTRE"
   typeEquipement: string;
+
+  // texte si AUTRE
+  typeEquipementAutre?: string;
+
+  // obligatoire
+  urgence: '' | 'BASSE' | 'MOYENNE' | 'HAUTE';
+
+  // optionnel
   description: string;
+
+  // obligatoire
   imageFile: File | null;
   imagePreview: string | null;
 }
+
+// ===== STOCK EQUIPEMENTS (BACKEND) =====
+export interface EquipementStockRowDto {
+  typeId: number;
+  type: string;
+  quantiteTotale: number;
+  enService: number;
+  horsService: number;
+}
+
+export interface EquipementItemDto {
+  id: number;
+  statut: 'EN_SERVICE' | 'HORS_SERVICE' | string;
+  localisation: string | null;
+  dateMiseEnService: string | null; // LocalDate -> string côté Angular
+}
+
+export interface EquipementStockDetailsDto {
+  typeId: number;
+  type: string;
+  description: string | null;
+  dateAcquisition: string | null;
+
+  quantiteTotale: number;
+  enService: number;
+  horsService: number;
+
+  items: EquipementItemDto[];
+}
+
+
 
 /* ====================== INTERFACES UI ====================== */
 
@@ -129,69 +191,11 @@ interface PieceDetachee {
 type StatutPreventive = 'PLANIFIEE' | 'EN_RETARD' | 'REALISEE';
 
 
-interface MaintenancePreventive {
-  id: number;
-  equipementReference: string | null;
-  typeEquipement: string | null;
-  frequence: string | null;
-  prochaineDate: Date;
-  responsable: string;
-  statut: StatutPreventive;
-  description: string;
-}
 
 interface DemandesParMois {
   mois: string;
   total: number;
 }
-
-
-
-
-
-export type TechnicienUI = {
-  id: number;
-
-  // Affichage
-  nom: string;                 // ex: "Moussa Ba"
-  categorie: string;           // ex: "Plomberie" (ou "Maintenance")
-  serviceUnite?: string;       // ex: "Plomberie" (affiché entre parenthèses)
-  departement?: string;        // ex: "Maintenance"
-  username?: string;           // ex: "tech-plomb-1"
-
-  // Détails / spécialités
-  specialites: string[];       // ex: ["Plomberie"] (tu peux y mettre serviceUnite)
-  disponible: boolean;
-
-  // Stats affichées dans la LISTE (cartes)
-  nbInterventionsEnCours: number;
-  nbInterventionsTerminees: number;
-  tempsMoyenResolutionHeures: number;
-
-  // Interventions (modale détails technicien)
-  interventionsEnCours?: InterventionUI[];
-  dernieresInterventions?: InterventionUI[];
-
-  // ✅ Stats “riches” (modale détails technicien)
-  stats?: {
-    enCours: number;
-    terminees: number;
-    tempsMoyen: string;        // ex: "1 h 30 min"
-    tempsMoyenMinutes?: number; // ✅ utile si tu veux recalculer côté front
-  };
-
-  // ✅ Pour gérer l'UI proprement (loading/erreur par technicien)
-  loadingInterventions?: boolean;
-  errorInterventions?: string | null;
-
-  loadingStats?: boolean;
-  errorStats?: string | null;
-
-  sousCategorie?: string;
-};
-
-
-
 
 
 /* ====================== COMPOSANT ====================== */
@@ -204,17 +208,46 @@ export type TechnicienUI = {
   imports: [CommonModule, FormsModule, DatePipe],
 })
 export class DashboardResponsableComponent implements OnInit {
+
+  // =====================================================
+// MES DEMANDES (RESP) — état UI (filtres / recherche / pagination)
+// =====================================================
+  filtreUrgence: 'TOUTES' | 'BASSE' | 'MOYENNE' | 'HAUTE' = 'TOUTES';
+  mesSearchTerm: string = '';
+
+  mesDemandesPaged: MesDemandeResponsable[] = [];
+
+  mesPageSize: number = 6;
+  mesCurrentPage: number = 1;
+  mesTotalPages: number = 1;
+
   // ====== MES DEMANDES (RESPONSABLE) ======
   mesDemandes: MesDemandeResponsable[] = [];
   mesDemandesFiltrees: MesDemandeResponsable[] = [];
   filtreStatut: 'TOUS' | 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE' = 'TOUS';
 
 
-  loadingTechniciens = false;
-  errorTechniciens: string | null = null;
 
   loadingTechStats = false;
   errorTechStats: string | null = null;
+
+
+  stockRows: EquipementStockRowDto[] = [];
+  filteredStockRows: EquipementStockRowDto[] = [];
+
+  loadingStock = false;
+  errorStock: string | null = null;
+
+  showStockDetailsModal = false;
+  selectedStockDetails: EquipementDetailsDto | null = null;
+  loadingStockDetails = false;
+  errorStockDetails: string | null = null;
+
+  equipementSearchTerm = '';
+
+  selectedPreventiveTechnicienLabel = 'Non affecté';
+
+
 
 
 
@@ -226,6 +259,15 @@ export class DashboardResponsableComponent implements OnInit {
   techniciensAffectables: TechnicienUI[] = [];
   filteredTechniciens: TechnicienUI[] = [];
 
+  showInterventionDetailsModal = false;
+  loadingInterventionDetails = false;
+  errorInterventionDetails: string | null = null;
+  selectedInterventionDetails: any = null;
+
+  loadingPreventives = false;
+  errorPreventives: string | null = null;
+
+
 
 
 
@@ -233,10 +275,13 @@ export class DashboardResponsableComponent implements OnInit {
     titre: '',
     lieu: '',
     typeEquipement: '',
+    typeEquipementAutre: '',
+    urgence: '',
     description: '',
     imageFile: null,
     imagePreview: null,
   };
+
 
   interventionsEnCours?: InterventionUI[];
   dernieresInterventions?: InterventionUI[];
@@ -276,6 +321,9 @@ export class DashboardResponsableComponent implements OnInit {
     this.activeItem = item;
     if (item === 'techniciens') {
       this.chargerTechniciensDepuisApi();
+    }
+    if (item === 'equipements') {
+      this.loadStock();
     }
   }
 
@@ -329,6 +377,7 @@ export class DashboardResponsableComponent implements OnInit {
 
 
 
+
   onTechnicienSearchChange(value: string): void {
     this.technicienSearchTerm = (value ?? '').toLowerCase().trim();
     this.applyTechnicienFilters();
@@ -362,6 +411,30 @@ export class DashboardResponsableComponent implements OnInit {
     this.filteredTechniciens = list;
   }
 
+  openInterventionDetails(interventionId: number): void {
+    this.showInterventionDetailsModal = true;
+    this.loadingInterventionDetails = true;
+    this.errorInterventionDetails = null;
+    this.selectedInterventionDetails = null;
+
+    this.interventionsService.getById(interventionId).subscribe({
+      next: (itv) => {
+        this.selectedInterventionDetails = itv;
+        this.loadingInterventionDetails = false;
+      },
+      error: (err) => {
+        console.error('Erreur détails intervention:', err);
+        this.errorInterventionDetails = "Impossible de charger les détails de l'intervention.";
+        this.loadingInterventionDetails = false;
+      }
+    });
+  }
+
+  closeInterventionDetailsModal(): void {
+    this.showInterventionDetailsModal = false;
+  }
+
+
   private chargerTechniciensDepuisApi(): void {
     this.loadingTechniciens = true;
     this.errorTechniciens = null;
@@ -381,8 +454,13 @@ export class DashboardResponsableComponent implements OnInit {
         this.filteredTechniciens = [...items];
 
         this.technicienCategories = Array.from(
-          new Set(items.map((t: TechnicienUI) => t.categorie).filter(Boolean))
-        ).sort((a: string, b: string) => a.localeCompare(b));
+          new Set(
+            this.techniciens
+              .map(t => t.categorie ?? '')
+              .filter(c => c.trim().length > 0)
+          )
+        ).sort((a, b) => a.localeCompare(b));
+
 
         this.applyTechnicienFilters();
 
@@ -403,6 +481,88 @@ export class DashboardResponsableComponent implements OnInit {
       },
     });
   }
+
+
+
+  private loadStock(): void {
+    this.loadingStock = true;
+    this.errorStock = null;
+
+    this.equipementStockService.getStock().subscribe({
+      next: (rows) => {
+        this.stockRows = rows ?? [];
+        this.applyStockFilter();
+        this.loadingStock = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement stock:', err);
+        this.stockRows = [];
+        this.filteredStockRows = [];
+        this.errorStock = "Impossible de charger le stock.";
+        this.loadingStock = false;
+      },
+    });
+  }
+
+  onEquipementSearchChange(term: string): void {
+    this.equipementSearchTerm = (term ?? '').toLowerCase().trim();
+    this.applyStockFilter();
+  }
+
+  private applyStockFilter(): void {
+    const q = this.equipementSearchTerm;
+
+    if (!q) {
+      this.filteredStockRows = [...this.stockRows];
+      return;
+    }
+
+    this.filteredStockRows = (this.stockRows ?? []).filter((r) =>
+      (r.type ?? '').toLowerCase().includes(q)
+    );
+  }
+
+
+  openStockDetails(typeId: number): void {
+    this.showStockDetailsModal = true;
+    this.loadingStockDetails = true;
+    this.errorStockDetails = null;
+    this.selectedStockDetails = null;
+
+    this.equipementStockService.getDetails(typeId).subscribe({
+      next: (details) => {
+        this.selectedStockDetails = details;
+        this.loadingStockDetails = false;
+      },
+      error: (err) => {
+        console.error('Erreur détails stock:', err);
+        this.errorStockDetails = "Impossible de charger les détails de cet équipement.";
+        this.loadingStockDetails = false;
+      }
+    });
+  }
+
+  closeStockDetailsModal(): void {
+    this.showStockDetailsModal = false;
+    this.selectedStockDetails = null;
+    this.errorStockDetails = null;
+    this.loadingStockDetails = false;
+  }
+
+
+
+  private applyStockFilters(): void {
+    const q = (this.equipementSearchTerm || '').trim().toLowerCase();
+    let list = [...this.equipementsStock];
+
+    if (q) {
+      list = list.filter((e) => (e.type || '').toLowerCase().includes(q));
+    }
+
+    // tes anciens filtres "etat/type" ne sont plus utiles ici (car on affiche par type)
+    this.filteredEquipementsStock = list;
+  }
+
 
 
   private chargerStatsTechniciens(): void {
@@ -458,14 +618,8 @@ export class DashboardResponsableComponent implements OnInit {
 
 
 
-
-
-
-
-
   /* ========== ÉQUIPEMENTS & STOCK ========== */
 
-  equipementSearchTerm = '';
   equipementEtatFilter: 'TOUS' | 'EN_SERVICE' | 'EN_PANNE' | 'HORS_SERVICE' = 'TOUS';
   equipementTypeFilter: 'TOUS' | string = 'TOUS';
   equipementLocalisationFilter: 'TOUS' | string = 'TOUS';
@@ -473,35 +627,17 @@ export class DashboardResponsableComponent implements OnInit {
   equipementTypes: string[] = ['PC bureau', 'Imprimante', 'Vidéo-projecteur'];
   equipementLocalisations: string[] = ['Salle info 1', 'Scolarité', 'Amphi A'];
 
-  equipements: Equipement[] = [
-    {
-      reference: 'PC-001',
-      type: 'PC bureau',
-      localisation: 'Salle info 1',
-      quantite: 10,
-      etat: 'EN_SERVICE',
-      derniereMaintenance: new Date('2025-01-10'),
-      prochaineMaintenance: new Date('2025-04-10'),
-    },
-    {
-      reference: 'IMP-010',
-      type: 'Imprimante',
-      localisation: 'Scolarité',
-      quantite: 3,
-      etat: 'EN_PANNE',
-      derniereMaintenance: new Date('2024-12-20'),
-      prochaineMaintenance: new Date('2025-03-01'),
-    },
-    {
-      reference: 'VP-003',
-      type: 'Vidéo-projecteur',
-      localisation: 'Amphi A',
-      quantite: 2,
-      etat: 'HORS_SERVICE',
-      derniereMaintenance: null,
-      prochaineMaintenance: null,
-    },
-  ];
+// STOCK (réel)
+  equipementsStock: any[] = [];
+  filteredEquipementsStock: any[] = [];
+
+
+// modal détails
+  showEquipementDetailsModal = false;
+  selectedEquipementDetails: any = null;
+  loadingEquipementDetails = false;
+  errorEquipementDetails: string | null = null;
+
 
   filteredEquipements: Equipement[] = [];
 
@@ -509,17 +645,20 @@ export class DashboardResponsableComponent implements OnInit {
   isEditingEquipement = false;
 
   equipementTypesUniversite: string[] = [
-    'PC bureau',
-    'PC portable',
+    'Ordinateur de bureau',
     'Imprimante',
-    'Photocopieur',
     'Scanner',
-    'Vidéo-projecteur',
-    'Écran',
-    'Switch réseau',
-    'Routeur',
-    'Serveur',
+    'Vidéoprojecteur',
+    'Routeur / Wi-Fi',
+    'Switch',
     'Onduleur',
+    'Climatiseur',
+    'Robinet',
+    'Ventilateur',
+    'Photocopieuse',
+    'Serveur',
+    'Écran / Moniteur',
+    'Clavier / Souris',
   ];
 
   equipementTypeSelection: string = '';
@@ -557,20 +696,21 @@ export class DashboardResponsableComponent implements OnInit {
     return `${base}/uploads/${v}`;
   }
   private readonly serverBaseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
-// ex: "http://localhost:8080"
 
-  resolveImageUrl(v?: string | null): string | null {
-    if (!v) return null;
+  resolveImageUrl(v?: string | null): string | undefined {
+    const value = (v ?? '').trim();
+    if (!value) return undefined;
 
-    // si déjà une URL complète
-    if (/^https?:\/\//i.test(v)) return v;
+    // déjà URL complète
+    if (/^https?:\/\//i.test(value)) return value;
 
     // si "/uploads/..."
-    if (v.startsWith('/')) return `${this.serverBaseUrl}${v}`;
+    if (value.startsWith('/')) return `${this.serverBaseUrl}${value}`;
 
     // fallback
-    return `${this.serverBaseUrl}/${v}`;
+    return `${this.serverBaseUrl}/${value}`;
   }
+
 
 
   /* ========== STOCK PIÈCES ========== */
@@ -597,41 +737,8 @@ export class DashboardResponsableComponent implements OnInit {
   preventiveSearchTerm = '';
   preventiveStatutFilter: 'TOUS' | StatutPreventive = 'TOUS';
 
-  maintenancesPreventives: MaintenancePreventive[] = [
-    {
-      id: 1,
-      equipementReference: 'PC-001',
-      typeEquipement: 'PC bureau',
-      frequence: 'Tous les 6 mois',
-      prochaineDate: new Date('2025-04-10'),
-      responsable: 'Ousmane Mané',
-      statut: 'PLANIFIEE',
-      description: 'Nettoyage interne et contrôle disque.',
-    },
-    {
-      id: 2,
-      equipementReference: 'IMP-010',
-      typeEquipement: 'Imprimante',
-      frequence: 'Tous les 3 mois',
-      prochaineDate: new Date('2025-03-01'),
-      responsable: 'Awa Diallo',
-      statut: 'EN_RETARD',
-      description: 'Nettoyage rouleaux et tambour.',
-    },
-    {
-      id: 3,
-      equipementReference: 'VP-003',
-      typeEquipement: 'Vidéo-projecteur',
-      frequence: 'Tous les 12 mois',
-      prochaineDate: new Date('2025-08-15'),
-      responsable: 'Ousmane Mané',
-      statut: 'REALISEE',
-      description: 'Changement de lampe et nettoyage optique.',
-    },
-  ];
-
+  maintenancesPreventives: MaintenancePreventive[] = [];
   filteredMaintenancesPreventives: MaintenancePreventive[] = [];
-  equipementOptions: string[] = [];
 
   newPreventive: {
     equipementReference: string | null;
@@ -677,13 +784,22 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
   showTechnicienModal = false;
-  selectedTechnicien: Technicien | null = null;
+  selectedTechnicien: TechnicienDetails | null = null;
+
 
   showPreventiveDetails = false;
   selectedPreventive: MaintenancePreventive | null = null;
 // Lightbox
   isImageLightboxOpen = false;
   lightboxImageSrc: string | null = null;
+
+  techniciensOptions: TechnicienOptionDto[] = [];
+  loadingTechniciens = false;
+  errorTechniciens: string | null = null;
+
+// dans ton form / model de création
+  selectedTechnicienId: number | null = null;
+
 
 
 
@@ -695,7 +811,10 @@ export class DashboardResponsableComponent implements OnInit {
     private router: Router,
     private pannesRespApi: PannesResponsableService,
     private utilisateursService: UtilisateursService,
-    private interventionsService: InterventionsService
+    private interventionsService: InterventionsService,
+    private equipementStockService: EquipementStockService,
+    private techniciensService: TechniciensService,
+    private preventivesService: PreventivesService
   ) {}
 
   goToProfile(): void {
@@ -739,11 +858,12 @@ export class DashboardResponsableComponent implements OnInit {
         this.recalculateStatusPercentages();
 
         this.mesDemandes = this.mapPannesToMesDemandes(mesPannes);
-        this.appliquerFiltreMesDemandes();
+        this.appliquerFiltresMesDemandes();
 
-        this.filterEquipements();
-        this.refreshEquipementOptions();
         this.filterPreventives();
+        this.loadStock();
+        this.loadEquipementsStock();
+        this.loadMaintenancesPreventives();
       },
       error: (err) => {
         console.error('Erreur chargement responsable:', err);
@@ -756,6 +876,217 @@ export class DashboardResponsableComponent implements OnInit {
     // 2) techniciens (séparé → plus robuste)
     this.chargerTechniciensDepuisApi();
   }
+
+  // ==============================
+// STOCK - Création type + quantité
+// ==============================
+  loadingCreateStockType = false;
+  errorCreateStockType: string | null = null;
+  showCreateStockTypeModal = false;
+  createStockLoading = false;
+  createStockError: string | null = null;
+
+
+  stockCreateForm = {
+    libelle: '',
+    description: '',
+    quantite: 1,
+    statut: 'EN_SERVICE' as 'EN_SERVICE' | 'HORS_SERVICE',
+    localisation: ''
+  };
+
+
+  createStockForm: { type: string; quantite: number; description: string } = {
+    type: '',
+    quantite: 1,
+    description: ''
+  };
+
+
+
+
+
+  get isStockCreateFormValid(): boolean {
+    const f = this.stockCreateForm;
+    return !!(
+      f.libelle.trim() &&
+      f.quantite !== null &&
+      f.quantite > 0 &&
+      f.localisation.trim()
+    );
+  }
+
+  openCreateStockTypeModal(): void {
+    this.createStockForm = { type: '', quantite: 1, description: '' };
+    this.showCreateStockTypeModal = true;
+  }
+
+  closeCreateStockTypeModal(): void {
+    this.showCreateStockTypeModal = false;
+  }
+
+  normalizeStockQuantity(): void {
+    let q = Number(this.createStockForm.quantite);
+
+    if (!Number.isFinite(q) || q < 1) {
+      this.createStockForm.quantite = 0;
+      return;
+    }
+
+    this.createStockForm.quantite = Math.floor(q);
+  }
+
+
+
+  isCreateStockInvalid(): boolean {
+    const type = (this.createStockForm.type ?? '').trim();
+
+    const quantite = Number(this.createStockForm.quantite);
+
+    if (!type) return true;
+    if (!Number.isInteger(quantite)) return true;
+    if (quantite < 1) return true;
+
+    return false;
+  }
+
+  private mapToTechnicienUI(dto: any): TechnicienUI {
+    return {
+      id: dto.id,
+      nom: dto.nom ?? dto.username ?? 'Technicien',
+      username: dto.username ?? null,
+
+      serviceUnite: dto.serviceUnite ?? null,
+      categorie: dto.categorie ?? dto.specialite ?? 'Général',
+      sousCategorie: dto.sousCategorie ?? null,
+
+      specialites: dto.specialites ?? (dto.specialite ? [dto.specialite] : []),
+
+      disponible: dto.disponible ?? true,
+      nbInterventionsEnCours: dto.nbInterventionsEnCours ?? 0,
+      nbInterventionsTerminees: dto.nbInterventionsTerminees ?? 0,
+      tempsMoyenResolutionHeures: dto.tempsMoyenResolutionHeures ?? 0,
+
+      stats: dto.stats ?? null,
+    };
+  }
+
+  filterMaintenancesPreventives(): void {
+    const q = (this.preventiveSearchTerm ?? '').trim().toLowerCase();
+
+    if (!q) {
+      this.filteredMaintenancesPreventives = [...this.maintenancesPreventives];
+      return;
+    }
+
+    this.filteredMaintenancesPreventives = this.maintenancesPreventives.filter(m =>
+      (m.equipementReference ?? '').toLowerCase().includes(q) ||
+      (m.typeEquipement ?? '').toLowerCase().includes(q) ||
+      (m.responsable ?? '').toLowerCase().includes(q)
+    );
+  }
+
+  loadMaintenancesPreventives(): void {
+    this.loadingPreventives = true;
+    this.errorPreventives = null;
+
+    this.preventivesService.getAll().subscribe({
+      next: (data) => {
+        this.maintenancesPreventives = data ?? [];
+        this.filteredMaintenancesPreventives = [...this.maintenancesPreventives];
+        this.loadingPreventives = false;
+      },
+      error: (err: any) => {
+        console.error('Erreur chargement maintenances préventives:', err);
+        this.maintenancesPreventives = [];
+        this.filteredMaintenancesPreventives = [];
+        this.errorPreventives = "Impossible de charger les maintenances préventives.";
+        this.loadingPreventives = false;
+      }
+    });
+  }
+
+
+
+
+
+  createStockTypeWithQuantity(): void {
+    const payload = {
+      libelle: (this.createStockForm.type || '').trim(),
+      description: (this.createStockForm.description || '').trim() || null,
+      quantite: Number(this.createStockForm.quantite)
+    };
+
+    if (!payload.libelle || payload.quantite < 1) return;
+
+    this.equipementStockService.createTypeWithQuantity(payload).subscribe({
+      next: () => {
+        this.closeCreateStockTypeModal();
+        this.loadEquipementsStock(); // recharge la liste après ajout
+      },
+      error: (err: any) => {
+        console.error(err);
+        alert("Impossible d'ajouter l'équipement.");
+      }
+    });
+  }
+
+  private mapOptionToTechnicienUI(dto: TechnicienOptionDto): TechnicienUI {
+    const displayName =
+      `${dto.prenom ?? ''} ${dto.nom ?? ''}`.trim() || dto.username;
+
+    return {
+      id: dto.id,
+      nom: displayName,
+      serviceUnite: dto.serviceUnite ?? null,
+
+      // ✅ champs attendus par ton model complet
+      categorie: dto.serviceUnite ?? 'Général',
+      specialites: dto.serviceUnite ? [dto.serviceUnite] : [],
+      disponible: true,
+      nbInterventionsEnCours: 0,
+      nbInterventionsTerminees: 0,
+      tempsMoyenResolutionHeures: 0,
+    };
+  }
+
+
+  loadTechniciensForPreventive(): void {
+    this.loadingTechniciens = true;
+
+    this.techniciensService.getTechniciens().subscribe({
+      next: (data: TechnicienOptionDto[]) => {
+        this.techniciens = (data ?? []).map(d => this.mapOptionToTechnicienUI(d));
+        this.loadingTechniciens = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement techniciens:', err);
+        this.techniciens = [];
+        this.loadingTechniciens = false;
+      }
+    });
+  }
+
+  loadEquipementsStock(): void {
+    this.equipementStockService.getStock().subscribe({
+      next: (rows) => {
+        this.equipementsStock = rows ?? [];
+        this.filteredEquipementsStock = [...this.equipementsStock];
+
+        // Si tu veux garder une liste pour le select "Tous les types"
+        this.equipementTypes = Array.from(
+          new Set(this.equipementsStock.map(r => r.type))
+        ).sort();
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.equipementsStock = [];
+        this.filteredEquipementsStock = [];
+        this.equipementTypes = [];
+      }
+    });
+  }
+
 
 
 
@@ -867,39 +1198,76 @@ export class DashboardResponsableComponent implements OnInit {
   /* ========== MAPPING API -> UI (CENTRAL) ========= */
 
   private mapPannesToDemandes(list: PanneDto[]): Demande[] {
-    return (list ?? []).map(p => ({
-      id: p.id,
-      titre: p.titre,
-      demandeurNom: (p as any).demandeurNom ?? p.signaleePar ?? '—',
-      lieu: p.lieu,
-      typeEquipement: p.typeEquipement,
-      description: p.description,
-      dateCreation: this.safeDateIso(p),
-      statut: this.mapStatutApiToUi((p as any).statut ?? p.statut),
+    return (list ?? []).map(p => {
 
-      urgenceDemandeur: (p as any).priorite ?? null,
-      urgenceResponsable: 'NON_DEFINIE',
+      // ✅ LOG CORRECT (p existe ici)
+      console.log('PRIORITE API =', p.priorite, 'ID =', p.id);
 
-      // alias temporaire
-      urgence: (p as any).priorite ?? null,
+      return {
+        id: p.id,
+        titre: p.titre,
+        demandeurNom: (p as any).demandeurNom ?? p.signaleePar ?? '—',
+        lieu: p.lieu,
+        typeEquipement: p.typeEquipement,
+        description: p.description,
+        dateCreation: this.safeDateIso(p),
+        statut: this.mapStatutApiToUi(p.statut),
 
-      imageUrl: (p as any).imageUrl ?? (p as any).imagePath ?? null,
-    }));
+        // ✅ URGENCE DEMANDEUR (clé importante)
+        urgenceDemandeur: this.mapPrioriteApiToUrgenceUi(p.priorite),
+
+        // (si tu utilises encore ce champ ailleurs)
+        urgence: this.mapPrioriteApiToUrgenceUi(p.priorite),
+
+        urgenceResponsable: 'NON_DEFINIE',
+
+        imageUrl: (p as any).imageUrl ?? (p as any).imagePath ?? undefined,
+      };
+    });
   }
+
+  getUrgenceListClassAny(u?: string | null): string {
+    const v = (u ?? '').toString().toUpperCase();
+
+    if (v === 'BASSE') return 'urgency-low';
+    if (v === 'MOYENNE') return 'urgency-medium';
+    if (v === 'HAUTE') return 'urgency-high';
+
+    return 'urgency-none';
+  }
+
+
+
 
 
   private mapPannesToMesDemandes(list: PanneDto[]): MesDemandeResponsable[] {
-    return (list ?? []).map((p) => ({
-      id: p.id,
-      titre: p.titre,
-      dateCreation: this.safeDateIso(p),
-      lieu: p.lieu,
-      statut: this.mapStatutApiToUi(p.statut),
-      typeEquipement: p.typeEquipement,
-      description: p.description,
-      imageUrl: (p.imageUrl ?? p.imagePath ?? undefined) ?? undefined,
-    }));
+    return (list ?? []).map((p) => {
+      const raw = p.imageUrl ?? p.imagePath; // string | null | undefined
+
+      return {
+        id: p.id,
+        titre: p.titre ?? '',
+        dateCreation: this.safeDateIso(p),
+        lieu: p.lieu ?? '',
+        statut: this.mapStatutApiToUi(p.statut),
+
+        typeEquipement: p.typeEquipement ?? '',
+        description: p.description ?? '',
+
+        // ✅ string | undefined garanti
+        imageUrl: this.resolveImageUrl(raw),
+
+        urgence: (p.priorite ?? undefined) as any,
+      };
+    });
   }
+
+
+
+
+
+
+
 
   private mapStatutApiToUi(apiStatut: StatutPanneApi | any): 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE' {
     if (apiStatut === 'OUVERTE') return 'EN_ATTENTE';
@@ -913,16 +1281,24 @@ export class DashboardResponsableComponent implements OnInit {
     return 'RESOLUE';
   }
 
-  private mapPrioriteApiToUrgenceUi(p: PrioriteApi | null | any): Demande['urgence'] {
-    if (!p) return null;
+  private mapPrioriteApiToUrgenceUi(
+    p: PrioriteApi | null | undefined | any
+  ): 'BASSE' | 'MOYENNE' | 'HAUTE' | null {
     if (p === 'BASSE' || p === 'MOYENNE' || p === 'HAUTE') return p;
-    return null;
+    return null; // ✅ jamais undefined
   }
 
+
   private safeDateIso(p: any): Date {
-    const iso = p?.dateCreation || p?.createdAt || p?.created_at;
+    const iso =
+      p?.dateSignalement ||   // ✅ PRIORITAIRE
+      p?.dateCreation ||
+      p?.createdAt ||
+      p?.created_at;
+
     return iso ? new Date(iso) : new Date();
   }
+
 
   /* ========== DEMANDES : FILTRES / PAGINATION ========== */
 
@@ -1064,44 +1440,92 @@ export class DashboardResponsableComponent implements OnInit {
 
   /* ========== MES DEMANDES ========== */
 
-  private appliquerFiltreMesDemandes(): void {
-    if (this.filtreStatut === 'TOUS') {
-      this.mesDemandesFiltrees = [...this.mesDemandes];
-    } else {
-      this.mesDemandesFiltrees = this.mesDemandes.filter((d) => d.statut === this.filtreStatut);
+
+  private appliquerFiltresMesDemandes(): void {
+    const list = Array.isArray(this.mesDemandes) ? [...this.mesDemandes] : [];
+
+    const statut = this.filtreStatut || 'TOUS';
+    const urgence = this.filtreUrgence || 'TOUTES';
+    const q = (this.mesSearchTerm || '').trim().toLowerCase();
+
+    let filtered = list;
+
+    // filtre statut
+    if (statut !== 'TOUS') {
+      filtered = filtered.filter(d => (d?.statut ?? '') === statut);
+    }
+
+    // filtre urgence (si "urgence" existe)
+    if (urgence !== 'TOUTES') {
+      filtered = filtered.filter(d => (d?.urgence ?? '') === urgence);
+    }
+
+    // recherche (titre/lieu/statut)
+    if (q) {
+      filtered = filtered.filter(d => {
+        const titre = (d?.titre ?? '').toLowerCase();
+        const lieu = (d?.lieu ?? '').toLowerCase();
+        const st = (d?.statut ?? '').toLowerCase();
+        return titre.includes(q) || lieu.includes(q) || st.includes(q);
+      });
+    }
+
+    // tri date desc (si dateCreation existe)
+    filtered.sort((a: any, b: any) => {
+      const da = a?.dateCreation ? new Date(a.dateCreation).getTime() : 0;
+      const db = b?.dateCreation ? new Date(b.dateCreation).getTime() : 0;
+      return db - da;
+    });
+
+    this.mesDemandesFiltrees = filtered;
+
+    // pagination
+    this.mesTotalPages = Math.max(1, Math.ceil(filtered.length / this.mesPageSize));
+    if (this.mesCurrentPage > this.mesTotalPages) this.mesCurrentPage = this.mesTotalPages;
+
+    const start = (this.mesCurrentPage - 1) * this.mesPageSize;
+    const end = start + this.mesPageSize;
+    this.mesDemandesPaged = filtered.slice(start, end);
+  }
+
+
+  changerFiltreUrgence(u: 'TOUTES' | 'BASSE' | 'MOYENNE' | 'HAUTE'): void {
+    this.filtreUrgence = u;
+    this.mesCurrentPage = 1;
+    this.appliquerFiltresMesDemandes();
+  }
+
+  onMesSearchChange(value: string): void {
+    this.mesSearchTerm = value ?? '';
+    this.mesCurrentPage = 1;
+    this.appliquerFiltresMesDemandes();
+  }
+
+// =========================
+// MES DEMANDES - Pagination actions
+// =========================
+
+  mesGoToPreviousPage(): void {
+    if (this.mesCurrentPage > 1) {
+      this.mesCurrentPage--;
+      this.appliquerFiltresMesDemandes();
     }
   }
+
+  mesGoToNextPage(): void {
+    if (this.mesCurrentPage < this.mesTotalPages) {
+      this.mesCurrentPage++;
+      this.appliquerFiltresMesDemandes();
+    }
+  }
+
+
 
   changerFiltreStatut(statut: 'TOUS' | 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE'): void {
     this.filtreStatut = statut;
-    this.appliquerFiltreMesDemandes();
+    this.appliquerFiltresMesDemandes();
   }
 
-  badgeClass(statut: MesDemandeStatut): string {
-    switch (statut) {
-      case 'EN_ATTENTE':
-        return 'badge-waiting';
-      case 'EN_COURS':
-        return 'badge-progress';
-      case 'RESOLUE':
-        return 'badge-done';
-      default:
-        return '';
-    }
-  }
-
-  libelleStatut(statut: MesDemandeStatut): string {
-    switch (statut) {
-      case 'EN_ATTENTE':
-        return 'En attente';
-      case 'EN_COURS':
-        return 'En cours';
-      case 'RESOLUE':
-        return 'Résolue';
-      default:
-        return statut;
-    }
-  }
 
   ouvrirNouvelleDemande(): void {
     this.showMesNewDemandeModal = true;
@@ -1113,56 +1537,153 @@ export class DashboardResponsableComponent implements OnInit {
       titre: '',
       lieu: '',
       typeEquipement: '',
+      typeEquipementAutre: '',
+      urgence: '',
       description: '',
       imageFile: null,
       imagePreview: null,
     };
   }
+  countMesParStatut(statut: 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE' | 'OUVERTE'): number {
+    const list = (this as any).mesDemandesFiltrees?.length
+      ? (this as any).mesDemandesFiltrees
+      : this.mesDemandes;
 
-  onMesFileSelected(e: Event): void {
-    const input = e.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      this.newMesDemande.imageFile = file;
+    const target = statut.toUpperCase();
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.newMesDemande.imagePreview = reader.result as string;
-      };
-      reader.readAsDataURL(file);
-    }
+    return (list || []).filter((d: any) => {
+      const s = (d?.statut || '').toUpperCase();
+
+      // si ton backend renvoie OUVERTE au lieu de EN_ATTENTE
+      if (target === 'EN_ATTENTE') return s === 'EN_ATTENTE' || s === 'OUVERTE';
+      return s === target;
+    }).length;
   }
+
+
+  // ==============================
+// Options select équipements (comme Demandeur)
+// ==============================
+  equipementOptions: string[] = [
+    'Ordinateur',
+    'Imprimante',
+    'Vidéoprojecteur',
+    'Scanner',
+    'Routeur / Switch',
+    'Climatiseur',
+    'Groupe électrogène',
+    'Micro / Sono',
+    'Autre matériel',
+  ];
+
+// ==============================
+// Etat loading du bouton
+// ==============================
+  loadingMesCreate = false;
+
+// ==============================
+// Appelé sur ngModelChange (juste pour rafraîchir l'état)
+// ==============================
+  onMesFormChange(): void {
+    // Rien à faire ici pour l’instant.
+    // On garde la méthode pour éviter les erreurs template
+    // et permettre des améliorations (validation live).
+  }
+
+// ==============================
+// Quand on change le select équipement
+// ==============================
+  onMesEquipementChange(value: string): void {
+    this.newMesDemande.typeEquipement = value;
+
+    // ✅ si on quitte "Autre", on vide "Précisez"
+    if (value !== 'Autre') {
+      this.newMesDemande.typeEquipementAutre = '';
+    }
+
+    // si tu utilises une variable computed/filtre/pagination, tu peux laisser vide
+    // sinon rien à faire: Angular réévaluera isMesNewDemandeValid() tout seul
+  }
+
+
+// ==============================
+// Validation : tous obligatoires sauf description
+// + si typeEquipement=AUTRE alors typeEquipementAutre obligatoire
+// ==============================
+  isMesNewDemandeValid(): boolean {
+    const titre = (this.newMesDemande.titre || '').trim();
+    const lieu = (this.newMesDemande.lieu || '').trim();
+    const typeEquipement = (this.newMesDemande.typeEquipement || '').trim();
+    const urgence = (this.newMesDemande.urgence || '').trim();
+
+    const autre = (this.newMesDemande as any).typeEquipementAutre
+      ? String((this.newMesDemande as any).typeEquipementAutre).trim()
+      : '';
+
+    if (!titre || !lieu || !typeEquipement || !urgence) return false;
+    if (typeEquipement === 'Autre' && !autre) return false;
+    if (!this.newMesDemande.imageFile) return false;
+    if (this.mesImageError) return false;
+
+    return true;
+  }
+
+
 
   removeMesSelectedImage(): void {
     this.newMesDemande.imageFile = null;
     this.newMesDemande.imagePreview = null;
-    const fileInput = document.getElementById('image-resp') as HTMLInputElement | null;
-    if (fileInput) fileInput.value = '';
+    this.mesImageError = '';
   }
 
+
   submitMesNewDemande(): void {
-    if (!this.newMesDemande.titre || !this.newMesDemande.lieu) return;
+    // ✅ On garde une validation simple + propre
+    const titre = (this.newMesDemande.titre || '').trim();
+    const lieu = (this.newMesDemande.lieu || '').trim();
+    const typeEquipement = (this.newMesDemande.typeEquipement || '').trim();
+    const description = (this.newMesDemande.description || '').trim();
+
+    // 🔥 Si tu as bien ajouté ce champ dans le form (typeEquipementAutre)
+    const typeEquipementAutre = (this.newMesDemande as any).typeEquipementAutre
+      ? String((this.newMesDemande as any).typeEquipementAutre).trim()
+      : '';
+
+    // ⚠️ Champs obligatoires: titre, lieu, typeEquipement + image
+    // + si typeEquipement = "Autre" => typeEquipementAutre devient obligatoire
+    if (!titre || !lieu || !typeEquipement) return;
+    if (typeEquipement === 'Autre' && !typeEquipementAutre) return;
+    if (!this.newMesDemande.imageFile) return;
+
+    // ✅ valeur finale à envoyer à la BD (comme Demandeur)
+    const typeEquipementFinal =
+      typeEquipement === 'Autre'
+        ? `AUTRE: ${typeEquipementAutre}` // ou juste typeEquipementAutre si tu préfères
+        : typeEquipement;
 
     const fd = new FormData();
-    fd.append('titre', this.newMesDemande.titre);
-    fd.append('description', this.newMesDemande.description || '');
-    fd.append('typeEquipement', this.newMesDemande.typeEquipement || '');
-    fd.append('lieu', this.newMesDemande.lieu);
+    fd.append('titre', titre);
+    fd.append('description', description); // optionnel donc OK même vide
+    fd.append('typeEquipement', typeEquipementFinal);
+    fd.append('lieu', lieu);
+    fd.append('priorite', this.newMesDemande.urgence);
+
 
     if (this.newMesDemande.imageFile) {
       fd.append('image', this.newMesDemande.imageFile);
     }
 
-    // ✅ Responsable peut créer une panne (backend autorise ROLE_RESPONSABLE_MAINTENANCE)
+    // ✅ Responsable peut créer une panne
     this.pannesRespApi.createPanne(fd).subscribe({
       next: () => {
         // reload safe
         this.chargerDemandesDepuisApi();
+
         // reload mes demandes aussi
         this.pannesRespApi.getMyPannes().subscribe({
           next: (mine) => {
             this.mesDemandes = this.mapPannesToMesDemandes(mine);
-            this.appliquerFiltreMesDemandes();
+            this.appliquerFiltresMesDemandes();
           },
           error: (e) => console.error('Erreur rechargement mes pannes:', e),
         });
@@ -1174,27 +1695,104 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
   ouvrirDetailDemande(demande: MesDemandeResponsable): void {
-    this.selectedMesDemande = demande;
-    this.selectedDemande.imageUrl = this.resolveImageUrl(
-      this.selectedDemande.imageUrl || this.selectedDemande.imagePath
-    );
+    if (!demande) return;
+
+    this.selectedMesDemande = { ...demande };
+
+    // ✅ si imageUrl est déjà en base -> on la "résout" proprement
+    this.selectedMesDemande.imageUrl = this.resolveImageUrl(this.selectedMesDemande.imageUrl);
+
     this.showMesDetailsModal = true;
     this.showMesImageInDetails = false;
   }
 
+
+
+
+
   closeMesDetailsModal(): void {
     this.showMesDetailsModal = false;
     this.selectedMesDemande = null;
+    this.showMesImageInDetails = false;
   }
 
-  countMesParStatut(statut: 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE'): number {
-    return this.mesDemandes.filter((d) => d.statut === statut).length;
+  toggleMesImageDetails(): void {
+    this.showMesImageInDetails = !this.showMesImageInDetails;
   }
+
+  libelleUrgence(p?: string): string {
+    if (!p) return 'Urgence moyenne';
+    const v = String(p).toUpperCase();
+    if (v === 'HAUTE') return 'Urgence haute';
+    if (v === 'BASSE') return 'Urgence basse';
+    return 'Urgence moyenne';
+  }
+
+  urgenceChipClass(p?: string): string {
+    if (!p) return 'mid';
+    const v = String(p).toUpperCase();
+    if (v === 'HAUTE') return 'high';
+    if (v === 'BASSE') return 'low';
+    return 'mid';
+  }
+
+  /** statut: EN_ATTENTE / EN_COURS / RESOLUE (ou OUVERTE...) */
+  libelleStatut(statut?: string): string {
+    const s = (statut || '').toUpperCase();
+    if (s === 'EN_ATTENTE' || s === 'OUVERTE') return 'En attente';
+    if (s === 'EN_COURS') return 'En cours';
+    if (s === 'RESOLUE') return 'Résolue';
+    return statut || '-';
+  }
+
+  badgeClass(statut?: string): string {
+    const s = (statut || '').toUpperCase();
+    if (s === 'EN_ATTENTE' || s === 'OUVERTE') return 'pending';
+    if (s === 'EN_COURS') return 'progress';
+    if (s === 'RESOLUE') return 'done';
+    return 'pending';
+  }
+
+
+  mesImageError: string = '';
+  private readonly MES_MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 Mo
+
+  onMesFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input?.files?.[0] ?? null;
+
+    this.mesImageError = '';
+
+    if (!file) return;
+
+    // ✅ contrôle taille
+    if (file.size > this.MES_MAX_IMAGE_BYTES) {
+      this.mesImageError = "Image trop volumineuse. La taille maximale autorisée est de 2 Mo.";
+      // reset
+      this.newMesDemande.imageFile = null;
+      this.newMesDemande.imagePreview = null;
+      input.value = ''; // important pour pouvoir re-sélectionner le même fichier
+      return;
+    }
+
+    // ✅ OK
+    this.newMesDemande.imageFile = file;
+
+    const reader = new FileReader();
+    reader.onload = () => (this.newMesDemande.imagePreview = reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
 
   /* ========== DÉTAILS DEMANDE (MODALE GLOBAL) ========== */
 
   openDemandeDetails(d: Demande): void {
     this.selectedDemande = { ...d };
+
+    // 🔥 sécurité : si jamais urgenceDemandeur n’est pas là, fallback sur urgence
+    this.selectedDemande.urgenceDemandeur =
+      this.selectedDemande.urgenceDemandeur ?? this.selectedDemande.urgence ?? null;
+
     this.selectedDemande.imageUrl = this.resolveImageUrl(
       this.selectedDemande.imageUrl || (this.selectedDemande as any).imagePath
     );
@@ -1205,15 +1803,11 @@ export class DashboardResponsableComponent implements OnInit {
     this.markAsResolved = d.statut === 'RESOLUE';
     this.showDetailsModal = true;
 
-    // ✅ Urgence responsable : par défaut "Non définie"
     this.modalUrgenceResponsable = '';
-
-    // ✅ dropdown intelligent + fallback
     const filtered = this.filterTechniciensForDemande(this.selectedDemande);
-
-    this.techniciensAffectables =
-      (filtered && filtered.length > 0) ? filtered : [...this.techniciens];
+    this.techniciensAffectables = (filtered?.length ? filtered : [...this.techniciens]);
   }
+
 
 
 
@@ -1329,7 +1923,7 @@ export class DashboardResponsableComponent implements OnInit {
       list = list.filter(
         (t) =>
           t.nom.toLowerCase().includes(this.technicienSearchTerm) ||
-          t.categorie.toLowerCase().includes(this.technicienSearchTerm)
+          (t.categorie ?? '').toLowerCase().includes((this.technicienSearchTerm ?? '').toLowerCase())
       );
     }
 
@@ -1352,10 +1946,12 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
 
-
   openTechnicienDetails(t: TechnicienUI): void {
+    const safeCategorie = t.categorie ?? 'Général';
+
     this.selectedTechnicien = {
       ...t,
+      categorie: safeCategorie,          // ✅ force string
       interventionsEnCours: [],
       dernieresInterventions: [],
     };
@@ -1373,18 +1969,23 @@ export class DashboardResponsableComponent implements OnInit {
       next: ({ enCours, recentes }) => {
         if (!this.selectedTechnicien) return;
 
-        this.selectedTechnicien.interventionsEnCours = this.mapInterventionsToUi(enCours);
-        this.selectedTechnicien.dernieresInterventions = this.mapInterventionsToUi(recentes);
+        this.selectedTechnicien.interventionsEnCours =
+          this.mapInterventionsToUi(enCours);
+
+        this.selectedTechnicien.dernieresInterventions =
+          this.mapInterventionsToUi(recentes);
 
         this.loadingTechInterventions = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Erreur chargement interventions technicien:', err);
-        this.errorTechInterventions = "Impossible de charger les interventions du technicien.";
+        this.errorTechInterventions =
+          "Impossible de charger les interventions du technicien.";
         this.loadingTechInterventions = false;
       },
     });
   }
+
 
 
 
@@ -1487,12 +2088,6 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
 
-
-
-
-
-
-
   formatTechnicienOption(t: TechnicienUI): string {
     const base = t.username ? t.username : t.nom;
     const service = (t.serviceUnite || t.categorie || '').trim();
@@ -1554,19 +2149,21 @@ export class DashboardResponsableComponent implements OnInit {
 
   private refreshTechnicienCategoriesAndFilters(): void {
     this.technicienCategories = Array.from(
-      new Set((this.techniciens ?? []).map((t) => t.categorie).filter(Boolean))
+      new Set(
+        (this.techniciens ?? [])
+          .map(t => (t.categorie ?? '').trim())
+          .filter(c => c.length > 0)
+      )
     ).sort((a, b) => a.localeCompare(b));
 
     this.applyTechnicienFilters();
   }
 
 
+
   /* ========== ÉQUIPEMENTS ========== */
 
-  onEquipementSearchChange(term: string): void {
-    this.equipementSearchTerm = term.toLowerCase();
-    this.filterEquipements();
-  }
+
 
   onEquipementTypeSelectionChange(): void {
     if (this.equipementTypeSelection === 'AUTRE') {
@@ -1578,36 +2175,8 @@ export class DashboardResponsableComponent implements OnInit {
     }
   }
 
-  private filterEquipements(): void {
-    let list = [...this.equipements];
 
-    if (this.equipementEtatFilter !== 'TOUS') {
-      list = list.filter((e) => e.etat === this.equipementEtatFilter);
-    }
 
-    if (this.equipementTypeFilter !== 'TOUS') {
-      list = list.filter((e) => e.type === this.equipementTypeFilter);
-    }
-
-    if (this.equipementLocalisationFilter !== 'TOUS') {
-      list = list.filter((e) => e.localisation === this.equipementLocalisationFilter);
-    }
-
-    if (this.equipementSearchTerm.trim().length > 0) {
-      list = list.filter(
-        (e) =>
-          e.reference.toLowerCase().includes(this.equipementSearchTerm) ||
-          e.type.toLowerCase().includes(this.equipementSearchTerm) ||
-          e.localisation.toLowerCase().includes(this.equipementSearchTerm)
-      );
-    }
-
-    this.filteredEquipements = list;
-  }
-
-  private refreshEquipementOptions(): void {
-    this.equipementOptions = this.equipements.map((e) => e.reference);
-  }
 
   getEtatLabel(etat: Equipement['etat']): string {
     if (etat === 'EN_SERVICE') return 'En service';
@@ -1630,12 +2199,6 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
 
-  openEquipementForm(): void {
-    this.isEditingEquipement = false;
-    this.equipementTypeSelection = '';
-    this.equipementForm = { reference: '', type: '', localisation: '', quantite: 0 };
-    this.showEquipementModal = true;
-  }
 
   editEquipement(e: Equipement): void {
     this.isEditingEquipement = true;
@@ -1660,46 +2223,18 @@ export class DashboardResponsableComponent implements OnInit {
     this.showEquipementModal = false;
   }
 
-  saveEquipement(): void {
-    if (!this.isEquipementFormValid) return;
 
-    if (this.isEditingEquipement) {
-      const index = this.equipements.findIndex((eq) => eq.reference === this.equipementForm.reference);
-      if (index !== -1) {
-        this.equipements[index] = {
-          ...this.equipements[index],
-          type: this.equipementForm.type,
-          localisation: this.equipementForm.localisation,
-          quantite: this.equipementForm.quantite ?? 0,
-        };
-      }
-    } else {
-      const exists = this.equipements.some((eq) => eq.reference === this.equipementForm.reference);
-      if (exists) {
-        alert("Un équipement avec cette référence existe déjà.");
-        return;
-      }
-      this.equipements.push({
-        reference: this.equipementForm.reference,
-        type: this.equipementForm.type,
-        localisation: this.equipementForm.localisation,
-        quantite: this.equipementForm.quantite ?? 0,
-        etat: 'EN_SERVICE',
-      });
-    }
 
-    this.filterEquipements();
-    this.refreshEquipementOptions();
-    this.closeEquipementForm();
+
+
+  closeEquipementDetails(): void {
+    this.showEquipementDetailsModal = false;
+    this.selectedEquipementDetails = null;
   }
 
-  deleteEquipement(e: Equipement): void {
-    const ok = confirm(`Supprimer l'équipement ${e.reference} ?`);
-    if (!ok) return;
-    this.equipements = this.equipements.filter((eq) => eq.reference !== e.reference);
-    this.filterEquipements();
-    this.refreshEquipementOptions();
-  }
+
+
+
 
   /* ========== MAINTENANCE PRÉVENTIVE ========== */
 
@@ -1739,28 +2274,61 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
   openPreventiveForm(): void {
+    // reset form (respecte le type)
     this.newPreventive = {
       equipementReference: null,
-      typeEquipement: null,
+      typeEquipement: null,              // ⬅️ on garde, même si champ retiré côté UI
       frequence: null,
       prochaineDate: '',
-      responsable: this.username,
-      statut: 'PLANIFIEE',
+      responsable: this.username || 'Responsable',
+      statut: 'PLANIFIEE',               // ⬅️ obligatoire par ton type
       description: '',
     };
 
+    // reset technicien sélectionné
+    this.modalTechnicienId = null;       // ⬅️ c’est celui utilisé par le select "Technicien affecté"
+
+    // ouvrir modale
     this.showPreventiveForm = true;
+
+    // charger techniciens
+    this.loadTechniciensForPreventive();
   }
+
+
 
   closePreventiveForm(): void {
     this.showPreventiveForm = false;
     this.resetPreventiveForm();
   }
+  loadTechniciensForSelect(): void {
+    this.loadingTechniciens = true;
+
+    this.techniciensService.getTechniciens().subscribe({
+      next: (data: any[]) => {
+        this.techniciens = (data || []).map((t: any) => this.mapToTechnicienUI(t));
+        this.loadingTechniciens = false;
+      },
+      error: (err: any) => {
+        this.loadingTechniciens = false;
+        console.error(err);
+      },
+    });
+  }
+
+
 
   get isNewPreventiveValid(): boolean {
-    const p = this.newPreventive;
-    return !!(p.equipementReference && p.typeEquipement && p.frequence && p.prochaineDate && p.description && p.responsable);
+    return !!(
+      this.newPreventive.equipementReference &&
+      this.modalTechnicienId &&
+      this.newPreventive.frequence &&
+      this.newPreventive.prochaineDate &&
+      this.newPreventive.description?.trim()
+    );
   }
+
+
 
   savePreventive(): void {
     if (!this.isNewPreventiveValid) return;
@@ -1770,21 +2338,28 @@ export class DashboardResponsableComponent implements OnInit {
         ? 1
         : Math.max(...this.maintenancesPreventives.map((m) => m.id)) + 1;
 
+    // ✅ garanties (car ton validateur dit que c'est ok)
+    const equipementReference = this.newPreventive.equipementReference ?? '';
+    const frequence = this.newPreventive.frequence ?? '';
+    const prochaineDate = this.newPreventive.prochaineDate; // "YYYY-MM-DD"
+
     const nouvelle: MaintenancePreventive = {
       id: nextId,
-      equipementReference: this.newPreventive.equipementReference,
-      typeEquipement: this.newPreventive.typeEquipement,
-      frequence: this.newPreventive.frequence,
-      prochaineDate: new Date(this.newPreventive.prochaineDate),
+      equipementReference,
+      typeEquipement: this.newPreventive.typeEquipement ?? null, // si tu l'as gardé optionnel
+      frequence,
+      prochaineDate, // ✅ string (pas Date)
       responsable: this.newPreventive.responsable,
-      statut: this.newPreventive.statut as StatutPreventive,
+      statut: (this.newPreventive.statut ?? 'PLANIFIEE') as StatutPreventive,
       description: this.newPreventive.description,
+      technicienId: this.modalTechnicienId,
     };
 
-    this.maintenancesPreventives.push(nouvelle);
+    this.maintenancesPreventives = [nouvelle, ...this.maintenancesPreventives];
     this.filterPreventives();
     this.closePreventiveForm();
   }
+
 
   private resetPreventiveForm(): void {
     this.newPreventive = {
@@ -1799,18 +2374,81 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
   saveNewPreventive(): void {
-    this.savePreventive();
+    if (!this.isNewPreventiveValid) return;
+
+    // ✅ garanties (car ton validateur dit que c'est ok)
+    const equipementReference = this.newPreventive.equipementReference ?? '';
+    const frequence = this.newPreventive.frequence ?? '';
+    const prochaineDate = this.newPreventive.prochaineDate; // "YYYY-MM-DD"
+    const technicienId = this.modalTechnicienId;
+
+    if (!technicienId) {
+      // sécurité (normalement ton validator l’empêche déjà)
+      console.warn('Technicien non sélectionné');
+      return;
+    }
+
+    // ✅ payload backend (adapte les noms si ton backend utilise d’autres champs)
+    const payload = {
+      equipementReference,
+      typeEquipement: this.newPreventive.typeEquipement, // ✅ maintenant rempli
+      frequence,
+      prochaineDate,
+      responsable: this.newPreventive.responsable,
+      statut: (this.newPreventive.statut ?? 'PLANIFIEE'),
+      description: this.newPreventive.description,
+      technicienId
+    };
+
+
+    console.log('payload preventive', payload);
+
+    this.loadingPreventives = true;
+    this.errorPreventives = null;
+
+    this.preventivesService.create(payload).subscribe({
+      next: () => {
+        this.loadingPreventives = false;
+
+        this.closePreventiveForm();
+        // ✅ recharge depuis la BD puis remplit filteredMaintenancesPreventives
+        this.loadMaintenancesPreventives();
+      },
+      error: (err: any) => {
+        console.error('Erreur création maintenance préventive:', err);
+        this.loadingPreventives = false;
+        this.errorPreventives = "Impossible d'enregistrer la maintenance préventive.";
+      }
+    });
   }
 
+
   openPreventiveDetails(m: MaintenancePreventive): void {
-    this.selectedPreventive = m;
-    this.showPreventiveDetails = true;
+    this.selectedPreventive = m; // (si tu as déjà ça)
+
+    // ✅ label technicien (nom + (serviceUnite/categorie))
+    const t = (this.techniciens ?? []).find(x => x.id === m.technicienId);
+
+    if (!m.technicienId) {
+      this.selectedPreventiveTechnicienLabel = 'Non affecté';
+    } else if (t) {
+      const spec = t.serviceUnite || t.categorie || '';
+      this.selectedPreventiveTechnicienLabel = spec ? `${t.nom} (${spec})` : t.nom;
+    } else {
+      // cas où techniciens pas chargés / ou maintenance vient du backend sans liste techniciens déjà en mémoire
+      this.selectedPreventiveTechnicienLabel = `Technicien #${m.technicienId}`;
+    }
+
+    this.showPreventiveDetails = true; // adapte à ton bool
   }
+
 
   closePreventiveDetails(): void {
     this.showPreventiveDetails = false;
     this.selectedPreventive = null;
   }
+
+
 
   /* ========== RAPPORTS & EXPORT ========= */
 

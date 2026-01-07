@@ -61,19 +61,41 @@ public class PanneService {
     }
 
 
-    // ✅ CREATE avec image
+    @Transactional
     public Panne createPanne(PanneRequest request, MultipartFile image) {
 
-        // ✅ Demandeur obligatoire
+        // ===============================
+        // 1. Vérifications obligatoires
+        // ===============================
         if (request.getDemandeurId() == null) {
-            throw new IllegalArgumentException("demandeurId est obligatoire (doit venir du JWT).");
+            throw new IllegalArgumentException(
+                    "demandeurId est obligatoire (doit venir du JWT)."
+            );
         }
 
+        if (request.getTitre() == null || request.getTitre().isBlank()) {
+            throw new IllegalArgumentException("Le titre est obligatoire.");
+        }
+
+        if (request.getLieu() == null || request.getLieu().isBlank()) {
+            throw new IllegalArgumentException("Le lieu est obligatoire.");
+        }
+
+        if (request.getTypeEquipement() == null || request.getTypeEquipement().isBlank()) {
+            throw new IllegalArgumentException("Le type d’équipement est obligatoire.");
+        }
+
+        // ===============================
+        // 2. Chargement du demandeur
+        // ===============================
         Utilisateur demandeur = utilisateurRepository.findById(request.getDemandeurId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Demandeur non trouvé avec id = " + request.getDemandeurId()
                 ));
 
+        // ===============================
+        // 3. Chargement équipement (si existant)
+        // ===============================
         Equipement equipement = null;
         if (request.getEquipementId() != null) {
             equipement = equipementRepository.findById(request.getEquipementId())
@@ -82,32 +104,64 @@ public class PanneService {
                     ));
         }
 
+        // ===============================
+        // 4. Création de la panne
+        // ===============================
         Panne panne = new Panne();
-        panne.setTitre(request.getTitre());
+        panne.setTitre(request.getTitre().trim());
         panne.setDescription(request.getDescription());
-        panne.setSignaleePar(request.getSignaleePar());
-        panne.setEquipement(equipement);
-        panne.setDemandeur(demandeur);
+        panne.setLieu(request.getLieu().trim());
+        panne.setTypeEquipement(request.getTypeEquipement().trim());
 
-        panne.setTypeEquipement(request.getTypeEquipement());
-        panne.setLieu(request.getLieu());
+        panne.setDemandeur(demandeur);
+        panne.setEquipement(equipement);
+
+        // signaleePar (sécurité)
+        if (request.getSignaleePar() != null && !request.getSignaleePar().isBlank()) {
+            panne.setSignaleePar(request.getSignaleePar());
+        } else {
+            panne.setSignaleePar(demandeur.getPrenom() + " " + demandeur.getNom());
+        }
 
         panne.setDateSignalement(LocalDateTime.now());
-        panne.setPriorite(request.getPriorite() != null ? request.getPriorite() : Priorite.MOYENNE);
-        panne.setStatut(request.getStatut() != null ? request.getStatut() : StatutPanne.OUVERTE);
 
-        // 1) on sauvegarde une première fois pour avoir l’ID
+        // ===============================
+        // 5. Priorité & statut
+        // ===============================
+        // 👉 si le front envoie BASSE / MOYENNE / HAUTE → utilisé
+        // 👉 sinon → MOYENNE par défaut
+        panne.setPriorite(
+                request.getPriorite() != null
+                        ? request.getPriorite()
+                        : Priorite.MOYENNE
+        );
+
+        panne.setStatut(
+                request.getStatut() != null
+                        ? request.getStatut()
+                        : StatutPanne.OUVERTE
+        );
+
+        // ===============================
+        // 6. Sauvegarde initiale (pour avoir l’ID)
+        // ===============================
         Panne saved = panneRepository.save(panne);
 
-        // 2) si image => on enregistre le fichier et on met imagePath
+        // ===============================
+        // 7. Gestion image (optionnelle)
+        // ===============================
         if (image != null && !image.isEmpty()) {
             String imagePath = savePanneImage(saved.getId(), image);
             saved.setImagePath(imagePath);
             saved = panneRepository.save(saved);
         }
 
+        // ===============================
+        // 8. Retour
+        // ===============================
         return saved;
     }
+
 
     public Panne updatePanne(Long id, PanneRequest request) {
         Panne existing = getPanneById(id);

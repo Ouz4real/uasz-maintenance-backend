@@ -14,7 +14,17 @@ import sn.uasz.uasz_maintenance_backend.exceptions.ResourceNotFoundException;
 import sn.uasz.uasz_maintenance_backend.repositories.InterventionRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.PanneRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
+import sn.uasz.uasz_maintenance_backend.entities.EquipementItem;
+import sn.uasz.uasz_maintenance_backend.enums.EtatEquipementItem;
+import sn.uasz.uasz_maintenance_backend.repositories.EquipementItemRepository;
+import sn.uasz.uasz_maintenance_backend.entities.EquipementItem;
+import sn.uasz.uasz_maintenance_backend.entities.EquipementType;
+import sn.uasz.uasz_maintenance_backend.enums.EtatEquipementItem;
+import sn.uasz.uasz_maintenance_backend.repositories.EquipementItemRepository;
+import sn.uasz.uasz_maintenance_backend.repositories.EquipementTypeRepository;
 
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,6 +36,10 @@ public class InterventionService {
     private final InterventionRepository interventionRepository;
     private final PanneRepository panneRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final EquipementItemRepository equipementItemRepository;
+    private final EquipementTypeRepository equipementTypeRepository;
+
+
 
     // ===================== CRUD de base =====================
 
@@ -49,6 +63,47 @@ public class InterventionService {
 
         return interventionRepository.findByPanneId(panneId);
     }
+
+    public void affecterEquipementDepuisStock(Long interventionId, Long typeId, String localisation) {
+
+        Intervention intervention = interventionRepository.findById(interventionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Intervention non trouvée avec id=" + interventionId));
+
+        // 1) trouver 1 exemplaire dispo (HORS_SERVICE)
+        EquipementItem item = equipementItemRepository
+                .findFirstByTypeIdAndStatutOrderByIdAsc(typeId, EtatEquipementItem.HORS_SERVICE)
+                .orElseThrow(() -> new IllegalArgumentException("Aucun exemplaire disponible en stock pour ce type."));
+
+        // 2) affecter à l’intervention
+        item.setIntervention(intervention);
+        item.setStatut(EtatEquipementItem.EN_SERVICE);
+        item.setLocalisation(localisation); // ex: salle/bâtiment
+        item.setDateMiseEnService(java.time.LocalDate.now());
+
+        equipementItemRepository.save(item);
+    }
+
+
+    @Transactional
+    public void affecterEquipementDuStock(Long interventionId, Long typeId, String localisation) {
+
+        Intervention intervention = interventionRepository.findById(interventionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Intervention non trouvée id=" + interventionId));
+
+        // 1) Prendre 1 item dispo (HORS_SERVICE) pour ce type
+        EquipementItem item = equipementItemRepository
+                .findFirstByTypeIdAndStatutOrderByIdAsc(typeId, EtatEquipementItem.HORS_SERVICE)
+                .orElseThrow(() -> new IllegalArgumentException("Aucun exemplaire disponible en stock pour ce type."));
+
+        // 2) L'affecter à l'intervention
+        item.setStatut(EtatEquipementItem.EN_SERVICE);
+        item.setDateMiseEnService(LocalDate.now());
+        item.setLocalisation(localisation);
+        item.setIntervention(intervention);
+
+        equipementItemRepository.save(item);
+    }
+
 
     /**
      * Toutes les interventions d'un technicien.
@@ -173,6 +228,16 @@ public class InterventionService {
         intervention.setDateFin(LocalDateTime.now());
 
         interventionRepository.save(intervention);
+
+        List<EquipementItem> items = equipementItemRepository.findByInterventionId(id);
+        for (EquipementItem it : items) {
+            it.setStatut(EtatEquipementItem.HORS_SERVICE);
+            it.setLocalisation("MAGASIN");
+            it.setDateMiseEnService(null);
+            it.setIntervention(null);
+        }
+        equipementItemRepository.saveAll(items);
+
 
         // 3) Mettre à jour le statut de la panne si nécessaire
         Panne panne = intervention.getPanne();
