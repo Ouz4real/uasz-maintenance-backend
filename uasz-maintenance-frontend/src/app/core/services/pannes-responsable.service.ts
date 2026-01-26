@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import {PanneApi} from '../models/panne.model';
 
 export type StatutPanneApi = 'OUVERTE' | 'EN_COURS' | 'RESOLUE';
 export type PrioriteApi = 'BASSE' | 'MOYENNE' | 'HAUTE';
@@ -109,6 +110,31 @@ export class PannesResponsableService {
   getTechniciens(): Observable<TechnicienOptionDto[]> {
     const params = new HttpParams().set('role', 'TECHNICIEN');
     return this.http.get<TechnicienOptionDto[]>(`${this.apiRoot}/utilisateurs`, { params });
+  }
+
+  updateTechnicien(id: number, technicienId: number) {
+    const params = new HttpParams().set('technicienId', technicienId);
+    return this.http.patch<PanneDto>(`${this.pannesUrl}/${id}/technicien`, null, { params });
+  }
+
+  traiterParResponsable(
+    panneId: number,
+    payload: {
+      technicienId: number;
+      prioriteResponsable: 'BASSE' | 'MOYENNE' | 'HAUTE';
+      statut: 'EN_COURS';
+    }
+  ) {
+    return this.http.patch<PanneDto>(
+      `${this.pannesUrl}/${panneId}/traitement-responsable`,
+      payload
+    );
+  }
+
+
+
+  getPannesResponsable() {
+    return this.http.get<PanneApi[]>(`${this.pannesUrl}`);
   }
 
 

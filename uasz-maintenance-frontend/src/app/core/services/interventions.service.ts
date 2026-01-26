@@ -1,8 +1,10 @@
+// interventions.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { StatsTechnicienResponse } from './stats-technicien-response';
+import {Intervention} from './intervention';
 
 export type StatutInterventionApi =
   | 'EN_COURS'
@@ -45,11 +47,12 @@ export class InterventionsService {
   constructor(private http: HttpClient) {}
 
   // ✅ Interventions en cours d'un technicien
-  getEnCoursByTechnicien(id: number): Observable<InterventionDto[]> {
-    return this.http.get<InterventionDto[]>(
-      `${this.baseUrl}/technicien/${id}/en-cours`
+  getInterventionsEnCoursByTechnicien(technicienId: number) {
+    return this.http.get<Intervention[]>(
+      `${this.baseUrl}/interventions/technicien/${technicienId}/en-cours`
     );
   }
+
 
   // ✅ 5 dernières interventions d'un technicien
   getRecentesByTechnicien(id: number): Observable<InterventionDto[]> {

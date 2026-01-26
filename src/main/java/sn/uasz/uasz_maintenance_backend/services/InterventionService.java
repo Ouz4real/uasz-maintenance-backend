@@ -83,6 +83,16 @@ public class InterventionService {
         equipementItemRepository.save(item);
     }
 
+    public boolean isTechnicienOccupe(Long technicienId) {
+        return interventionRepository
+                .existsByTechnicienIdAndStatut(
+                        technicienId,
+                        StatutIntervention.EN_COURS
+                );
+    }
+
+
+
 
     @Transactional
     public void affecterEquipementDuStock(Long interventionId, Long typeId, String localisation) {

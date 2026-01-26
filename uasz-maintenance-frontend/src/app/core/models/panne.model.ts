@@ -16,6 +16,11 @@ export interface PanneApi {
   lieu?: string;
   imagePath?: string | null; // ✅ IMPORTANT
   equipement?: { libelle?: string; localisation?: string } | null;
+  technicien?: {
+    id: number;
+    nom?: string;
+    prenom?: string;
+  };
 }
 
 

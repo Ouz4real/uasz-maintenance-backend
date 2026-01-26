@@ -4,4 +4,5 @@ public enum Priorite {
     BASSE,
     MOYENNE,
     HAUTE,
+    NON_DEFINIE   // ✅ OBLIGATOIRE si tu l’utilises
 }

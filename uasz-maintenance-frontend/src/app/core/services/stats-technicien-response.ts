@@ -1,3 +1,4 @@
+// stats-technicien-response.ts
 export interface StatsTechnicienResponse {
   technicienId: number;
   technicienUsername?: string;

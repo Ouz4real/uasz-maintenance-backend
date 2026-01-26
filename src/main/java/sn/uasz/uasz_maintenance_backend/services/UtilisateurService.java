@@ -4,12 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sn.uasz.uasz_maintenance_backend.dtos.ChangePasswordRequest;
-import sn.uasz.uasz_maintenance_backend.dtos.UpdateProfileRequest;
-import sn.uasz.uasz_maintenance_backend.dtos.UtilisateurRequest;
-import sn.uasz.uasz_maintenance_backend.dtos.UtilisateurResponse;
+import sn.uasz.uasz_maintenance_backend.dtos.*;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
 import sn.uasz.uasz_maintenance_backend.enums.Role;
+import sn.uasz.uasz_maintenance_backend.enums.StatutIntervention;
+import sn.uasz.uasz_maintenance_backend.repositories.InterventionRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
 
 import java.util.List;
@@ -78,6 +77,40 @@ public class UtilisateurService {
                 .enabled(u.isEnabled())
                 .build();
     }
+
+    @Service
+    @RequiredArgsConstructor
+    public class TechnicienService {
+
+        private final UtilisateurRepository utilisateurRepository;
+        private final InterventionRepository interventionRepository;
+
+        public List<TechnicienUIResponse> getTechniciensSupervision() {
+
+            List<Utilisateur> techniciens =
+                    utilisateurRepository.findByRole(Role.TECHNICIEN);
+
+
+            return techniciens.stream().map(technicien -> {
+
+                TechnicienUIResponse dto = new TechnicienUIResponse();
+                dto.setId(technicien.getId());
+                dto.setNom(technicien.getNom());
+                dto.setPrenom(technicien.getPrenom());
+
+                // 🔥 ICI ET NULLE PART AILLEURS
+                dto.setOccupe(
+                        interventionRepository.existsByTechnicienIdAndStatut(
+                                technicien.getId(),
+                                StatutIntervention.EN_COURS
+                        )
+                );
+
+                return dto;
+            }).toList();
+        }
+    }
+
 
 
     // ========= RÉCUPÉRATION PAR ID =========

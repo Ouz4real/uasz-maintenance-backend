@@ -29,6 +29,9 @@ public interface InterventionRepository extends JpaRepository<Intervention, Long
 
     long countByTechnicienId(Long technicienId);
 
+    boolean existsByTechnicienIdAndStatut(Long technicienId, StatutIntervention statut);
+
+
     long countByTechnicienIdAndStatut(Long technicienId, StatutIntervention statut);
 
     // ✅ temps moyen (minutes) uniquement pour TERMINEE (ou autre statut)

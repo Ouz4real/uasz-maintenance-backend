@@ -446,7 +446,7 @@
             <article
               class="resp-tech-card"
               *ngFor="let t of filteredTechniciens"
-              (click)="openTechnicienDetails(t)"
+              (click)="ouvrirModalTechnicien(t)"
             >
               <div class="resp-tech-header">
                 <div>
@@ -925,8 +925,6 @@
             </div>
           </div>
         </div>
-
-
       </section>
 
 
@@ -1402,6 +1400,28 @@
             </div>
 
             <div class="requests-list">
+
+              <!-- 🟦 VUE GLOBALE (AJOUT IMPORTANT) -->
+              <div class="request-item help-highlight">
+                <div>
+                  <h3 class="request-title">
+                    Vue générale du traitement d’une demande
+                  </h3>
+                  <p class="request-meta">
+                    Le traitement d’une demande de maintenance suit les étapes suivantes :
+                  </p>
+                  <ol class="help-list">
+                    <li>Création de la demande par l’utilisateur</li>
+                    <li>Analyse et priorisation par le Responsable</li>
+                    <li>Affectation à un technicien</li>
+                    <li>Prise en charge (<strong>En cours</strong>)</li>
+                    <li>Résolution et validation</li>
+                    <li>Archivage et génération du rapport</li>
+                  </ol>
+                </div>
+              </div>
+
+              <!-- 1 -->
               <div class="request-item">
                 <div>
                   <h3 class="request-title">
@@ -1421,6 +1441,7 @@
                 </div>
               </div>
 
+              <!-- 2 -->
               <div class="request-item">
                 <div>
                   <h3 class="request-title">
@@ -1444,6 +1465,7 @@
                 </div>
               </div>
 
+              <!-- 3 -->
               <div class="request-item">
                 <div>
                   <h3 class="request-title">
@@ -1473,6 +1495,7 @@
                 </div>
               </div>
 
+              <!-- 4 -->
               <div class="request-item">
                 <div>
                   <h3 class="request-title">
@@ -1494,30 +1517,83 @@
                 </div>
               </div>
 
+              <!-- 🟦 STATUTS (AJOUT CLÉ) -->
               <div class="request-item">
                 <div>
                   <h3 class="request-title">
-                    5. À qui s’adresser en cas de problème avec l’application ?
+                    5. Signification des statuts d’une demande
+                  </h3>
+                  <ul class="help-list">
+                    <li><strong>En attente :</strong> demande créée, non encore prise en charge</li>
+                    <li><strong>En cours :</strong> technicien affecté et intervention active</li>
+                    <li><strong>Résolue :</strong> intervention terminée et validée</li>
+                    <li><strong>Annulée :</strong> demande fermée sans intervention</li>
+                  </ul>
+                  <p class="request-meta">
+                    Les statuts impactent directement les statistiques et la
+                    disponibilité des techniciens.
+                  </p>
+                </div>
+              </div>
+
+              <!-- 🟦 TABLEAU DE BORD -->
+              <div class="request-item">
+                <div>
+                  <h3 class="request-title">
+                    6. Comprendre les indicateurs du tableau de bord
+                  </h3>
+                  <ul class="help-list">
+                    <li><strong>Demandes en attente :</strong> non affectées</li>
+                    <li><strong>Interventions en cours :</strong> actuellement traitées</li>
+                    <li><strong>Technicien occupé :</strong> au moins une intervention active</li>
+                    <li><strong>Technicien disponible :</strong> aucune intervention en cours</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- 🟦 URGENCES -->
+              <div class="request-item">
+                <div>
+                  <h3 class="request-title">
+                    7. Comment gérer une urgence critique ?
+                  </h3>
+                  <ul class="help-list">
+                    <li>examens et salles pédagogiques</li>
+                    <li>services réseau et serveurs</li>
+                    <li>infrastructures administratives critiques</li>
+                  </ul>
+                  <p class="request-meta">
+                    Procédure recommandée :
+                    <br />• priorité <strong>Haute</strong>
+                    <br />• affectation immédiate
+                    <br />• suivi jusqu’à résolution
+                  </p>
+                </div>
+              </div>
+
+              <!-- 🟦 SUPPORT -->
+              <div class="request-item">
+                <div>
+                  <h3 class="request-title">
+                    8. À qui s’adresser en cas de problème avec l’application ?
                   </h3>
                   <p class="request-meta">
-                    Pour toute anomalie sur la plateforme (erreur d’affichage,
-                    bug, problème de connexion), contactez le service
-                    informatique de l’UASZ ou l’équipe responsable de
-                    l’application à l’adresse :
-                    <strong>maintenance@uasz.sn</strong><br />
-                    Merci de préciser :
+                    Pour toute anomalie (bug, affichage, connexion), contactez :
+                    <strong>maintenance@uasz.sn</strong>
                   </p>
                   <ul class="help-list">
                     <li>votre profil (Responsable, Technicien…)</li>
-                    <li>la page concernée (Tableau de bord, Rapports…)</li>
+                    <li>la page concernée</li>
                     <li>le message d’erreur ou une capture d’écran</li>
                   </ul>
                 </div>
               </div>
+
             </div>
           </div>
         </section>
       </ng-container>
+
 
       <!-- ===== MODAL DÉTAILS DEMANDE ===== -->
       <div class="modal-backdrop" *ngIf="showDetailsModal && selectedDemande">
@@ -1572,27 +1648,33 @@
                 </div>
               </div>
 
-              <div class="field">
-                <label class="field-label">Urgence (Responsable)  <span class="req">*</span></label>
+              <div class="details-item">
+                <label class="details-label">Urgence (Responsable)  <span class="req">*</span></label>
 
-                <select class="field-select" [(ngModel)]="modalUrgenceResponsable">
-                  <option value="">Non définie</option>
-                  <option value="BASSE">Basse</option>
-                  <option value="MOYENNE">Moyenne</option>
-                  <option value="HAUTE">Haute</option>
+                <select
+                  class="select-field"
+                  [(ngModel)]="modalUrgenceResponsable"
+                  [compareWith]="compareUrgence"
+                  [disabled]="assignmentLocked && !allowEditAssignment"
+                >
+                  <option [ngValue]="null">Choisir une urgence</option>
+                  <option [ngValue]="'BASSE'">Basse</option>
+                  <option [ngValue]="'MOYENNE'">Moyenne</option>
+                  <option [ngValue]="'HAUTE'">Haute</option>
                 </select>
               </div>
-
-
 
               <div class="details-item">
                 <span class="details-label">Technicien affecté  <span class="req">*</span></span>
                 <select
                   class="select-field"
                   [(ngModel)]="modalTechnicienId"
-                  [disabled]="selectedDemande?.statut === 'RESOLUE'"
+                  [compareWith]="compareById"
+                  [disabled]="assignmentLocked && !allowEditAssignment"
+                  required
                 >
-                  <option [ngValue]="null">Choisissez un technicien</option>
+
+                <option [ngValue]="null" disabled>Choisissez un technicien</option>
 
                   <option *ngFor="let t of techniciens" [ngValue]="t.id">
                     {{ t.nom }}
@@ -1645,11 +1727,10 @@
                     <img
                       *ngIf="showImageInDetails && selectedDemande?.imageUrl"
                       class="details-image"
-                      [src]="selectedDemande.imageUrl"
+                      [src]="getImageUrl(selectedDemande.imageUrl)"
                       alt="Image panne"
-                      (click)="openImageLightbox(selectedDemande.imageUrl)"
+                      (click)="openImageLightbox(getImageUrl(selectedDemande.imageUrl))"
                     />
-
                   </div>
                 </ng-container>
 
@@ -1694,10 +1775,19 @@
             </button>
 
             <button
-              class="primary-btn"
               type="button"
-              [disabled]="isSaveDisabled"
-              (click)="saveDetails()"
+              class="secondary-btn"
+              *ngIf="assignmentLocked && !allowEditAssignment"
+              (click)="enableAssignmentEdit()"
+            >
+              Modifier
+            </button>
+
+            <button
+              type="button"
+              class="primary-btn"
+              [disabled]="!canSaveAffectation"
+              (click)="saveAffectationEtUrgence()"
             >
               Enregistrer modifications
             </button>
@@ -1825,7 +1915,6 @@
         </div>
       </div>
 
-
       <!-- ===== MODAL DÉTAILS TECHNICIEN ===== -->
       <div
         class="modal-backdrop"
@@ -1852,14 +1941,16 @@
     </span>
             </p>
 
-            <!-- ✅ Messages chargement / erreur (au bon endroit) -->
+            <!-- 🔄 Chargement -->
             <div *ngIf="loadingTechInterventions" class="details-meta">
               Chargement des interventions...
             </div>
 
+            <!-- ❌ Erreur -->
             <div *ngIf="errorTechInterventions" class="details-meta" style="color:#b91c1c;">
               {{ errorTechInterventions }}
             </div>
+
 
             <!-- ✅ CONTENU -->
             <div class="details-grid">
@@ -1870,17 +1961,24 @@
                 </p>
               </div>
 
-              <div class="details-item">
+              <div class="details-item" *ngIf="selectedTechnicien">
                 <span class="details-label">Interventions en cours</span>
-                <ul class="details-description">
-                  <li *ngIf="(tech.interventionsEnCours || []).length === 0">
+
+                <!-- ✅ Interventions -->
+                <ul class="details-description"
+                    *ngIf="!loadingTechInterventions && !errorTechInterventions">
+
+                  <li *ngIf="(selectedTechnicien.interventionsEnCours?.length ?? 0) === 0">
                     Aucune intervention en cours.
                   </li>
-                  <li *ngFor="let inter of tech.interventionsEnCours || []">
-                    {{ inter.titre }} – {{ inter.lieu }} ({{ inter.statut }})
+
+                  <li *ngFor="let inter of selectedTechnicien.interventionsEnCours">
+                    {{ inter.titre }} – {{ inter.lieu }}
                   </li>
+
                 </ul>
               </div>
+
 
               <div class="details-item details-full">
                 <span class="details-label">Dernières interventions</span>
@@ -1904,8 +2002,6 @@
               </div>
             </div>
           </div>
-
-
           <div class="modal-footer">
             <button class="secondary-btn" (click)="closeTechnicienModal()">
               Fermer

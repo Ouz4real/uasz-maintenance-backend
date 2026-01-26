@@ -81,4 +81,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 4) On laisse toujours continuer la chaîne
         filterChain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        // ✅ NE PAS INTERCEPTER LES FICHIERS STATIQUES
+        return path.startsWith("/uploads/");
+    }
+
 }

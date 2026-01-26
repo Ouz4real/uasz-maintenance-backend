@@ -17,4 +17,11 @@ public interface PanneRepository extends JpaRepository<Panne, Long> {
     List<Panne> findByDemandeurIdAndStatut(Long demandeurId, StatutPanne statut);
 
     long countByStatut(StatutPanne statut);
+
+    // 🔥 NOUVEAU
+    List<Panne> findByTechnicienIdAndStatut(Long technicienId, StatutPanne statut);
+
+    // 🔥 POUR OCCUPATION
+    boolean existsByTechnicienIdAndStatut(Long technicienId, StatutPanne statut);
 }
+

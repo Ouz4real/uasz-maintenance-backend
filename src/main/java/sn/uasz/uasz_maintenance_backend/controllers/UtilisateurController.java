@@ -5,10 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import sn.uasz.uasz_maintenance_backend.dtos.UtilisateurRequest;
-import sn.uasz.uasz_maintenance_backend.dtos.UtilisateurResponse;
-import sn.uasz.uasz_maintenance_backend.dtos.ChangePasswordRequest;
-import sn.uasz.uasz_maintenance_backend.dtos.UpdateProfileRequest;
+import sn.uasz.uasz_maintenance_backend.dtos.*;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
 import sn.uasz.uasz_maintenance_backend.enums.Role;
 import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
@@ -24,6 +21,7 @@ public class UtilisateurController {
 
     private final UtilisateurService utilisateurService;
     private final UtilisateurRepository utilisateurRepository;
+    private final UtilisateurService.TechnicienService technicienService;
 
     // ================== CRUD de base ==================
 
@@ -88,5 +86,10 @@ public class UtilisateurController {
         return ResponseEntity.ok(utilisateurService.getByRole(role)); // à créer si pas déjà
     }
 
+
+    @GetMapping("/techniciens/supervision")
+    public List<TechnicienUIResponse> getTechniciensSupervision() {
+        return technicienService.getTechniciensSupervision();
+    }
 
 }

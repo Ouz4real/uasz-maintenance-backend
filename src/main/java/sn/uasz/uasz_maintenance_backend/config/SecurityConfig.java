@@ -31,22 +31,19 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // active CORS avec ta config CorsConfig
                 .cors(Customizer.withDefaults())
-                // API REST : pas de CSRF
                 .csrf(AbstractHttpConfigurer::disable)
-                // JWT -> pas de session
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
-                        // 🚨 DEBUG : TOUT AUTORISER POUR L’INSTANT
-                        .anyRequest().permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .anyRequest().permitAll() // debug
                 )
-                // Filtre JWT (il ne devrait pas bloquer sans Authorization header)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)

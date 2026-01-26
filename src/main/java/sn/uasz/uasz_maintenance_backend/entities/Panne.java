@@ -1,5 +1,6 @@
 package sn.uasz.uasz_maintenance_backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import sn.uasz.uasz_maintenance_backend.enums.Priorite;
@@ -64,4 +65,10 @@ public class Panne {
     @ManyToOne
     @JoinColumn(name = "demandeur_id")
     private Utilisateur demandeur;
+
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "technicien_id", nullable = true)
+    private Utilisateur technicien;
+
 }

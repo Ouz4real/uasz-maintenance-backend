@@ -1,8 +1,7 @@
+// technicien-ui.model.ts
 export interface TechnicienUI {
   id: number;
   nom: string;
-
-  // ce que ton UI utilise parfois
   username?: string | null;
 
   serviceUnite?: string | null;
@@ -16,7 +15,9 @@ export interface TechnicienUI {
   nbInterventionsTerminees: number;
   tempsMoyenResolutionHeures: number;
 
-  // pour ton template *ngIf="t.stats as s"
+  // ✅ OBLIGATOIRE
+  occupe: boolean;
+
   stats?: {
     enCours?: number;
     terminees?: number;
@@ -24,4 +25,14 @@ export interface TechnicienUI {
     planifiees?: number;
     tempsMoyenHeures?: number;
   } | null;
+
+  interventionsEnCours?: any[];
+  dernieresInterventions?: any[];
+
+  // ✅ états UI
+  loadingInterventions?: boolean;
+  errorInterventions?: any;
+  loadingStats?: boolean;
+  errorStats?: any;
 }
+

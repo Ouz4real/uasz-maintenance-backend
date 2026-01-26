@@ -1,14 +1,17 @@
 package sn.uasz.uasz_maintenance_backend.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import sn.uasz.uasz_maintenance_backend.dtos.PanneRequest;
+import sn.uasz.uasz_maintenance_backend.dtos.PanneResponse;
 import sn.uasz.uasz_maintenance_backend.entities.Equipement;
 import sn.uasz.uasz_maintenance_backend.entities.Panne;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
 import sn.uasz.uasz_maintenance_backend.enums.Priorite;
+import sn.uasz.uasz_maintenance_backend.enums.Role;
 import sn.uasz.uasz_maintenance_backend.enums.StatutPanne;
 import sn.uasz.uasz_maintenance_backend.exceptions.ResourceNotFoundException;
 import sn.uasz.uasz_maintenance_backend.repositories.EquipementRepository;
@@ -229,4 +232,138 @@ public class PanneService {
             throw new RuntimeException("Erreur enregistrement image panne", e);
         }
     }
-}
+
+    @Transactional
+    public Panne affecterTechnicienEtUrgence(
+            Long panneId,
+            Long technicienId,
+            Priorite prioriteResponsable
+    ) {
+        Panne panne = panneRepository.findById(panneId)
+                .orElseThrow(() -> new RuntimeException("Panne introuvable"));
+
+        Utilisateur technicien = utilisateurRepository.findById(technicienId)
+                .orElseThrow(() -> new RuntimeException("Technicien introuvable"));
+
+        panne.setTechnicien(technicien);
+        panne.setPrioriteResponsable(prioriteResponsable);
+
+        // ✅ changement automatique de statut
+        if (panne.getStatut() == StatutPanne.OUVERTE) {
+            panne.setStatut(StatutPanne.EN_COURS);
+        }
+
+        return panneRepository.save(panne);
+    }
+
+
+    public PanneResponse toResponse(Panne p) {
+        Utilisateur tech = p.getTechnicien();
+
+        return PanneResponse.builder()
+                .id(p.getId())
+                .titre(p.getTitre())
+                .lieu(p.getLieu())
+                .typeEquipement(p.getTypeEquipement())
+
+                .statut(p.getStatut() != null ? p.getStatut().name() : null)
+                .priorite(p.getPriorite() != null ? p.getPriorite().name() : null)
+                .prioriteResponsable(
+                        p.getPrioriteResponsable() != null
+                                ? p.getPrioriteResponsable().name()
+                                : null
+                )
+
+                .technicienId(tech != null ? tech.getId() : null)
+                .technicienNom(
+                        tech != null
+                                ? (tech.getNom() != null ? tech.getNom() : tech.getUsername())
+                                : null
+                )
+                .technicienServiceUnite(tech != null ? tech.getServiceUnite() : null)
+                .imagePath(p.getImagePath())
+                .build();
+    }
+
+
+    @Transactional
+    public PanneResponse traiterParResponsable(Long panneId, Long technicienId, Priorite prioriteResp) {
+
+        Panne panne = panneRepository.findById(panneId)
+                .orElseThrow(() -> new ResourceNotFoundException("Panne introuvable: " + panneId));
+
+        if (technicienId == null) {
+            throw new IllegalArgumentException("Technicien obligatoire");
+        }
+        if (prioriteResp == null) {
+            throw new IllegalArgumentException("Priorité responsable obligatoire");
+        }
+
+        Utilisateur tech = utilisateurRepository.findById(technicienId)
+                .orElseThrow(() -> new ResourceNotFoundException("Technicien introuvable: " + technicienId));
+
+        // Optionnel: vérifier que tech.role == TECHNICIEN
+        // if (tech.getRole() != Role.TECHNICIEN) throw new IllegalArgumentException("...");
+
+        panne.setTechnicien(tech);
+        panne.setPrioriteResponsable(prioriteResp);
+
+        // ✅ changement de statut automatique
+        if (panne.getStatut() == StatutPanne.OUVERTE) {
+            panne.setStatut(StatutPanne.EN_COURS);
+        }
+
+        Panne saved = panneRepository.save(panne);
+        return toResponse(saved);
+
+    }
+
+    @Transactional
+    public PanneResponse affecterTechnicien(Long id, Long idTechnicien) {
+
+        // 1️⃣ Récupération de la panne
+        Panne panne = panneRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Panne introuvable avec id : " + id)
+                );
+
+        // 2️⃣ Récupération du technicien
+        Utilisateur technicien = utilisateurRepository.findById(idTechnicien)
+                .orElseThrow(() ->
+                        new RuntimeException("Technicien introuvable avec id : " + idTechnicien)
+                );
+
+        // 3️⃣ Affectation
+        panne.setTechnicien(technicien);
+
+        // 4️⃣ LOGIQUE MÉTIER CLÉ 🔥
+        // Si on affecte → la panne passe automatiquement EN_COURS
+        panne.setStatut(StatutPanne.EN_COURS);
+
+        // 5️⃣ Sauvegarde
+        Panne saved = panneRepository.save(panne);
+
+        // 6️⃣ Mapping propre vers le DTO
+        return toResponse(saved);
+    }
+
+    public boolean technicienEstOccupe(Long technicienId) {
+        return panneRepository.existsByTechnicienIdAndStatut(
+                technicienId,
+                StatutPanne.EN_COURS
+        );
+    }
+
+
+    public List<Panne> getPannesEnCoursByTechnicien(Long technicienId) {
+        return panneRepository.findByTechnicienIdAndStatut(
+                technicienId,
+                StatutPanne.EN_COURS
+        );
+    }
+
+
+    }
+
+
+

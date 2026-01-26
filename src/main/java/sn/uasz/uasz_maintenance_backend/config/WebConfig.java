@@ -14,11 +14,15 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
-        // Chemin absolu du dossier uploads (portable Windows/Linux)
         Path uploadDir = Paths.get("uploads").toAbsolutePath().normalize();
 
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(uploadDir.toUri().toString())
-                .setCacheControl(org.springframework.http.CacheControl.maxAge(Duration.ofDays(30)).cachePublic());
+                .addResourceLocations("file:" + uploadDir.toString() + "/")
+                .setCacheControl(
+                        org.springframework.http.CacheControl
+                                .maxAge(Duration.ofDays(30))
+                                .cachePublic()
+                );
     }
 }
+

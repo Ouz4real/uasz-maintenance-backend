@@ -25,6 +25,15 @@ import { TechniciensService, TechnicienOptionDto } from '../../../core/services/
 import { TechnicienUI } from '../../../core/models/technicien-ui.model';
 import {PreventivesService} from '../../../core/services/preventives.service';
 import { MaintenancePreventive } from '../../../core/models/maintenance-preventive.model';
+import {PanneApi} from '../../../core/models/panne.model';
+import { Demande } from '../../../core/models/demande.model';
+import { DemandeService } from '../../../core/services/demande.service';
+import {Panne} from '../../../core/services/panne';
+import { PannesService } from '../../../core/services/pannes.service'
+
+
+
+
 
 
 
@@ -70,6 +79,9 @@ type TechnicienDetails = TechnicienUI & {
   interventionsEnCours: any[];
   dernieresInterventions: any[];
 };
+
+type PrioriteResp = 'BASSE' | 'MOYENNE' | 'HAUTE';
+
 
 
 export interface NouvelleDemandeResponsableForm {
@@ -126,28 +138,6 @@ export interface EquipementStockDetailsDto {
 
 /* ====================== INTERFACES UI ====================== */
 
-interface Demande {
-  id: number;
-  titre: string;
-  demandeurNom: string;
-  lieu: string;
-  typeEquipement: string;
-  description: string;
-  dateCreation: Date;
-  statut: 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE';
-
-  // ✅ Nouveau
-  urgenceDemandeur: 'BASSE' | 'MOYENNE' | 'HAUTE' | null;
-  urgenceResponsable: 'BASSE' | 'MOYENNE' | 'HAUTE' | 'NON_DEFINIE' | null;
-
-  // ✅ Alias temporaire pour ne pas casser tout ton HTML/TS actuel
-  urgence?: 'BASSE' | 'MOYENNE' | 'HAUTE' | 'NON_DEFINIE' | null;
-
-  imageUrl?: string | null;
-}
-
-
-
 
 interface Intervention {
   titre: string;
@@ -157,18 +147,7 @@ interface Intervention {
   statut: 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE';
 }
 
-interface Technicien {
-  id: number;
-  nom: string;
-  categorie: string;
-  disponible: boolean;
-  specialites: string[];
-  nbInterventionsEnCours: number;
-  nbInterventionsTerminees: number;
-  tempsMoyenResolutionHeures: number;
-  interventionsEnCours?: InterventionUI[];
-  dernieresInterventions?: InterventionUI[];
-}
+
 
 interface Equipement {
   reference: string;
@@ -246,6 +225,17 @@ export class DashboardResponsableComponent implements OnInit {
   equipementSearchTerm = '';
 
   selectedPreventiveTechnicienLabel = 'Non affecté';
+
+
+  // verrouille l'affectation + urgence après sauvegarde
+  assignmentLocked = false;
+
+// (optionnel) pour éviter double clic
+  savingAffectation = false;
+
+  allowEditAssignment = false;     // ✏️ mode édition activé via bouton "Modifier"
+
+  savingAssignment = false;
 
 
 
@@ -333,7 +323,8 @@ export class DashboardResponsableComponent implements OnInit {
   // ===== DEMANDES (GLOBAL) =====
   statusFilter: 'TOUTES' | 'EN_ATTENTE' | 'EN_COURS' | 'RESOLUE' = 'TOUTES';
   urgenceFilter: 'TOUTES' | 'BASSE' | 'MOYENNE' | 'HAUTE' = 'TOUTES';
-  modalUrgenceResponsable: '' | 'BASSE' | 'MOYENNE' | 'HAUTE' = '';
+  modalUrgenceResponsable: PrioriteResp | null = null;
+
   searchTerm: string = '';
 
   demandes: Demande[] = []; // ✅ manquait parfois : indispensable
@@ -434,6 +425,99 @@ export class DashboardResponsableComponent implements OnInit {
     this.showInterventionDetailsModal = false;
   }
 
+  get isAffectationValid(): boolean {
+    const urgence = this.selectedDemande?.urgenceResponsable;
+    const urgenceOk = !!urgence && urgence !== 'NON_DEFINIE';
+    const technicienOk = this.modalTechnicienId !== null;
+
+    return urgenceOk && technicienOk;
+  }
+
+
+  saveAffectationEtUrgence(): void {
+    if (!this.selectedDemande) return;
+
+    this.demandeService
+      .traiterParResponsable(
+        this.selectedDemande.id,
+        this.modalTechnicienId!,
+        this.modalUrgenceResponsable!
+      )
+      .subscribe({
+        next: (updated) => {
+
+          // 🔵 MAJ demandes
+          const idx1 = this.demandes.findIndex(d => d.id === updated.id);
+          if (idx1 !== -1) {
+            this.demandes[idx1] = {
+              ...this.demandes[idx1],
+              technicienId: updated.technicienId,
+              urgenceResponsable: updated.urgenceResponsable
+            };
+          }
+
+          // 🔵 MAJ filteredDemandes (🔥 LA CLÉ DU BUG)
+          const idx2 = this.filteredDemandes.findIndex(d => d.id === updated.id);
+          if (idx2 !== -1) {
+            this.filteredDemandes[idx2] = {
+              ...this.filteredDemandes[idx2],
+              technicienId: updated.technicienId,
+              urgenceResponsable: updated.urgenceResponsable
+            };
+          }
+
+          // 🔵 MAJ modale
+          this.selectedDemande = {
+            ...this.selectedDemande,
+            technicienId: updated.technicienId,
+            urgenceResponsable: updated.urgenceResponsable
+          };
+
+          // 🔒 verrouillage
+          this.assignmentLocked = true;
+          this.allowEditAssignment = false;
+        },
+        error: (err) => {
+          console.error('Erreur mise à jour', err);
+        }
+      });
+  }
+
+  private synchroniserTechniciensAvecDemandes(): void {
+    if (!this.demandes?.length || !this.techniciens?.length) return;
+
+    this.techniciens.forEach(tech => {
+      const demandesAffectees = this.demandes.filter(
+        d => d.technicienId === tech.id
+      );
+
+      const interventionsEnCours = demandesAffectees.filter(
+        d => d.statut === 'EN_ATTENTE' || d.statut === 'EN_COURS'
+      );
+
+      const interventionsTerminees = demandesAffectees.filter(
+        d => d.statut === 'RESOLUE'
+      );
+
+      // 🔴 LOGIQUE MÉTIER OFFICIELLE
+      tech.disponible = interventionsEnCours.length === 0;
+
+      // stats locales (compatibilité)
+      tech.nbInterventionsEnCours = interventionsEnCours.length;
+      tech.nbInterventionsTerminees = interventionsTerminees.length;
+
+      tech.interventionsEnCours = interventionsEnCours;
+      tech.dernieresInterventions = interventionsTerminees.slice(0, 5);
+    });
+
+    // 🔄 pour l’affichage
+    this.filteredTechniciens = [...this.techniciens];
+  }
+
+
+
+
+
 
   private chargerTechniciensDepuisApi(): void {
     this.loadingTechniciens = true;
@@ -441,8 +525,13 @@ export class DashboardResponsableComponent implements OnInit {
 
     this.utilisateursService.getTechniciens().subscribe({
       next: (list: UtilisateurDto[]) => {
-        const onlyTech: UtilisateurDto[] = (list ?? []).filter((u: UtilisateurDto) =>
-          String(u?.role ?? '').toUpperCase() === 'TECHNICIEN'
+
+        /* ===============================
+         * 1) FILTRAGE TECHNICIENS
+         * =============================== */
+        const onlyTech: UtilisateurDto[] = (list ?? []).filter(
+          (u: UtilisateurDto) =>
+            String(u?.role ?? '').toUpperCase() === 'TECHNICIEN'
         );
 
         const items: TechnicienUI[] = onlyTech.map((u: UtilisateurDto) =>
@@ -452,7 +541,12 @@ export class DashboardResponsableComponent implements OnInit {
         this.techniciens = items;
         this.techniciensAffectables = [...items];
         this.filteredTechniciens = [...items];
+        this.synchroniserTechniciensAvecDemandes();
 
+
+        /* ===============================
+         * 2) CATÉGORIES
+         * =============================== */
         this.technicienCategories = Array.from(
           new Set(
             this.techniciens
@@ -461,14 +555,30 @@ export class DashboardResponsableComponent implements OnInit {
           )
         ).sort((a, b) => a.localeCompare(b));
 
-
         this.applyTechnicienFilters();
+
+        /* =====================================================
+         * 3) 🔥🔥🔥 POINT CRITIQUE — SYNCHRO MODALE 🔥🔥🔥
+         * ===================================================== */
+        if (this.selectedDemande) {
+
+          // technicien
+          this.modalTechnicienId =
+            this.selectedDemande.technicienId ?? null;
+
+          // urgence responsable
+          this.modalUrgenceResponsable =
+            this.selectedDemande.prioriteResponsable ?? null;
+        }
 
         this.loadingTechniciens = false;
 
-        // ✅ IMPORTANT : charger les stats APRÈS avoir la liste
+        /* ===============================
+         * 4) STATS
+         * =============================== */
         this.chargerStatsTechniciens();
       },
+
       error: (err) => {
         console.error('Erreur chargement techniciens:', err);
         this.errorTechniciens = 'Impossible de charger les techniciens.';
@@ -481,6 +591,7 @@ export class DashboardResponsableComponent implements OnInit {
       },
     });
   }
+
 
 
 
@@ -564,56 +675,61 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
 
-
   private chargerStatsTechniciens(): void {
-    if (!this.techniciens || this.techniciens.length === 0) return;
+    if (!this.techniciens?.length) return;
 
     this.loadingTechStats = true;
     this.errorTechStats = null;
 
-    const requests = this.techniciens.map((t) =>
+    const requests = this.techniciens.map(t =>
       this.interventionsService.getStatsByTechnicien(t.id)
     );
 
     forkJoin(requests).subscribe({
       next: (statsList) => {
-        // On crée un map pour accéder vite par technicienId
         const statsMap = new Map<number, StatsTechnicienResponse>();
-        (statsList ?? []).forEach((s) => statsMap.set(s.technicienId, s));
+        statsList.forEach(s => {
+          if (s?.technicienId != null) {
+            statsMap.set(s.technicienId, s);
+          }
+        });
 
-        // On injecte dans chaque technicien
-        this.techniciens = this.techniciens.map((t) => {
+        this.techniciens = this.techniciens.map(t => {
           const s = statsMap.get(t.id);
+
+          const nbEnCours = s?.interventionsEnCours ?? 0;
+          const nbTerminees = s?.interventionsTerminees ?? 0;
+
+          const tempsMoyenHeures =
+            s?.tempsMoyenMinutes != null
+              ? Math.round((s.tempsMoyenMinutes / 60) * 10) / 10
+              : 0;
 
           return {
             ...t,
             stats: {
-              enCours: s?.interventionsEnCours ?? 0,
-              terminees: s?.interventionsTerminees ?? 0,
-              tempsMoyen: s?.tempsMoyenAffichage ?? '0 h',
+              enCours: nbEnCours,
+              terminees: nbTerminees,
+              tempsMoyenHeures,
             },
 
-            // si tu veux aussi remplir tes anciens champs (optionnel)
-            nbInterventionsEnCours: s?.interventionsEnCours ?? t.nbInterventionsEnCours ?? 0,
-            nbInterventionsTerminees: s?.interventionsTerminees ?? t.nbInterventionsTerminees ?? 0,
-            tempsMoyenResolutionHeures: s?.tempsMoyenMinutes
-              ? Math.round((s.tempsMoyenMinutes / 60) * 10) / 10
-              : (t.tempsMoyenResolutionHeures ?? 0),
+            // uniquement pour affichage
+            tempsMoyenResolutionHeures: tempsMoyenHeures,
           };
         });
 
-        // si tu utilises filteredTechniciens ailleurs, on la rafraîchit
         this.filteredTechniciens = [...this.techniciens];
-
         this.loadingTechStats = false;
       },
       error: (err) => {
-        console.error('Erreur chargement stats techniciens:', err);
-        this.errorTechStats = 'Impossible de charger les statistiques des techniciens.';
+        console.error(err);
+        this.errorTechStats =
+          'Impossible de charger les statistiques des techniciens.';
         this.loadingTechStats = false;
       },
     });
   }
+
 
 
 
@@ -784,7 +900,7 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
   showTechnicienModal = false;
-  selectedTechnicien: TechnicienDetails | null = null;
+  selectedTechnicien: TechnicienUI | null = null;
 
 
   showPreventiveDetails = false;
@@ -796,6 +912,10 @@ export class DashboardResponsableComponent implements OnInit {
   techniciensOptions: TechnicienOptionDto[] = [];
   loadingTechniciens = false;
   errorTechniciens: string | null = null;
+
+  pannesEnCours: Panne[] = [];
+  loadingPannes = false;
+
 
 // dans ton form / model de création
   selectedTechnicienId: number | null = null;
@@ -814,7 +934,10 @@ export class DashboardResponsableComponent implements OnInit {
     private interventionsService: InterventionsService,
     private equipementStockService: EquipementStockService,
     private techniciensService: TechniciensService,
-    private preventivesService: PreventivesService
+    private preventivesService: PreventivesService,
+    private pannesResponsableService: PannesResponsableService,
+    private demandeService: DemandeService,
+    private pannesService : PannesService
   ) {}
 
   goToProfile(): void {
@@ -842,17 +965,21 @@ export class DashboardResponsableComponent implements OnInit {
     });
   }
 
-
   ngOnInit(): void {
     this.usernameInitial = this.username.charAt(0).toUpperCase();
 
-    // 1) demandes
     forkJoin({
       pannes: this.pannesRespApi.getAllPannes(),
       mesPannes: this.pannesRespApi.getMyPannes(),
     }).subscribe({
       next: ({ pannes, mesPannes }) => {
+
+        // Mapping
         this.demandes = this.mapPannesToDemandes(pannes);
+
+        // ⚠️ NE PAS trier ici définitivement
+        // Le vrai tri se fera dans applyDemandesFilters()
+
         this.recalculateDemandesStats();
         this.applyDemandesFilters();
         this.recalculateStatusPercentages();
@@ -873,9 +1000,12 @@ export class DashboardResponsableComponent implements OnInit {
       },
     });
 
-    // 2) techniciens (séparé → plus robuste)
     this.chargerTechniciensDepuisApi();
+    this.synchroniserTechniciensAvecDemandes();
+    this.chargerStatsTechniciens();
+    this.chargerDisponibiliteTechniciens();
   }
+
 
   // ==============================
 // STOCK - Création type + quantité
@@ -968,6 +1098,7 @@ export class DashboardResponsableComponent implements OnInit {
       tempsMoyenResolutionHeures: dto.tempsMoyenResolutionHeures ?? 0,
 
       stats: dto.stats ?? null,
+      occupe: dto.nbInterventionsEnCours > 0,
     };
   }
 
@@ -1031,24 +1162,43 @@ export class DashboardResponsableComponent implements OnInit {
     });
   }
 
-  private mapOptionToTechnicienUI(dto: TechnicienOptionDto): TechnicienUI {
-    const displayName =
-      `${dto.prenom ?? ''} ${dto.nom ?? ''}`.trim() || dto.username;
-
+  mapOptionDtoToTechnicienUI(dto: TechnicienOptionDto): TechnicienUI {
     return {
-      id: dto.id,
-      nom: displayName,
-      serviceUnite: dto.serviceUnite ?? null,
+      id: Number(dto.id),
 
-      // ✅ champs attendus par ton model complet
-      categorie: dto.serviceUnite ?? 'Général',
-      specialites: dto.serviceUnite ? [dto.serviceUnite] : [],
+      // ✅ string garantie
+      nom: dto.nom ?? '—',
+      username: dto.username ?? null,
+
+      // ✅ OptionDto n’a PAS ces infos
+      serviceUnite: null,
+      categorie: 'Général',
+      sousCategorie: undefined,
+
+      specialites: [],
+
+      // ✅ par défaut
       disponible: true,
+
+      // ⚠️ stats inconnues à ce stade
       nbInterventionsEnCours: 0,
       nbInterventionsTerminees: 0,
       tempsMoyenResolutionHeures: 0,
+
+      // ✅ obligatoire
+      occupe: false,
+
+      interventionsEnCours: [],
+      dernieresInterventions: [],
+      stats: null,
+
+      loadingInterventions: false,
+      errorInterventions: null,
+      loadingStats: false,
+      errorStats: null,
     };
   }
+
 
 
   loadTechniciensForPreventive(): void {
@@ -1056,7 +1206,7 @@ export class DashboardResponsableComponent implements OnInit {
 
     this.techniciensService.getTechniciens().subscribe({
       next: (data: TechnicienOptionDto[]) => {
-        this.techniciens = (data ?? []).map(d => this.mapOptionToTechnicienUI(d));
+        this.techniciens = (data ?? []).map(d => this.mapOptionDtoToTechnicienUI(d));
         this.loadingTechniciens = false;
       },
       error: (err) => {
@@ -1199,32 +1349,50 @@ export class DashboardResponsableComponent implements OnInit {
 
   private mapPannesToDemandes(list: PanneDto[]): Demande[] {
     return (list ?? []).map(p => {
-
-      // ✅ LOG CORRECT (p existe ici)
-      console.log('PRIORITE API =', p.priorite, 'ID =', p.id);
+      console.log(
+        'Panne API:',
+        p.id,
+        'prioriteResp =',
+        (p as any).prioriteResponsable
+      );
 
       return {
         id: p.id,
         titre: p.titre,
-        demandeurNom: (p as any).demandeurNom ?? p.signaleePar ?? '—',
+        description: p.description,
+
+        demandeurNom:
+          (p as any).demandeurNom ?? p.signaleePar ?? '—',
+
         lieu: p.lieu,
         typeEquipement: p.typeEquipement,
-        description: p.description,
+
         dateCreation: this.safeDateIso(p),
         statut: this.mapStatutApiToUi(p.statut),
 
-        // ✅ URGENCE DEMANDEUR (clé importante)
+        // 🟢 urgence demandeur
         urgenceDemandeur: this.mapPrioriteApiToUrgenceUi(p.priorite),
 
-        // (si tu utilises encore ce champ ailleurs)
-        urgence: this.mapPrioriteApiToUrgenceUi(p.priorite),
+        // 🔴 urgence responsable (BACKEND)
+        urgenceResponsable:
+          (p as any).prioriteResponsable ?? null,
 
-        urgenceResponsable: 'NON_DEFINIE',
+        // 🔵 technicien
+        technicienId:
+          (p as any).technicien?.id ??
+          (p as any).technicienId ??
+          null,
 
-        imageUrl: (p as any).imageUrl ?? (p as any).imagePath ?? undefined,
+        imageUrl:
+          (p as any).imageUrl ??
+          (p as any).imagePath ??
+          null,
       };
     });
   }
+
+
+
 
   getUrgenceListClassAny(u?: string | null): string {
     const v = (u ?? '').toString().toUpperCase();
@@ -1321,25 +1489,30 @@ export class DashboardResponsableComponent implements OnInit {
     let list = [...this.demandes];
 
     if (this.statusFilter !== 'TOUTES') {
-      list = list.filter((d) => d.statut === this.statusFilter);
+      list = list.filter(d => d.statut === this.statusFilter);
     }
 
     if (this.urgenceFilter !== 'TOUTES') {
-      list = list.filter((d) => d.urgence === this.urgenceFilter);
+      list = list.filter(d => d.urgenceDemandeur === this.urgenceFilter);
     }
 
     if (this.searchTerm.trim().length > 0) {
-      list = list.filter((d) =>
-        (d.titre || '').toLowerCase().includes(this.searchTerm) ||
-        (d.demandeurNom || '').toLowerCase().includes(this.searchTerm) ||
-        (d.statut || '').toLowerCase().includes(this.searchTerm)
+      const term = this.searchTerm.toLowerCase();
+      list = list.filter(d =>
+        (d.titre || '').toLowerCase().includes(term) ||
+        (d.demandeurNom || '').toLowerCase().includes(term) ||
+        (d.statut || '').toLowerCase().includes(term)
       );
     }
 
-    this.filteredDemandes = list;
+    // ✅ TRI FINAL OBLIGATOIRE
+    this.filteredDemandes = this.trierDemandesParStatut(list);
+
     this.currentPage = 1;
     this.updatePagination();
   }
+
+
 
   private updatePagination(): void {
     const total = this.filteredDemandes.length;
@@ -1785,29 +1958,72 @@ export class DashboardResponsableComponent implements OnInit {
 
 
   /* ========== DÉTAILS DEMANDE (MODALE GLOBAL) ========== */
-
   openDemandeDetails(d: Demande): void {
-    this.selectedDemande = { ...d };
+    this.selectedDemande = d; // ✅ référence directe
 
-    // 🔥 sécurité : si jamais urgenceDemandeur n’est pas là, fallback sur urgence
-    this.selectedDemande.urgenceDemandeur =
-      this.selectedDemande.urgenceDemandeur ?? this.selectedDemande.urgence ?? null;
+    this.modalTechnicienId = d.technicienId ?? null;
+    this.modalUrgenceResponsable = d.urgenceResponsable ?? null;
 
-    this.selectedDemande.imageUrl = this.resolveImageUrl(
-      this.selectedDemande.imageUrl || (this.selectedDemande as any).imagePath
-    );
+    this.assignmentLocked = d.statut === 'EN_COURS';
+    this.allowEditAssignment = false;
 
-    this.modalTechnicienId = null;
-    this.modalCommentaire = '';
-    this.showImageInDetails = false;
-    this.markAsResolved = d.statut === 'RESOLUE';
     this.showDetailsModal = true;
-
-    this.modalUrgenceResponsable = '';
-    const filtered = this.filterTechniciensForDemande(this.selectedDemande);
-    this.techniciensAffectables = (filtered?.length ? filtered : [...this.techniciens]);
   }
 
+
+
+
+  enableAssignmentEdit(): void {
+    this.allowEditAssignment = true;
+    this.assignmentLocked = false;
+  }
+
+
+
+  get canSaveAffectation(): boolean {
+    const urgenceOk = !!this.modalUrgenceResponsable; // null = pas ok
+    const techOk = !!this.modalTechnicienId;
+    return urgenceOk && techOk && !this.assignmentLocked;
+  }
+
+  private mapPanneDtoToDemande(p: PanneDto): Demande {
+    return {
+      id: p.id,
+      titre: p.titre,
+      description: p.description,
+
+      demandeurNom: p.demandeur
+        ? `${p.demandeur.prenom ?? ''} ${p.demandeur.nom ?? ''}`.trim()
+        : '—',
+
+      typeEquipement: p.typeEquipement ?? '—',
+      lieu: p.lieu ?? '—',
+
+      dateCreation: new Date(
+        p.dateSignalement ??
+        p.dateCreation ??
+        p.createdAt ??
+        Date.now()
+      ),
+
+      statut: p.statut === 'OUVERTE'
+        ? 'EN_ATTENTE'
+        : p.statut,
+
+      // 🔵 urgence demandeur
+      urgenceDemandeur: null,
+
+      // 🔴 urgence responsable
+      urgenceResponsable: this.mapPrioriteApiToUrgenceUi(p.priorite),
+
+      technicienId: null,
+
+      // ✅ image UI
+      imageUrl: p.imagePath
+        ? this.resolveImageUrl(p.imagePath)
+        : null,
+    };
+  }
 
 
 
@@ -1843,7 +2059,7 @@ export class DashboardResponsableComponent implements OnInit {
 
               // ✅ Urgence du demandeur (priorite) : on ne la change pas ici
               // ton champ local "urgence" doit rester ce que tu affiches en read-only
-              urgence: (this.demandes[index].urgence) as any,
+              urgence: (this.demandes[index].urgenceDemandeur) as any,
             } as any;
           }
 
@@ -1878,7 +2094,7 @@ export class DashboardResponsableComponent implements OnInit {
 
             // ✅ Urgence DEMANDEUR (priorite) : si backend la renvoie
             // sinon on garde l'existante
-            urgence: (updated.priorite ?? this.demandes[index].urgence) as any,
+            urgence: (updated.priorite ?? this.demandes[index].urgenceDemandeur) as any,
 
             // ✅ Urgence RESPONSABLE : stock local (si tu n'as pas encore ce champ dans Demande)
             // tu pourras typer + persister proprement plus tard
@@ -1899,6 +2115,16 @@ export class DashboardResponsableComponent implements OnInit {
     if (!this.selectedDemande) return;
     console.log('Export PDF pour la demande', this.selectedDemande.id);
   }
+
+  compareById = (optionId: any, modelId: any): boolean => {
+    return Number(optionId) === Number(modelId);
+  };
+
+  compareUrgence = (a: any, b: any): boolean => {
+    return a === b;
+  };
+
+
 
 
 
@@ -1946,46 +2172,72 @@ export class DashboardResponsableComponent implements OnInit {
   }
 
 
-  openTechnicienDetails(t: TechnicienUI): void {
-    const safeCategorie = t.categorie ?? 'Général';
+  ouvrirModalTechnicien(t: TechnicienUI): void {
+    this.selectedTechnicien = t;
+    this.showTechnicienModal = true; // ✅ OBLIGATOIRE
 
-    this.selectedTechnicien = {
-      ...t,
-      categorie: safeCategorie,          // ✅ force string
-      interventionsEnCours: [],
-      dernieresInterventions: [],
-    };
+    // reset propre
+    this.selectedTechnicien.interventionsEnCours = [];
+    this.loadingPannes = true;
 
-    this.showTechnicienModal = true;
-    this.loadingTechInterventions = true;
-    this.errorTechInterventions = null;
+    this.pannesService
+      .getEnCoursByTechnicien(t.id)
+      .subscribe({
+        next: (data: Panne[]) => {
+          this.selectedTechnicien!.interventionsEnCours = data;
 
-    const techId = t.id;
-
-    forkJoin({
-      enCours: this.interventionsService.getEnCoursByTechnicien(techId),
-      recentes: this.interventionsService.getRecentesByTechnicien(techId),
-    }).subscribe({
-      next: ({ enCours, recentes }) => {
-        if (!this.selectedTechnicien) return;
-
-        this.selectedTechnicien.interventionsEnCours =
-          this.mapInterventionsToUi(enCours);
-
-        this.selectedTechnicien.dernieresInterventions =
-          this.mapInterventionsToUi(recentes);
-
-        this.loadingTechInterventions = false;
-      },
-      error: (err: any) => {
-        console.error('Erreur chargement interventions technicien:', err);
-        this.errorTechInterventions =
-          "Impossible de charger les interventions du technicien.";
-        this.loadingTechInterventions = false;
-      },
-    });
+          // recalcul réel
+          this.selectedTechnicien!.occupe = data.length > 0;
+          this.selectedTechnicien!.nbInterventionsEnCours = data.length;
+        },
+        error: err => {
+          console.error('Erreur chargement pannes', err);
+        },
+        complete: () => {
+          this.loadingPannes = false;
+        }
+      });
   }
 
+
+
+
+
+  private loadInterventionsEnCours(technicienId: number): void {
+
+    this.interventionsService
+      .getInterventionsEnCoursByTechnicien(technicienId)
+      .subscribe({
+        next: data => {
+          this.selectedTechnicien!.interventionsEnCours = data ?? [];
+        },
+        error: () => {
+          this.selectedTechnicien!.interventionsEnCours = [];
+        }
+      });
+  }
+
+
+
+
+
+
+  chargerDisponibiliteTechniciens(): void {
+    this.techniciens.forEach(tech => {
+      this.interventionsService
+        .getInterventionsEnCoursByTechnicien(tech.id)
+        .subscribe({
+          next: (interventions) => {
+            tech.nbInterventionsEnCours = interventions.length;
+            tech.disponible = interventions.length === 0;
+          },
+          error: () => {
+            // en cas d'erreur → on considère NON disponible
+            tech.disponible = false;
+          }
+        });
+    });
+  }
 
 
 
@@ -2053,39 +2305,86 @@ export class DashboardResponsableComponent implements OnInit {
     return {
       id: Number(u?.id),
 
-      // affichage
       nom: nomAffiche,
       categorie,
       sousCategorie,
       serviceUnite: serviceUnite || undefined,
-      departement: departement || undefined,
       username: u?.username,
 
-      // spécialités
       specialites,
 
-      // état
       disponible,
 
-      // stats simples (liste techniciens)
       nbInterventionsEnCours: nbEnCours,
       nbInterventionsTerminees: Number(u?.nbInterventionsTerminees ?? 0),
       tempsMoyenResolutionHeures: Number(u?.tempsMoyenResolutionHeures ?? 0),
 
-      // détails (chargés plus tard)
+      // ✅ RÈGLE MÉTIER CLAIRE
+      occupe: nbEnCours > 0,
+
       interventionsEnCours: [],
       dernieresInterventions: [],
 
-      // stats détaillées (chargées via /technicien/{id}/stats)
-      stats: undefined,
+      stats: null,
 
-      // états UI (si tu les utilises)
       loadingInterventions: false,
       errorInterventions: null,
       loadingStats: false,
       errorStats: null,
-    } as TechnicienUI;
+    };
+
   }
+
+  private calculerTempsMoyenHeures(demandes: any[]): number {
+    if (!demandes || demandes.length === 0) {
+      return 0;
+    }
+
+    const totalMs = demandes.reduce((sum, d) => {
+      if (!d.dateDebut || !d.dateFin) {
+        return sum;
+      }
+
+      const debut = new Date(d.dateDebut).getTime();
+      const fin = new Date(d.dateFin).getTime();
+
+      return sum + (fin - debut);
+    }, 0);
+
+    return Math.round((totalMs / demandes.length) / 3600000 * 10) / 10; // 1 décimale
+  }
+
+  private buildTechnicienStats(technicien: TechnicienUI, demandes: any[]) {
+
+    const demandesTech = demandes.filter(
+      d => d.technicienId === technicien.id
+    );
+
+    const enCours = demandesTech.filter(
+      d => d.statut === 'EN_COURS'
+    );
+
+    const terminees = demandesTech.filter(
+      d => d.statut === 'RESOLUE'
+    );
+
+    technicien.stats = {
+      enCours: enCours.length,
+      terminees: terminees.length,
+      tempsMoyenHeures: this.calculerTempsMoyenHeures(terminees)
+    };
+
+    // 🔁 cohérence avec ton existant
+    technicien.nbInterventionsEnCours = enCours.length;
+    technicien.nbInterventionsTerminees = terminees.length;
+    technicien.tempsMoyenResolutionHeures =
+      technicien.stats?.tempsMoyenHeures ?? 0;
+
+    // dispo / occupé (déjà OK chez toi)
+    technicien.disponible = enCours.length === 0;
+  }
+
+
 
 
   formatTechnicienOption(t: TechnicienUI): string {
@@ -2481,4 +2780,52 @@ export class DashboardResponsableComponent implements OnInit {
     const fileName = `rapport-maintenance_${this.rapportDateDebut}_au_${this.rapportDateFin}.pdf`;
     doc.save(fileName);
   }
+
+  getImageUrl(path?: string | null): string | null {
+    if (!path) return null;
+
+    // déjà une URL complète
+    if (path.startsWith('http')) {
+      return path;
+    }
+
+    // forcer le backend
+    return 'http://localhost:8080/' + path.replace(/^\/+/, '');
+  }
+
+
+  private readonly ordreStatut: Record<string, number> = {
+    EN_ATTENTE: 1,
+    EN_COURS: 2,
+    RESOLUE: 3,
+  };
+
+  private trierDemandesParStatut(demandes: any[]): any[] {
+    const ordreStatut: { [key: string]: number } = {
+      'En attente': 1,
+      'EN_ATTENTE': 1,
+      'En cours': 2,
+      'EN_COURS': 2,
+      'Résolue': 3,
+      'Résolues': 3,
+      'RESOLUE': 3,
+    };
+
+    return [...demandes].sort((a, b) => {
+      const ordreA = ordreStatut[a.statut] ?? 99;
+      const ordreB = ordreStatut[b.statut] ?? 99;
+      return ordreA - ordreB;
+    });
+  }
+
+
+  appliquerFiltre() {
+    this.filteredDemandes = this.trierDemandesParStatut(
+      this.demandes.filter(d => true)
+
+    );
+  }
+
+
+
 }

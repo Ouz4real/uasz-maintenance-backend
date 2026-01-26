@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sn.uasz.uasz_maintenance_backend.dtos.PanneRequest;
+import sn.uasz.uasz_maintenance_backend.dtos.PanneResponse;
+import sn.uasz.uasz_maintenance_backend.dtos.TraitementResponsableRequest;
 import sn.uasz.uasz_maintenance_backend.entities.Panne;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
 import sn.uasz.uasz_maintenance_backend.enums.Priorite;
@@ -72,14 +74,6 @@ public class PanneController {
         return panneService.getPannesByDemandeur(user.getId());
     }
 
-    @PatchMapping("/{id}/priorite-responsable")
-    @PreAuthorize("hasRole('RESPONSABLE_MAINTENANCE')")
-    public Panne updatePrioriteResponsable(
-            @PathVariable Long id,
-            @RequestParam("priorite") Priorite priorite
-    ) {
-        return panneService.updatePrioriteResponsable(id, priorite);
-    }
 
 
 
@@ -132,4 +126,57 @@ public class PanneController {
     public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+
+    @PatchMapping("/{id}/technicien")
+    @PreAuthorize("hasAnyRole('RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
+    public ResponseEntity<Void> affecterTechnicien(
+            @PathVariable Long id,
+            @RequestParam Long technicienId
+    ) {
+        panneService.affecterTechnicien(id, technicienId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/priorite-responsable")
+    public ResponseEntity<PanneResponse> updatePrioriteResponsable(
+            @PathVariable Long id,
+            @RequestParam Priorite priorite
+    ) {
+        Panne updated = panneService.updatePrioriteResponsable(id, priorite);
+        return ResponseEntity.ok(panneService.toResponse(updated));
+    }
+
+    @PatchMapping("/{id}/traitement-responsable")
+    @PreAuthorize("hasRole('RESPONSABLE_MAINTENANCE')")
+    public ResponseEntity<PanneResponse> traiterParResponsable(
+            @PathVariable Long id,
+            @RequestBody TraitementResponsableRequest request
+    ) {
+        PanneResponse resp = panneService.traiterParResponsable(
+                id,
+                request.getTechnicienId(),
+                request.getPrioriteResponsable()
+        );
+        return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping("/technicien/{technicienId}/occupe")
+    @PreAuthorize("hasAnyRole('RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
+    public boolean technicienOccupe(@PathVariable Long technicienId) {
+        return panneService.technicienEstOccupe(technicienId);
+    }
+
+    @GetMapping("/technicien/{technicienId}/en-cours")
+    @PreAuthorize("hasAnyRole('TECHNICIEN','RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
+    public List<Panne> getPannesEnCoursByTechnicien(
+            @PathVariable Long technicienId
+    ) {
+        return panneService.getPannesEnCoursByTechnicien(technicienId);
+    }
+
+
+
+
+
+
 }
