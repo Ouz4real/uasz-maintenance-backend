@@ -1,0 +1,235 @@
+<!-- src/app/pages/profile/profile.component.html -->
+
+<div class="profile-page">
+  <header class="profile-header">
+    <div>
+      <h1>Mon profil</h1>
+      <p>
+        Gérez vos informations personnelles et les paramètres de votre compte
+        Responsable maintenance.
+      </p>
+    </div>
+
+    <button type="button" class="btn-back" (click)="goBackToDashboard()">
+      <span class="material-icons">arrow_back</span>
+      <span>Retour au tableau de bord</span>
+    </button>
+  </header>
+
+  <div class="profile-content" *ngIf="!loadingProfile; else loadingTpl">
+    <div class="profile-left">
+      <section class="profile-card">
+        <h2>Informations personnelles</h2>
+        <p class="card-subtitle">
+          Ces informations permettent d’identifier le responsable de la
+          maintenance dans l’application.
+        </p>
+
+        <div class="alert alert-error" *ngIf="loadError">
+          {{ loadError }}
+        </div>
+        <div class="alert alert-success" *ngIf="saveSuccess">
+          {{ saveSuccess }}
+        </div>
+        <div class="alert alert-error" *ngIf="saveError">
+          {{ saveError }}
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nom</label>
+            <input
+              type="text"
+              class="input-field"
+              [(ngModel)]="editableProfile.nom"
+              placeholder="Ex : Mané"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Prénom</label>
+            <input
+              type="text"
+              class="input-field"
+              [(ngModel)]="editableProfile.prenom"
+              placeholder="Ex : Ousmane"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Adresse e-mail</label>
+            <input
+              type="email"
+              class="input-field"
+              [(ngModel)]="editableProfile.email"
+              placeholder="Ex : prenom.nom@uasz.sn"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input
+              type="tel"
+              class="input-field"
+              [(ngModel)]="editableProfile.telephone"
+              placeholder="Ex : +221 77 000 00 00"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Service / Unité</label>
+            <input
+              type="text"
+              class="input-field"
+              [(ngModel)]="editableProfile.service"
+              placeholder="Ex : Service Informatique"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Département / Composante</label>
+            <input
+              type="text"
+              class="input-field"
+              [(ngModel)]="editableProfile.departement"
+              placeholder="Ex : UFR Sciences et Technologies"
+            />
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <button type="button" class="btn-secondary" (click)="resetProfileForm()">
+            Réinitialiser
+          </button>
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="savingProfile"
+            (click)="saveProfile()"
+          >
+            <span *ngIf="!savingProfile">Enregistrer les modifications</span>
+            <span *ngIf="savingProfile">Enregistrement…</span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div class="profile-right">
+      <section class="profile-card">
+        <h2>Rôle et compte</h2>
+        <p class="card-subtitle">
+          Résumé de votre rôle dans le système de maintenance UASZ.
+        </p>
+
+        <div class="role-summary">
+          <div class="avatar-large">
+            {{ (editableProfile.nom || 'R').charAt(0) | uppercase }}
+          </div>
+
+          <div>
+            <div class="role-name">
+              {{ editableProfile.prenom || editableProfile.nom || 'Utilisateur' }}
+            </div>
+            <div class="role-email">
+              {{ editableProfile.email || 'Adresse e-mail non renseignée' }}
+            </div>
+            <div class="role-badge">
+              <span class="role-label">Rôle</span>
+              <span class="role-chip">
+                {{ editableProfile.role || profile?.role || 'RESPONSABLE' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <ul class="role-capabilities">
+          <li>
+            <span class="material-icons">assignment_turned_in</span>
+            Prioriser les demandes de maintenance et suivre leur avancement.
+          </li>
+          <li>
+            <span class="material-icons">group</span>
+            Affecter les interventions aux techniciens disponibles.
+          </li>
+          <li>
+            <span class="material-icons">inventory_2</span>
+            Superviser le stock des équipements et des pièces critiques.
+          </li>
+          <li>
+            <span class="material-icons">insights</span>
+            Consulter les rapports et indicateurs de performance.
+          </li>
+        </ul>
+      </section>
+
+      <section class="profile-card">
+        <h2>Sécurité &amp; mot de passe</h2>
+        <p class="card-subtitle">
+          Modifiez régulièrement votre mot de passe pour sécuriser votre compte.
+        </p>
+
+        <div class="alert alert-success" *ngIf="pwdSuccess">
+          {{ pwdSuccess }}
+        </div>
+        <div class="alert alert-error" *ngIf="pwdError">
+          {{ pwdError }}
+        </div>
+
+        <div class="form-column">
+          <div class="form-group">
+            <label>Mot de passe actuel</label>
+            <input
+              type="password"
+              class="input-field"
+              [(ngModel)]="currentPassword"
+              autocomplete="current-password"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Nouveau mot de passe</label>
+            <input
+              type="password"
+              class="input-field"
+              [(ngModel)]="newPassword"
+              autocomplete="new-password"
+            />
+            <small class="field-hint">
+              Minimum 8 caractères. Utilisez idéalement des lettres, chiffres et
+              symboles.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Confirmer le nouveau mot de passe</label>
+            <input
+              type="password"
+              class="input-field"
+              [(ngModel)]="confirmPassword"
+              autocomplete="new-password"
+            />
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <button
+            type="button"
+            class="btn-primary btn-danger"
+            [disabled]="changingPassword"
+            (click)="changePassword()"
+          >
+            <span *ngIf="!changingPassword">Mettre à jour le mot de passe</span>
+            <span *ngIf="changingPassword">Mise à jour…</span>
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <ng-template #loadingTpl>
+    <div class="profile-loading">
+      <div class="spinner"></div>
+      <p>Chargement de votre profil…</p>
+    </div>
+  </ng-template>
+</div>

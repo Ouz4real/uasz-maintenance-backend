@@ -1,0 +1,62 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <div class="brand">
+      <div class="brand-logo">UASZ</div>
+      <div class="brand-text">
+        <h1>Maintenance UASZ</h1>
+        <p>Plateforme de gestion des pannes et interventions</p>
+      </div>
+    </div>
+
+    <h2 class="login-title">Connexion</h2>
+    <p class="login-subtitle">Veuillez saisir vos identifiants UASZ</p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nom d'utilisateur</mat-label>
+        <input matInput formControlName="username" placeholder="ex: jdoe" />
+        <mat-icon matSuffix>person</mat-icon>
+        <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
+          Le nom d'utilisateur est obligatoire
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Mot de passe</mat-label>
+        <input
+          matInput
+          [type]="hidePassword ? 'password' : 'text'"
+          formControlName="password"
+          placeholder="Votre mot de passe"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="hidePassword = !hidePassword"
+          [attr.aria-label]="'Afficher / masquer le mot de passe'"
+          [attr.aria-pressed]="!hidePassword"
+        >
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+          Le mot de passe est obligatoire
+        </mat-error>
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        class="full-width login-button"
+        type="submit"
+      >
+        Se connecter
+      </button>
+    </form>
+
+    <div class="helper-text">
+      <span>Besoin d'aide ?</span>
+      <a href="#">Contacter le support maintenance</a>
+    </div>
+  </mat-card>
+</div>

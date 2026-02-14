@@ -1,0 +1,733 @@
+<!-- src/app/pages/dashboard/dashboardAdmin/dashboard-admin.component.html -->
+
+<div class="dashboard-layout">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="avatar-circle">{{ usernameInitial }}</div>
+      <div class="sidebar-title">
+        <h1>Maintenance UASZ</h1>
+        <p>Administration</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- Tableau de bord -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'dashboard'"
+        (click)="setActive('dashboard')"
+      >
+        <span class="nav-icon material-icons">dashboard</span>
+        <span class="nav-label">Tableau de bord</span>
+      </button>
+
+      <!-- Gestion des utilisateurs -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'utilisateurs'"
+        (click)="setActive('utilisateurs')"
+      >
+        <span class="nav-icon material-icons">people</span>
+        <span class="nav-label">Utilisateurs</span>
+      </button>
+
+      <!-- Aide -->
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'help'"
+        (click)="setActive('help')"
+      >
+        <span class="nav-icon material-icons">help_outline</span>
+        <span class="nav-label">Aide & Support</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>Tableau de bord · Administrateur</h2>
+        <p>Gestion des comptes, rôles et permissions.</p>
+      </div>
+
+      <div class="topbar-right">
+        <button
+          type="button"
+          class="user-menu-toggle"
+          (click)="toggleUserMenu($event)"
+          aria-label="Ouvrir le menu utilisateur"
+        >
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+
+        <div
+          class="user-menu"
+          *ngIf="userMenuOpen"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="user-menu-header">
+            <div class="menu-avatar">{{ usernameInitial }}</div>
+            <div>
+              <div class="menu-name">{{ username }}</div>
+              <div class="menu-role">administrateur</div>
+            </div>
+          </div>
+
+          <div class="user-menu-body">
+            <button class="menu-item" (click)="goToDashboard()">
+              <span class="menu-icon material-icons">space_dashboard</span>
+              <span>Tableau de bord</span>
+            </button>
+
+            <button class="menu-item" (click)="goToProfile()">
+              <span class="menu-icon material-icons">person</span>
+              <span>Mon profil</span>
+            </button>
+          </div>
+
+          <div class="user-menu-footer">
+            <button class="menu-item logout" (click)="openLogoutConfirm()">
+              <span class="menu-icon material-icons">logout</span>
+              <span>Se déconnecter</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== CONTENU ===== -->
+    <section class="content">
+      <!-- 🟦 PAGE : DASHBOARD -->
+      <ng-container *ngIf="activeItem === 'dashboard'">
+        <!-- Carte bienvenue -->
+        <section class="welcome-card">
+          <h1>Bienvenue, {{ username.toLowerCase() }}</h1>
+          <p>
+            Administration des utilisateurs, permissions et gestion des comptes
+            de la plateforme.
+          </p>
+        </section>
+
+        <!-- Stats -->
+        <section class="stats-row">
+          <article class="stat-card">
+            <h3>Total utilisateurs</h3>
+            <p>Comptes enregistrés</p>
+            <div class="stat-value">{{ stats.totalUtilisateurs }}</div>
+          </article>
+
+          <article class="stat-card">
+            <h3>Comptes actifs</h3>
+            <p>Utilisateurs ayant accès</p>
+            <div class="stat-value">{{ stats.comptesActifs }}</div>
+          </article>
+
+          <article class="stat-card">
+            <h3>Comptes désactivés</h3>
+            <p>Accès suspendu</p>
+            <div class="stat-value">{{ stats.comptesDesactives }}</div>
+          </article>
+
+          <article class="stat-card">
+            <h3>Rôles disponibles</h3>
+            <p>Profils configurés</p>
+            <div class="stat-value">{{ stats.rolesDisponibles }}</div>
+          </article>
+        </section>
+
+        <!-- Derniers utilisateurs -->
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>Derniers utilisateurs</h2>
+            <button class="primary-btn" (click)="setActive('utilisateurs')">
+              Voir tous les utilisateurs
+            </button>
+          </div>
+
+          <div class="requests-list">
+            <div
+              class="request-item request-clickable"
+              *ngFor="let u of derniersUtilisateurs"
+              (click)="setActive('utilisateurs')"
+            >
+              <div>
+                <h3 class="request-title">{{ u.nomComplet }}</h3>
+                <p class="request-meta">
+                  {{ u.username }} · {{ getRoleLabel(u.role) }}
+                  · Créé le {{ u.dateCreation | date:'dd/MM/yyyy' }}
+                </p>
+              </div>
+
+              <span
+                class="status-chip"
+                [ngClass]="{
+                  done: u.actif,
+                  pending: !u.actif
+                }"
+              >
+                {{ u.actif ? 'Actif' : 'Désactivé' }}
+              </span>
+            </div>
+
+            <div class="empty-state" *ngIf="derniersUtilisateurs.length === 0">
+              <span class="material-icons empty-icon">inbox</span>
+              <p class="empty-message">Aucun utilisateur trouvé</p>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- 🟦 PAGE : UTILISATEURS -->
+      <ng-container *ngIf="activeItem === 'utilisateurs'">
+        <section class="resp-demandes-page">
+          <div class="resp-page-header">
+            <div>
+              <h1>
+                <span class="material-icons resp-header-icon">people</span>
+                Gestion des utilisateurs
+              </h1>
+              <p>
+                Création, modification et gestion des comptes utilisateurs.
+              </p>
+            </div>
+          </div>
+
+          <!-- Filtres -->
+          <div class="resp-filters-card">
+            <!-- Filtres par statut -->
+            <div class="resp-status-filters">
+              <button
+                class="resp-status-chip"
+                [class.active]="statusFilter === 'TOUS'"
+                (click)="onStatusFilterChange('TOUS')"
+              >
+                <span class="resp-chip-dot all"></span>
+                <span>Tous ({{ totalUtilisateurs }})</span>
+              </button>
+
+              <button
+                class="resp-status-chip"
+                [class.active]="statusFilter === 'ACTIF'"
+                (click)="onStatusFilterChange('ACTIF')"
+              >
+                <span class="resp-chip-dot resolved"></span>
+                <span>Actifs ({{ getStatusCount('ACTIF') }})</span>
+              </button>
+
+              <button
+                class="resp-status-chip"
+                [class.active]="statusFilter === 'INACTIF'"
+                (click)="onStatusFilterChange('INACTIF')"
+              >
+                <span class="resp-chip-dot pending"></span>
+                <span>Désactivés ({{ getStatusCount('INACTIF') }})</span>
+              </button>
+            </div>
+
+            <!-- Ligne Rôle + Recherche -->
+            <div class="resp-urgence-row">
+              <div class="resp-urgence-filter">
+                <span class="resp-urgence-label">Rôle :</span>
+
+                <button
+                  class="resp-urgence-chip"
+                  [class.active]="roleFilter === 'TOUS'"
+                  (click)="onRoleFilterChange('TOUS')"
+                >
+                  Tous
+                </button>
+
+                <button
+                  class="resp-urgence-chip"
+                  [class.active]="roleFilter === 'DEMANDEUR'"
+                  (click)="onRoleFilterChange('DEMANDEUR')"
+                >
+                  Demandeur
+                </button>
+
+                <button
+                  class="resp-urgence-chip"
+                  [class.active]="roleFilter === 'TECHNICIEN'"
+                  (click)="onRoleFilterChange('TECHNICIEN')"
+                >
+                  Technicien
+                </button>
+
+                <button
+                  class="resp-urgence-chip"
+                  [class.active]="roleFilter === 'RESPONSABLE_MAINTENANCE'"
+                  (click)="onRoleFilterChange('RESPONSABLE_MAINTENANCE')"
+                >
+                  Responsable
+                </button>
+
+                <button
+                  class="resp-urgence-chip"
+                  [class.active]="roleFilter === 'SUPERVISEUR'"
+                  (click)="onRoleFilterChange('SUPERVISEUR')"
+                >
+                  Superviseur
+                </button>
+
+                <button
+                  class="resp-urgence-chip"
+                  [class.active]="roleFilter === 'ADMINISTRATEUR'"
+                  (click)="onRoleFilterChange('ADMINISTRATEUR')"
+                >
+                  Admin
+                </button>
+              </div>
+
+              <div class="resp-search-box">
+                <span class="material-icons resp-search-icon">search</span>
+                <input
+                  type="text"
+                  placeholder="Rechercher par nom, prénom, username..."
+                  (input)="onSearchTermChange($event.target.value)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableau des utilisateurs -->
+          <section class="resp-table-card">
+            <div class="resp-table-header">
+              <div>
+                <h2>Liste des utilisateurs</h2>
+                <p>
+                  Gestion complète des comptes et permissions.
+                </p>
+              </div>
+              <button class="primary-btn" (click)="openCreateModal()">
+                <span class="material-icons" style="font-size: 18px; margin-right: 4px;">add</span>
+                Nouvel utilisateur
+              </button>
+            </div>
+
+            <div class="resp-table-wrapper">
+              <table class="resp-demandes-table">
+                <thead>
+                <tr>
+                  <th>Utilisateur</th>
+                  <th>Rôle</th>
+                  <th>Statut</th>
+                  <th class="resp-actions-col">Actions</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr *ngFor="let u of paginatedUtilisateurs">
+                  <td class="resp-title-cell">
+                    <div class="resp-title-main">{{ u.nomComplet }}</div>
+                    <div class="resp-title-sub">
+                      {{ u.username }}
+                      <ng-container *ngIf="u.email"> · {{ u.email }}</ng-container>
+                    </div>
+                  </td>
+
+                  <td>
+                    <span class="role-badge" [ngClass]="getRoleClass(u.role)">
+                      {{ getRoleLabel(u.role) }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span
+                      class="status-chip"
+                      [ngClass]="{
+                        done: u.actif,
+                        pending: !u.actif
+                      }"
+                    >
+                      {{ u.actif ? 'Actif' : 'Désactivé' }}
+                    </span>
+                  </td>
+
+                  <td class="resp-actions-col">
+                    <div class="action-buttons">
+                      <button
+                        type="button"
+                        class="resp-btn-ghost"
+                        (click)="openEditModal(u)"
+                        title="Modifier"
+                      >
+                        <span class="material-icons">edit</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="resp-btn-ghost"
+                        [ngClass]="{ 'btn-success': !u.actif, 'btn-warning': u.actif }"
+                        (click)="toggleUserEnabled(u)"
+                        [title]="u.actif ? 'Désactiver' : 'Activer'"
+                      >
+                        <span class="material-icons">
+                          {{ u.actif ? 'block' : 'check_circle' }}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="resp-btn-ghost btn-danger"
+                        (click)="openDeleteModal(u)"
+                        title="Supprimer"
+                      >
+                        <span class="material-icons">delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr *ngIf="paginatedUtilisateurs.length === 0">
+                  <td colspan="4" class="resp-no-data">
+                    <div class="resp-no-data-icon">
+                      <span class="material-icons">inbox</span>
+                    </div>
+                    <div>Aucun utilisateur ne correspond aux filtres.</div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div
+              class="resp-pagination"
+              *ngIf="filteredUtilisateurs.length > pageSize"
+            >
+              <div>
+                Affichage
+                {{ pageStartIndex }}–{{ pageEndIndex }} sur
+                {{ filteredUtilisateurs.length }} utilisateurs
+              </div>
+
+              <div class="resp-pagination-buttons">
+                <button
+                  class="resp-page-btn"
+                  (click)="previousPage()"
+                  [disabled]="currentPage === 1"
+                >
+                  Précédent
+                </button>
+
+                <button
+                  class="resp-page-btn"
+                  *ngFor="let page of totalPagesArray"
+                  [class.active]="page === currentPage"
+                  (click)="goToPage(page)"
+                >
+                  {{ page }}
+                </button>
+
+                <button
+                  class="resp-page-btn"
+                  (click)="nextPage()"
+                  [disabled]="currentPage === totalPages"
+                >
+                  Suivant
+                </button>
+              </div>
+            </div>
+          </section>
+        </section>
+      </ng-container>
+
+      <!-- 🟦 PAGE : AIDE -->
+      <ng-container *ngIf="activeItem === 'help'">
+        <section class="resp-help-page">
+          <div class="recent-requests">
+            <div class="recent-header">
+              <h2>Aide & Support</h2>
+            </div>
+
+            <div class="help-content">
+              <p>
+                Pour toute question ou assistance, contactez l'équipe technique
+                de l'UASZ.
+              </p>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+    </section>
+  </main>
+</div>
+
+<!-- ===== MODAL CRÉER UTILISATEUR ===== -->
+<div class="modal-backdrop" *ngIf="showCreateModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nouvel utilisateur</h2>
+      <button class="icon-btn" (click)="closeCreateModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Nom <span class="req">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="newUser.nom"
+            placeholder="Nom de famille"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Prénom <span class="req">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="newUser.prenom"
+            placeholder="Prénom"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Username <span class="req">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="newUser.username"
+            placeholder="Identifiant unique"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Email</label>
+          <input
+            type="email"
+            [(ngModel)]="newUser.email"
+            placeholder="email@example.com"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Mot de passe <span class="req">*</span></label>
+          <input
+            type="password"
+            [(ngModel)]="newUser.password"
+            placeholder="Mot de passe"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Rôle <span class="req">*</span></label>
+          <select class="select-field" [(ngModel)]="newUser.role">
+            <option value="">Choisir un rôle...</option>
+            <option value="DEMANDEUR">Demandeur</option>
+            <option value="TECHNICIEN">Technicien</option>
+            <option value="RESPONSABLE_MAINTENANCE">Responsable Maintenance</option>
+            <option value="SUPERVISEUR">Superviseur</option>
+            <option value="ADMINISTRATEUR">Administrateur</option>
+          </select>
+        </div>
+
+        <!-- Champs spécifiques technicien -->
+        <ng-container *ngIf="newUser.role === 'TECHNICIEN'">
+          <div class="form-field">
+            <label>Catégorie</label>
+            <input
+              type="text"
+              [(ngModel)]="newUser.categorie"
+              placeholder="Ex: Électricité"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Sous-catégorie</label>
+            <input
+              type="text"
+              [(ngModel)]="newUser.sousCategorie"
+              placeholder="Ex: Haute tension"
+            />
+          </div>
+        </ng-container>
+      </div>
+
+      <p class="form-error" *ngIf="formError">{{ formError }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="secondary-btn" (click)="closeCreateModal()">
+        Annuler
+      </button>
+      <button class="primary-btn" (click)="createUser()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Création...' : 'Créer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL MODIFIER UTILISATEUR ===== -->
+<div class="modal-backdrop" *ngIf="showEditModal && selectedUser">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Modifier l'utilisateur</h2>
+      <button class="icon-btn" (click)="closeEditModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Nom <span class="req">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="editUser.nom"
+            placeholder="Nom de famille"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Prénom <span class="req">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="editUser.prenom"
+            placeholder="Prénom"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Username <span class="req">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="editUser.username"
+            placeholder="Identifiant unique"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Email</label>
+          <input
+            type="email"
+            [(ngModel)]="editUser.email"
+            placeholder="email@example.com"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Rôle <span class="req">*</span></label>
+          <select class="select-field" [(ngModel)]="editUser.role">
+            <option value="DEMANDEUR">Demandeur</option>
+            <option value="TECHNICIEN">Technicien</option>
+            <option value="RESPONSABLE_MAINTENANCE">Responsable Maintenance</option>
+            <option value="SUPERVISEUR">Superviseur</option>
+            <option value="ADMINISTRATEUR">Administrateur</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Nouveau mot de passe</label>
+          <input
+            type="password"
+            [(ngModel)]="editUser.newPassword"
+            placeholder="Laisser vide pour ne pas changer"
+          />
+        </div>
+
+        <!-- Champs spécifiques technicien -->
+        <ng-container *ngIf="editUser.role === 'TECHNICIEN'">
+          <div class="form-field">
+            <label>Catégorie</label>
+            <input
+              type="text"
+              [(ngModel)]="editUser.categorie"
+              placeholder="Ex: Électricité"
+            />
+          </div>
+
+          <div class="form-field">
+            <label>Sous-catégorie</label>
+            <input
+              type="text"
+              [(ngModel)]="editUser.sousCategorie"
+              placeholder="Ex: Haute tension"
+            />
+          </div>
+        </ng-container>
+      </div>
+
+      <p class="form-error" *ngIf="formError">{{ formError }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="secondary-btn" (click)="closeEditModal()">
+        Annuler
+      </button>
+      <button class="primary-btn" (click)="updateUser()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Modification...' : 'Modifier' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL SUPPRIMER UTILISATEUR ===== -->
+<div class="modal-backdrop" *ngIf="showDeleteModal && selectedUser">
+  <div class="modal logout-modal">
+    <button class="logout-close-btn" (click)="closeDeleteModal()">
+      <span class="material-icons">close</span>
+    </button>
+
+    <div class="logout-icon-wrapper">
+      <div class="logout-icon-circle">
+        <span class="material-icons">delete_forever</span>
+      </div>
+    </div>
+
+    <h2 class="logout-title">Supprimer l'utilisateur ?</h2>
+    <p class="logout-text">
+      Êtes-vous sûr de vouloir supprimer <strong>{{ selectedUser.nomComplet }}</strong> ?
+      Cette action est irréversible.
+    </p>
+
+    <div class="logout-actions">
+      <button class="btn-logout-secondary" (click)="closeDeleteModal()">
+        Annuler
+      </button>
+      <button class="btn-logout-danger" (click)="deleteUser()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Suppression...' : 'Supprimer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL DÉCONNEXION ===== -->
+<div class="modal-backdrop" *ngIf="showLogoutModal">
+  <div class="modal logout-modal">
+    <button class="logout-close-btn" (click)="closeLogoutConfirm()">
+      <span class="material-icons">close</span>
+    </button>
+
+    <div class="logout-icon-wrapper">
+      <div class="logout-icon-circle">
+        <span class="material-icons">logout</span>
+      </div>
+    </div>
+
+    <h2 class="logout-title">Se déconnecter ?</h2>
+    <p class="logout-text">
+      Êtes-vous sûr de vouloir vous déconnecter de votre session ?
+    </p>
+
+    <div class="logout-actions">
+      <button class="btn-logout-secondary" (click)="closeLogoutConfirm()">
+        Annuler
+      </button>
+      <button class="btn-logout-danger" (click)="logout()">
+        Se déconnecter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" *ngIf="showToast">
+  <span class="material-icons toast-icon">{{ toastIcon }}</span>
+  <span>{{ toastMessage }}</span>
+</div>
