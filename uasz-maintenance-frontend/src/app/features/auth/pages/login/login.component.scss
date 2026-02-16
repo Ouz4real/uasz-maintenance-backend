@@ -1,0 +1,114 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: radial-gradient(circle at top left, #4f46e5 0, #111827 55%, #020617 100%);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 2.5rem 2.75rem;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.subtitle {
+  margin: 0 0 2rem;
+  text-align: center;
+  font-size: 0.98rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  input {
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+
+    &:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
+      background-color: #f9fafb;
+    }
+  }
+}
+
+button[type='submit'] {
+  margin-top: 0.25rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.8rem 1.4rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #f9fafb;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 40px rgba(37, 99, 235, 0.55);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: default;
+    box-shadow: none;
+  }
+}
+
+.error {
+  font-size: 0.8rem;
+  color: #b91c1c;
+  margin-top: 0.1rem;
+
+  &.global {
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+  }
+}

@@ -1,4 +1,5 @@
+// src/environments/environment.ts
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080/api',   // adapte à ton backend
+  apiUrl: 'http://localhost:8080/api', // ton backend Spring Boot
 };

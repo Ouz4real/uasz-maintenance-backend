@@ -1,0 +1,50 @@
+<div class="login-page">
+  <div class="login-card">
+    <h1 class="title">Plateforme Maintenance UASZ</h1>
+    <h2 class="subtitle">Connexion</h2>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Username / Email -->
+      <div class="form-group">
+        <label for="usernameOrEmail">Nom d'utilisateur ou email</label>
+        <input
+          id="usernameOrEmail"
+          type="text"
+          formControlName="usernameOrEmail"
+          placeholder="ex: ousmane ou ousmane@uasz.sn"
+        />
+        <div class="error" *ngIf="hasError('usernameOrEmail', 'required')">
+          Ce champ est obligatoire.
+        </div>
+      </div>
+
+      <!-- Mot de passe -->
+      <div class="form-group">
+        <label for="motDePasse">Mot de passe</label>
+        <input
+          id="motDePasse"
+          type="password"
+          formControlName="motDePasse"
+          placeholder="Mot de passe"
+        />
+        <div class="error" *ngIf="hasError('motDePasse', 'required')">
+          Ce champ est obligatoire.
+        </div>
+        <div class="error" *ngIf="hasError('motDePasse', 'minlength')">
+          Le mot de passe doit contenir au moins 4 caractères.
+        </div>
+      </div>
+
+      <!-- Bouton -->
+      <button type="submit" [disabled]="loading || form.invalid">
+        <span *ngIf="!loading">Se connecter</span>
+        <span *ngIf="loading">Connexion...</span>
+      </button>
+
+      <!-- Erreur globale -->
+      <div class="error global" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+    </form>
+  </div>
+</div>

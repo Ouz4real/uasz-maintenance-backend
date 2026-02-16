@@ -13,7 +13,6 @@ import sn.uasz.uasz_maintenance_backend.services.TechnicienDashboardService;
 @RestController
 @RequestMapping("/api/techniciens")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class TechnicienDashboardController {
 
     private final TechnicienDashboardService technicienDashboardService;
@@ -23,7 +22,7 @@ public class TechnicienDashboardController {
      * Réservé au responsable maintenance et au superviseur.
      */
     @GetMapping("/{technicienId}/dashboard")
-    @PreAuthorize("hasAnyRole('RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
+    @PreAuthorize("hasAnyAuthority('RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
     public TechnicienDashboardResponse getDashboard(@PathVariable Long technicienId) {
         return technicienDashboardService.getDashboard(technicienId);
     }
@@ -31,11 +30,15 @@ public class TechnicienDashboardController {
     /**
      * Dashboard du technicien connecté.
      * GET /api/techniciens/mon-dashboard
+     * → juste besoin d’être authentifié (anyRequest().authenticated() le garantit).
      */
     @GetMapping("/mon-dashboard")
-    @PreAuthorize("hasRole('TECHNICIEN')")
     public TechnicienDashboardResponse getMonDashboard(Authentication authentication) {
         Utilisateur technicien = (Utilisateur) authentication.getPrincipal();
+        System.out.println("=== MON DASHBOARD, USER CONNECTÉ ===");
+        System.out.println("ID   : " + technicien.getId());
+        System.out.println("USER : " + technicien.getUsername());
+        System.out.println("ROLE : " + technicien.getRole());
         return technicienDashboardService.getDashboard(technicien.getId());
     }
 

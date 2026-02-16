@@ -1,0 +1,108 @@
+<div class="dashboard-wrapper" *ngIf="data as d">
+  <header class="dashboard-header">
+    <div>
+      <h1>Tableau de bord – Technicien</h1>
+      <p>Vue des interventions qui vous sont affectées.</p>
+    </div>
+
+    <div class="user-chip">
+      <div class="avatar">
+        {{ d.username[0] | uppercase }}
+      </div>
+      <div class="user-info">
+        <span class="name">{{ d.username }}</span>
+        <span class="email">{{ d.email }}</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <div class="stat-card primary">
+      <div class="stat-title">Interventions totales</div>
+      <div class="stat-value">{{ d.totalInterventions }}</div>
+      <div class="stat-sub">Toutes catégories confondues</div>
+    </div>
+
+    <div class="stat-card warning">
+      <div class="stat-title">Planifiées</div>
+      <div class="stat-value">{{ d.interventionsPlanifiees }}</div>
+      <div class="stat-sub">En attente d’exécution</div>
+    </div>
+
+    <div class="stat-card info">
+      <div class="stat-title">En cours</div>
+      <div class="stat-value">{{ d.interventionsEnCours }}</div>
+      <div class="stat-sub">Actuellement prises en charge</div>
+    </div>
+
+    <div class="stat-card success">
+      <div class="stat-title">Terminées</div>
+      <div class="stat-value">{{ d.interventionsTerminees }}</div>
+      <div class="stat-sub">Clôturées avec compte-rendu</div>
+    </div>
+
+    <div class="stat-card danger">
+      <div class="stat-title">Annulées</div>
+      <div class="stat-value">{{ d.interventionsAnnulees }}</div>
+      <div class="stat-sub">Non réalisées</div>
+    </div>
+  </section>
+
+  <section class="two-columns">
+    <div class="card">
+      <h2>Performance</h2>
+      <div class="metrics">
+        <div class="metric">
+          <span class="label">Temps moyen de réalisation</span>
+          <span class="value">
+            {{ d.tempsMoyenRealisationMinutes ?? 0 | number : '1.0-0' }} min
+          </span>
+        </div>
+        <div class="metric">
+          <span class="label">Dernière intervention démarrée</span>
+          <span class="value">
+            {{
+              d.derniereInterventionDebut
+                ? (d.derniereInterventionDebut | date : 'short')
+                : '—'
+            }}
+          </span>
+        </div>
+        <div class="metric">
+          <span class="label">Dernière intervention terminée</span>
+          <span class="value">
+            {{
+              d.derniereInterventionTerminee
+                ? (d.derniereInterventionTerminee | date : 'short')
+                : '—'
+            }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Consommation de pièces</h2>
+      <div class="metrics">
+        <div class="metric">
+          <span class="label">Pièces consommées</span>
+          <span class="value">{{ d.totalPiecesConsommees }}</span>
+        </div>
+        <div class="metric">
+          <span class="label">Coût total estimé</span>
+          <span class="value">
+            {{ d.coutTotalPieces | number : '1.0-0' }} FCFA
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="alert error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+</div>
+
+<div class="loader" *ngIf="loading">
+  Chargement des indicateurs...
+</div>

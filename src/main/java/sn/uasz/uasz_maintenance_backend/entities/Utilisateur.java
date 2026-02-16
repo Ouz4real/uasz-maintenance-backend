@@ -1,8 +1,5 @@
 package sn.uasz.uasz_maintenance_backend.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,93 +11,50 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "utilisateurs")
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Builder
 public class Utilisateur implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
     private String username;
-
-    @Column(nullable = false, unique = true, length = 150)
     private String email;
-
-    @Column(name = "nom", length = 150, nullable = true)
-    private String nom;
-
-    @Column(name = "prenom", length = 150, nullable = true)
-    private String prenom;
-
-
-// ...
-
-    @Column(name = "departement", length = 150, nullable = true)
-    private String departement;
-
-    @Column(name = "service_unite", length = 150, nullable = true)
-    private String serviceUnite;
-
-    @Column(name = "telephone", length = 150, nullable = true)
-    private String telephone;
-
-
-
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(nullable = false)
     private String motDePasse;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private Role role;
+    private Role role;        // DEMANDEUR, TECHNICIEN, ...
 
-    @Builder.Default
-    @Column(nullable = false)
     private boolean enabled = true;
 
-    // ====== UserDetails ======
-
     @Override
-    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
     }
 
     @Override
-    @JsonIgnore
     public String getPassword() {
-        return motDePasse;
+        return this.motDePasse;
     }
 
     @Override
-    @JsonIgnore
-    public boolean isAccountNonExpired() {
-        return true;
+    public String getUsername() {
+        return this.username; // ou email, mais username = OK
     }
 
     @Override
-    @JsonIgnore
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
-    @JsonIgnore
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
-    @JsonIgnore
-    public boolean isEnabled() {
-        return enabled;
-    }
+    public boolean isCredentialsNonExpired() { return true; }
+
+    @Override
+    public boolean isEnabled() { return this.enabled; }
 }
