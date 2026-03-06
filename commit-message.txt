@@ -1,0 +1,23 @@
+feat: Ajout icône œil pour tous les champs mot de passe + Fix endpoint password change
+
+Modifications:
+- Ajout icône visibility/visibility_off pour afficher/masquer les mots de passe
+- Implémentation dans tous les dashboards (Admin, Superviseur, Responsable, Technicien, Demandeur)
+- Implémentation dans le composant Profile standalone
+- Fix UserProfileService: utilisation du bon endpoint /api/utilisateurs/me/password (PUT)
+- Création du fichier styles-password-toggle.scss avec styles globaux
+- Ajout des propriétés TypeScript (showCurrentPassword, showNewPassword, showConfirmPassword)
+
+Composants mis à jour:
+- Dashboard Superviseur (3 champs password)
+- Dashboard Responsable (3 champs password)
+- Dashboard Demandeur (3 champs password)
+- Dashboard Technicien (3 champs password)
+- Dashboard Admin (1 champ password pour édition utilisateur)
+- Profile Component (3 champs password)
+
+Backend:
+- Endpoint /api/utilisateurs/me/password fonctionne correctement
+- UserProfileService corrigé pour utiliser PUT au lieu de POST
+
+Inchallah! 🔐👁️

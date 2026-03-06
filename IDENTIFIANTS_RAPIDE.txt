@@ -1,0 +1,46 @@
+═══════════════════════════════════════════════════════════
+    IDENTIFIANTS DE CONNEXION - UASZ MAINTENANCE
+═══════════════════════════════════════════════════════════
+
+🌐 URL Frontend: http://localhost:4200
+🔌 URL Backend:  http://localhost:8080
+
+───────────────────────────────────────────────────────────
+
+👨‍💼 ADMINISTRATEUR
+   Username: admin
+   Password: admin123
+   
+👁️ SUPERVISEUR
+   Username: superviseur
+   Password: super123
+   
+🔧 RESPONSABLE MAINTENANCE
+   Username: responsable
+   Password: resp123
+   
+👷 TECHNICIEN
+   Username: technicien
+   Password: tech123
+   
+👤 DEMANDEUR
+   Username: demandeur
+   Password: dem123
+
+───────────────────────────────────────────────────────────
+
+💾 BASE DE DONNÉES PostgreSQL
+   Host:     localhost:5432
+   Database: maintenance_db
+   Username: postgres
+   Password: ouz4real
+
+───────────────────────────────────────────────────────────
+
+📝 NOTES:
+   - Les utilisateurs sont créés automatiquement au démarrage
+   - Les mots de passe sont hashés avec BCrypt
+   - Le token JWT expire après 24 heures
+   - Consultez GUIDE_CONNEXION.md pour plus de détails
+
+═══════════════════════════════════════════════════════════
