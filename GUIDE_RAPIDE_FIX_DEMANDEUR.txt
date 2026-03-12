@@ -1,0 +1,91 @@
+================================================================================
+GUIDE RAPIDE - CORRECTION AFFICHAGE NOM DEMANDEUR
+================================================================================
+
+PROBLEME:
+  L'interface affiche un tiret "—" au lieu du nom complet du demandeur
+
+CAUSE:
+  Le backend ne retournait pas l'objet demandeur dans la reponse API
+
+SOLUTION APPLIQUEE:
+  3 fichiers modifies cote backend pour inclure les infos du demandeur
+
+================================================================================
+ETAPES POUR APPLIQUER LA CORRECTION
+================================================================================
+
+1. ARRETER LE BACKEND
+   - Dans le terminal ou le backend tourne, appuyez sur Ctrl+C
+
+2. COMPILER LE BACKEND
+   - Executez: mvn compile -DskipTests
+   - Si erreur de "clean", c'est normal, continuez
+
+3. REDEMARRER LE BACKEND
+   - Executez: mvn spring-boot:run
+   - Attendez le message "Started UaszMaintenanceBackendApplication"
+
+4. TESTER LE FRONTEND
+   - Ouvrez le dashboard Responsable
+   - Verifiez que les noms complets s'affichent
+   - Au lieu de "—", vous devriez voir "Prenom Nom"
+
+================================================================================
+VERIFICATION RAPIDE
+================================================================================
+
+Test API (optionnel):
+  curl http://localhost:8080/api/pannes
+
+  Verifiez que la reponse contient:
+  "demandeur": {
+    "id": 5,
+    "prenom": "Jean",
+    "nom": "Dupont",
+    "username": "jdupont"
+  }
+
+Test Frontend:
+  1. Dashboard Responsable > Tableau de bord
+  2. Regarder le tableau des demandes
+  3. Sous chaque titre, le nom complet doit s'afficher
+  4. Cliquer sur "Voir details" pour verifier dans la modale
+
+================================================================================
+FICHIERS MODIFIES
+================================================================================
+
+Backend (3 fichiers):
+  1. PanneResponse.java - Ajout de demandeurId et demandeur
+  2. PanneService.java - Mapping du demandeur dans toResponse()
+  3. Panne.java - JsonIgnoreProperties sur demandeur
+
+Frontend:
+  Aucune modification (deja configure correctement)
+
+================================================================================
+EN CAS DE PROBLEME
+================================================================================
+
+Si le nom ne s'affiche toujours pas:
+  1. Verifier que le backend est bien redemarre
+  2. Vider le cache du navigateur (Ctrl+Shift+R)
+  3. Verifier la console du navigateur (F12)
+  4. Tester l'API avec curl pour voir la structure
+
+Si erreur de compilation:
+  1. Verifier que tous les fichiers sont bien sauvegardes
+  2. Essayer: mvn clean compile -DskipTests
+  3. Si erreur persiste, consulter FIX_DEMANDEUR_NOM_COMPLET.md
+
+================================================================================
+DOCUMENTATION COMPLETE
+================================================================================
+
+Pour plus de details, consultez:
+  - FIX_DEMANDEUR_NOM_COMPLET.md (details techniques)
+  - SOLUTION_COMPLETE_DEMANDEUR.md (vue d'ensemble)
+  - test-demandeur-backend-fix.ps1 (script de verification)
+
+================================================================================

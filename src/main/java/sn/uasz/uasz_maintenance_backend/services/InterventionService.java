@@ -1,0 +1,389 @@
+package sn.uasz.uasz_maintenance_backend.services;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import sn.uasz.uasz_maintenance_backend.dtos.InterventionRequest;
+import sn.uasz.uasz_maintenance_backend.entities.Intervention;
+import sn.uasz.uasz_maintenance_backend.entities.Panne;
+import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
+import sn.uasz.uasz_maintenance_backend.enums.Role;
+import sn.uasz.uasz_maintenance_backend.enums.StatutIntervention;
+import sn.uasz.uasz_maintenance_backend.enums.StatutPanne;
+import sn.uasz.uasz_maintenance_backend.exceptions.ResourceNotFoundException;
+import sn.uasz.uasz_maintenance_backend.repositories.InterventionRepository;
+import sn.uasz.uasz_maintenance_backend.repositories.PanneRepository;
+import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
+import sn.uasz.uasz_maintenance_backend.entities.EquipementItem;
+import sn.uasz.uasz_maintenance_backend.enums.EtatEquipementItem;
+import sn.uasz.uasz_maintenance_backend.repositories.EquipementItemRepository;
+import sn.uasz.uasz_maintenance_backend.entities.EquipementItem;
+import sn.uasz.uasz_maintenance_backend.entities.EquipementType;
+import sn.uasz.uasz_maintenance_backend.enums.EtatEquipementItem;
+import sn.uasz.uasz_maintenance_backend.repositories.EquipementItemRepository;
+import sn.uasz.uasz_maintenance_backend.repositories.EquipementTypeRepository;
+import sn.uasz.uasz_maintenance_backend.services.NotificationService;
+
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class InterventionService {
+
+    private final InterventionRepository interventionRepository;
+    private final PanneRepository panneRepository;
+    private final UtilisateurRepository utilisateurRepository;
+    private final EquipementItemRepository equipementItemRepository;
+    private final EquipementTypeRepository equipementTypeRepository;
+    private final NotificationService notificationService;
+
+
+
+    // ===================== CRUD de base =====================
+
+    public List<Intervention> getAll() {
+        return interventionRepository.findAll();
+    }
+
+    public Intervention getById(Long id) {
+        return interventionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Intervention non trouvée avec l'id : " + id
+                ));
+    }
+
+    public List<Intervention> getByPanne(Long panneId) {
+        // On vérifie d'abord que la panne existe
+        panneRepository.findById(panneId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Panne non trouvée avec l'id : " + panneId
+                ));
+
+        return interventionRepository.findByPanneId(panneId);
+    }
+
+    public void affecterEquipementDepuisStock(Long interventionId, Long typeId, String localisation) {
+
+        Intervention intervention = interventionRepository.findById(interventionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Intervention non trouvée avec id=" + interventionId));
+
+        // 1) trouver 1 exemplaire dispo (HORS_SERVICE)
+        EquipementItem item = equipementItemRepository
+                .findFirstByTypeIdAndStatutOrderByIdAsc(typeId, EtatEquipementItem.HORS_SERVICE)
+                .orElseThrow(() -> new IllegalArgumentException("Aucun exemplaire disponible en stock pour ce type."));
+
+        // 2) affecter à l’intervention
+        item.setIntervention(intervention);
+        item.setStatut(EtatEquipementItem.EN_SERVICE);
+        item.setLocalisation(localisation); // ex: salle/bâtiment
+        item.setDateMiseEnService(java.time.LocalDate.now());
+
+        equipementItemRepository.save(item);
+    }
+
+    public boolean isTechnicienOccupe(Long technicienId) {
+        return interventionRepository
+                .existsByTechnicienIdAndStatut(
+                        technicienId,
+                        StatutIntervention.EN_COURS
+                );
+    }
+
+
+
+
+    @Transactional
+    public void affecterEquipementDuStock(Long interventionId, Long typeId, String localisation) {
+
+        Intervention intervention = interventionRepository.findById(interventionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Intervention non trouvée id=" + interventionId));
+
+        // 1) Prendre 1 item dispo (HORS_SERVICE) pour ce type
+        EquipementItem item = equipementItemRepository
+                .findFirstByTypeIdAndStatutOrderByIdAsc(typeId, EtatEquipementItem.HORS_SERVICE)
+                .orElseThrow(() -> new IllegalArgumentException("Aucun exemplaire disponible en stock pour ce type."));
+
+        // 2) L'affecter à l'intervention
+        item.setStatut(EtatEquipementItem.EN_SERVICE);
+        item.setDateMiseEnService(LocalDate.now());
+        item.setLocalisation(localisation);
+        item.setIntervention(intervention);
+
+        equipementItemRepository.save(item);
+    }
+
+
+    /**
+     * Toutes les interventions d'un technicien.
+     * On vérifie que l'utilisateur existe et a bien le rôle TECHNICIEN.
+     */
+    public List<Intervention> getByTechnicien(Long technicienId) {
+        Utilisateur technicien = utilisateurRepository.findById(technicienId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Utilisateur non trouvé avec l'id : " + technicienId
+                ));
+
+        if (technicien.getRole() != Role.TECHNICIEN) {
+            throw new IllegalArgumentException(
+                    "L'utilisateur " + technicien.getUsername() + " n'a pas le rôle TECHNICIEN"
+            );
+        }
+
+        return interventionRepository.findByTechnicienId(technicienId);
+    }
+
+    /**
+     * Interventions d'un technicien filtrées par statut.
+     */
+    public List<Intervention> getByTechnicienAndStatut(Long technicienId, StatutIntervention statut) {
+        Utilisateur technicien = utilisateurRepository.findById(technicienId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Utilisateur non trouvé avec l'id : " + technicienId
+                ));
+
+        if (technicien.getRole() != Role.TECHNICIEN) {
+            throw new IllegalArgumentException(
+                    "L'utilisateur " + technicien.getUsername() + " n'a pas le rôle TECHNICIEN"
+            );
+        }
+
+        return interventionRepository.findByTechnicienIdAndStatut(technicienId, statut);
+    }
+
+    /**
+     * Interventions filtrées par statut (toutes interventions, tous techniciens confondus).
+     */
+    public List<Intervention> getByStatut(StatutIntervention statut) {
+        return interventionRepository.findByStatut(statut);
+    }
+
+    // ===================== Création =====================
+
+    public Intervention createIntervention(InterventionRequest request) {
+
+        // 1) Charger la panne
+        Panne panne = panneRepository.findById(request.getPanneId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Panne non trouvée avec l'id : " + request.getPanneId()
+                ));
+
+        // 2) Construire l'intervention
+        Intervention intervention = new Intervention();
+        intervention.setTitre(request.getTitre());
+        intervention.setDescription(request.getDescription());
+        intervention.setType(request.getType());
+        intervention.setRealiseePar(request.getRealiseePar());
+        intervention.setCout(request.getCout());
+        intervention.setPanne(panne);
+
+        // 2.bis) Valeur par défaut du statut si null
+        StatutIntervention statut = request.getStatut();
+        if (statut == null) {
+            statut = StatutIntervention.PLANIFIEE;
+        }
+        intervention.setStatut(statut);
+
+        // 3) Gestion des dates selon le statut
+        if (statut == StatutIntervention.EN_COURS && intervention.getDateDebut() == null) {
+            intervention.setDateDebut(LocalDateTime.now());
+        }
+        if (intervention.getDateDebut() == null) {
+            intervention.setDateDebut(LocalDateTime.now());
+        }
+
+        if (statut == StatutIntervention.TERMINEE) {
+            if (intervention.getDateDebut() == null) {
+                intervention.setDateDebut(LocalDateTime.now());
+            }
+            intervention.setDateFin(LocalDateTime.now());
+        }
+
+        // 4) Associer le technicien si technicienId est présent
+        if (request.getTechnicienId() != null) {
+            Utilisateur technicien = utilisateurRepository.findById(request.getTechnicienId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Technicien non trouvé avec l'id : " + request.getTechnicienId()
+                    ));
+
+            if (technicien.getRole() != Role.TECHNICIEN) {
+                throw new IllegalArgumentException(
+                        "L'utilisateur " + technicien.getUsername() + " n'a pas le rôle TECHNICIEN"
+                );
+            }
+
+            intervention.setTechnicien(technicien);
+        }
+
+        // 5) Sauvegarde
+        return interventionRepository.save(intervention);
+    }
+
+    // ===================== Terminer une intervention =====================
+
+    public Intervention terminerIntervention(Long id) {
+        // 1) Récupérer l’intervention
+        Intervention intervention = interventionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Intervention non trouvée avec l'id : " + id
+                ));
+
+        // 2) Mettre à jour le statut + dates
+        intervention.setStatut(StatutIntervention.TERMINEE);
+
+        if (intervention.getDateDebut() == null) {
+            intervention.setDateDebut(LocalDateTime.now());
+        }
+        intervention.setDateFin(LocalDateTime.now());
+
+        interventionRepository.save(intervention);
+
+        List<EquipementItem> items = equipementItemRepository.findByInterventionId(id);
+        for (EquipementItem it : items) {
+            it.setStatut(EtatEquipementItem.HORS_SERVICE);
+            it.setLocalisation("MAGASIN");
+            it.setDateMiseEnService(null);
+            it.setIntervention(null);
+        }
+        equipementItemRepository.saveAll(items);
+
+
+        // 3) Mettre à jour le statut de la panne si nécessaire
+        Panne panne = intervention.getPanne();
+        if (panne != null) {
+            List<Intervention> interventionsDeLaPanne =
+                    interventionRepository.findByPanneId(panne.getId());
+
+            boolean toutesTerminees = interventionsDeLaPanne.stream()
+                    .allMatch(i -> i.getStatut() == StatutIntervention.TERMINEE);
+
+            if (toutesTerminees) {
+                panne.setStatut(StatutPanne.RESOLUE);
+            } else {
+                // au moins une intervention non terminée → la panne reste / passe EN_COURS
+                if (panne.getStatut() == StatutPanne.OUVERTE) {
+                    panne.setStatut(StatutPanne.EN_COURS);
+                }
+            }
+
+            panneRepository.save(panne);
+        }
+
+        return intervention;
+    }
+
+    // ===================== Affecter un technicien =====================
+
+    public Intervention affecterTechnicien(Long id, Long technicienId) {
+
+        // 1) Charger l’intervention
+        Intervention intervention = interventionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Intervention non trouvée avec l'id : " + id
+                ));
+
+        // 2) Charger l’utilisateur
+        Utilisateur technicien = utilisateurRepository.findById(technicienId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Technicien non trouvé avec l'id : " + technicienId
+                ));
+
+        // 3) Vérifier le rôle
+        if (technicien.getRole() != Role.TECHNICIEN) {
+            throw new IllegalArgumentException(
+                    "L'utilisateur " + technicien.getUsername() + " n'a pas le rôle TECHNICIEN"
+            );
+        }
+
+        // 4) Affecter
+        intervention.setTechnicien(technicien);
+        
+        // 🔥 IMPORTANT : Réinitialiser les informations de refus lors de la réaffectation
+        // Le nouveau technicien doit voir l'intervention comme nouvelle
+        if (intervention.getStatut() == StatutIntervention.REFUSEE) {
+            intervention.setStatut(StatutIntervention.PLANIFIEE);
+        }
+        intervention.setRaisonRefus(null);
+        intervention.setDateRefus(null);
+
+        // (optionnel) si tu veux, tu peux basculer en EN_COURS ici
+        /*
+        if (intervention.getStatut() == StatutIntervention.PLANIFIEE) {
+            intervention.setStatut(StatutIntervention.EN_COURS);
+            if (intervention.getDateDebut() == null) {
+                intervention.setDateDebut(LocalDateTime.now());
+            }
+        }
+        */
+
+        return interventionRepository.save(intervention);
+    }
+
+    // ===================== Refuser une intervention =====================
+
+    /**
+     * Permet à un technicien de refuser une intervention avec une raison.
+     * Notifie le responsable du refus.
+     */
+    public Intervention refuserIntervention(Long id, Long technicienId, String raisonRefus) {
+        
+        // 1) Charger l'intervention
+        Intervention intervention = interventionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Intervention non trouvée avec l'id : " + id
+                ));
+
+        // 2) Vérifier que le technicien est bien assigné à cette intervention
+        if (intervention.getTechnicien() == null || 
+            !intervention.getTechnicien().getId().equals(technicienId)) {
+            throw new IllegalArgumentException(
+                    "Vous n'êtes pas assigné à cette intervention"
+            );
+        }
+
+        // 3) Vérifier que l'intervention est en statut PLANIFIEE
+        if (intervention.getStatut() != StatutIntervention.PLANIFIEE) {
+            throw new IllegalArgumentException(
+                    "Seules les interventions planifiées peuvent être refusées"
+            );
+        }
+
+        // 4) Mettre à jour l'intervention
+        intervention.setStatut(StatutIntervention.REFUSEE);
+        intervention.setRaisonRefus(raisonRefus);
+        intervention.setDateRefus(LocalDateTime.now());
+
+        Intervention saved = interventionRepository.save(intervention);
+
+        // 5) Notifier les responsables de maintenance (pas le demandeur)
+        try {
+            List<Utilisateur> responsables = utilisateurRepository.findByRole(Role.RESPONSABLE_MAINTENANCE);
+            
+            String technicienNom = "";
+            if (intervention.getTechnicien().getPrenom() != null && !intervention.getTechnicien().getPrenom().isEmpty()) {
+                technicienNom = intervention.getTechnicien().getPrenom() + " " + intervention.getTechnicien().getNom();
+            } else {
+                technicienNom = intervention.getTechnicien().getUsername();
+            }
+            
+            for (Utilisateur responsable : responsables) {
+                notificationService.createNotification(
+                    responsable.getId(),
+                    "⚠️ Intervention refusée par un technicien",
+                    String.format("Le technicien %s a refusé l'intervention '%s'. Raison: %s. Réaffectation nécessaire.",
+                        technicienNom, intervention.getTitre(), raisonRefus),
+                    "WARNING",
+                    "INTERVENTION",
+                    intervention.getId()
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la création des notifications pour les responsables: " + e.getMessage());
+        }
+
+        return saved;
+    }
+}

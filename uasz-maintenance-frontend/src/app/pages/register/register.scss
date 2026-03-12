@@ -1,0 +1,588 @@
+.register-container {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #ffffff;
+}
+
+// ===== PANNEAU GAUCHE - FORMULAIRE =====
+.register-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: #ffffff;
+  overflow-y: auto;
+}
+
+.register-content {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1565c0, #42a5f5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
+}
+
+.brand-text h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.brand-text p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.welcome-section {
+  margin-top: 0.5rem;
+}
+
+.register-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.register-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+  }
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-icon {
+    position: absolute;
+    left: 1rem;
+    color: #9ca3af;
+    font-size: 20px;
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.85rem 1rem 0.85rem 3rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background: #ffffff;
+
+    &:focus {
+      outline: none;
+      border-color: #1565c0;
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+    }
+
+    &::placeholder {
+      color: #9ca3af;
+    }
+  }
+
+  .toggle-password {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #1565c0;
+    }
+
+    .material-icons {
+      font-size: 20px;
+    }
+  }
+}
+
+.error-message {
+  padding: 0.85rem 1rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #dc2626;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .material-icons {
+    font-size: 20px;
+  }
+}
+
+.success-message {
+  padding: 0.85rem 1rem;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  color: #16a34a;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .material-icons {
+    font-size: 20px;
+  }
+}
+
+.submit-btn {
+  margin-top: 0.5rem;
+  padding: 0.85rem 2rem;
+  font-weight: 600;
+  text-transform: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  background: #1565c0;
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
+  transition: all 0.3s ease;
+  width: auto;
+  align-self: center;
+
+  &:hover:not(:disabled) {
+    background: #1976d2;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(21, 101, 192, 0.4);
+  }
+
+  &:disabled {
+    background: #9ca3af;
+    color: white;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.helper-text {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+  text-align: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+
+  a {
+    color: #1565c0;
+    text-decoration: none;
+    font-weight: 600;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ===== PANNEAU DROIT - ILLUSTRATION =====
+.illustration-panel {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1565c0 50%, #42a5f5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  position: relative;
+  overflow: hidden;
+
+  // Effet de fond animé
+  &::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    top: -200px;
+    right: -200px;
+    animation: pulse 8s ease-in-out infinite;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    bottom: -150px;
+    left: -150px;
+    animation: pulse 6s ease-in-out infinite reverse;
+  }
+}
+
+.illustration-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.illustration-header {
+  text-align: center;
+  color: white;
+
+  h3 {
+    margin: 0 0 0.75rem;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1.1rem;
+    opacity: 0.9;
+  }
+}
+
+// ===== SCÈNE DE MAINTENANCE =====
+.maintenance-scene {
+  position: relative;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Technicien
+.technician {
+  position: relative;
+  width: 120px;
+  height: 180px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.tech-head {
+  width: 50px;
+  height: 50px;
+  background: #fbbf24;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tech-body {
+  width: 70px;
+  height: 90px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-radius: 20px 20px 10px 10px;
+  position: absolute;
+  top: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tech-arm-left,
+.tech-arm-right {
+  width: 15px;
+  height: 60px;
+  background: #ef4444;
+  border-radius: 10px;
+  position: absolute;
+  top: 50px;
+}
+
+.tech-arm-left {
+  left: 10px;
+  transform: rotate(-20deg);
+}
+
+.tech-arm-right {
+  right: 10px;
+  transform: rotate(20deg);
+}
+
+.wrench {
+  position: absolute;
+  bottom: 20px;
+  right: -10px;
+  animation: rotate-wrench 2s ease-in-out infinite;
+
+  .material-icons {
+    font-size: 36px;
+    color: #fbbf24;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+}
+
+// Groupe d'équipements
+.equipment-group {
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  gap: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.equipment-item {
+  width: 70px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+
+  .material-icons {
+    font-size: 32px;
+    color: white;
+  }
+}
+
+.status-indicator {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid #1e3a8a;
+}
+
+.status-ok {
+  background: #10b981;
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+.status-warning {
+  background: #f59e0b;
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+// Icônes flottantes
+.floating-icon {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  .material-icons {
+    font-size: 28px;
+    color: white;
+  }
+}
+
+.icon-1 {
+  top: 30px;
+  left: 20px;
+  animation: float-icon 4s ease-in-out infinite;
+}
+
+.icon-2 {
+  top: 50px;
+  right: 30px;
+  animation: float-icon 5s ease-in-out infinite 1s;
+}
+
+.icon-3 {
+  bottom: 100px;
+  left: 40px;
+  animation: float-icon 4.5s ease-in-out infinite 0.5s;
+}
+
+// Liste de fonctionnalités
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
+  }
+
+  .material-icons {
+    font-size: 24px;
+    color: #fbbf24;
+  }
+}
+
+// ===== ANIMATIONS =====
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes float-icon {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+@keyframes rotate-wrench {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulse-status {
+  0%, 100% {
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    box-shadow: 0 0 0 4px transparent;
+  }
+}
+
+// ===== RESPONSIVE =====
+@media (max-width: 1024px) {
+  .register-container {
+    grid-template-columns: 1fr;
+  }
+
+  .illustration-panel {
+    display: none;
+  }
+
+  .register-panel {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .register-content {
+    gap: 1.25rem;
+  }
+
+  .brand-text h1 {
+    font-size: 1.15rem;
+  }
+
+  .register-title {
+    font-size: 1.5rem;
+  }
+
+  .register-subtitle {
+    font-size: 0.8
+75rem;
+  }
+}
