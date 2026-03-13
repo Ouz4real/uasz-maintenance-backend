@@ -1,0 +1,39 @@
+// technicien-ui.model.ts
+export interface TechnicienUI {
+  id: number;
+  nom?: string | null;
+  prenom?: string | null;
+  username?: string | null;
+
+  serviceUnite?: string | null;
+  categorie?: string | null;
+  sousCategorie?: string | null;
+
+  specialites: string[];
+
+  disponible: boolean;
+  nbInterventionsEnCours: number;
+  nbInterventionsTerminees: number;
+  tempsMoyenResolutionHeures: number;
+
+  // ✅ OBLIGATOIRE
+  occupe: boolean;
+  enabled?: boolean; // Statut actif/désactivé
+
+  stats?: {
+    enCours?: number;
+    terminees?: number;
+    annulees?: number;
+    planifiees?: number;
+    tempsMoyenMinutes?: number;
+  } | null;
+
+  interventionsEnCours?: any[];
+  dernieresInterventions?: any[];
+
+  // ✅ états UI
+  loadingInterventions?: boolean;
+  errorInterventions?: any;
+  loadingStats?: boolean;
+  errorStats?: any;
+}

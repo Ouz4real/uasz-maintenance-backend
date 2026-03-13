@@ -1,0 +1,2155 @@
+<!-- src/app/pages/dashboard/dashboardTechnicien/dashboard-technicien.component.html -->
+
+<!-- ===== CONTENU PRINCIPAL AVEC EFFET BLUR ===== -->
+<div class="dashboard-layout" [class.blur-background]="showLogoutModal">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" [class.hidden]="activeItem === 'profile'">
+    <div class="sidebar-header">
+      <div class="avatar-circle">{{ usernameInitial }}</div>
+      <div class="sidebar-title">
+        <h1>Maintenance UASZ</h1>
+        <p>Parc &amp; interventions</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item" [class.active]="activeItem === 'dashboard'" (click)="setActive('dashboard')">
+        <span class="nav-icon material-icons">dashboard</span>
+        <span class="nav-label">Tableau de bord</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeItem === 'interventions'" (click)="setActive('interventions')">
+        <span class="nav-icon material-icons">build</span>
+        <span class="nav-label">Mes interventions</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeItem === 'mes-demandes'" (click)="setActive('mes-demandes')">
+        <span class="nav-icon material-icons">assignment</span>
+        <span class="nav-label">Mes demandes</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeItem === 'maintenances-preventives'" (click)="setActive('maintenances-preventives')">
+        <span class="nav-icon material-icons">event_repeat</span>
+        <span class="nav-label">Maintenances préventives</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeItem === 'equipements'" (click)="setActive('equipements')">
+        <span class="nav-icon material-icons">devices</span>
+        <span class="nav-label">Équipements</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeItem === 'historique'" (click)="setActive('historique')">
+        <span class="nav-icon material-icons">history</span>
+        <span class="nav-label">Historique</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeItem === 'help'" (click)="setActive('help')">
+        <span class="nav-icon material-icons">help_outline</span>
+        <span class="nav-label">Aide &amp; Support</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main" [class.full]="activeItem === 'profile'">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>Tableau de bord · Technicien</h2>
+        <p>Suivi de vos interventions de maintenance.</p>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Composant de notification -->
+        <app-notification-bell 
+          [themeColor]="'#0891b2'"
+          (notificationClicked)="onNotificationClicked($event)">
+        </app-notification-bell>
+        
+        <div class="user-chip icon-only" (click)="toggleUserMenu()">
+          <div class="chip-avatar">{{ usernameInitial }}</div>
+          <div class="chip-text">
+            <div class="chip-name">{{ username }}</div>
+            <div class="chip-role">technicien</div>
+          </div>
+          <span class="material-icons burger">menu</span>
+        </div>
+
+        <div class="user-menu" *ngIf="userMenuOpen" (click)="$event.stopPropagation()">
+
+        <div class="user-menu-header">
+            <div class="menu-avatar">{{ usernameInitial }}</div>
+            <div>
+              <div class="menu-name">{{ username }}</div>
+              <div class="menu-role">technicien</div>
+            </div>
+          </div>
+
+          <div class="user-menu-body">
+            <button class="menu-item" (click)="goToDashboard()">
+              <span class="menu-icon material-icons">space_dashboard</span>
+              <span>Tableau de bord</span>
+            </button>
+
+
+            <button class="menu-item" (click)="goToProfile()">
+              <span class="menu-icon material-icons">person</span>
+              <span>Mon profil</span>
+            </button>
+          </div>
+
+          <div class="user-menu-footer">
+            <button class="menu-item logout" (click)="openLogoutModal()">
+              <span class="menu-icon material-icons">logout</span>
+              <span>Se déconnecter</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div
+      class="menu-backdrop"
+      *ngIf="userMenuOpen"
+      (click)="closeUserMenu()"
+    ></div>
+
+
+    <!-- Contenu principal -->
+    <section class="content">
+
+      <!-- Dashboard : bienvenue + stats -->
+      <ng-container *ngIf="activeItem === 'dashboard'">
+        <section class="welcome-card">
+          <h1>Bienvenue, {{ getNomComplet() }}</h1>
+          <p>Voici votre espace de suivi des interventions qui vous sont assignées.</p>
+        </section>
+
+        <section class="stats-row">
+          <article class="stat-card">
+            <h3>À faire</h3>
+            <p>Interventions qui n'ont pas encore démarré.</p>
+            <div class="stat-value">{{ aFaire }}</div>
+          </article>
+
+          <article class="stat-card">
+            <h3>En cours</h3>
+            <p>Interventions actuellement en traitement.</p>
+            <div class="stat-value">{{ enCours }}</div>
+          </article>
+
+          <article class="stat-card">
+            <h3>Terminées</h3>
+            <p>Interventions clôturées avec succès.</p>
+            <div class="stat-value">{{ terminees }}</div>
+          </article>
+        </section>
+      </ng-container>
+
+      <!-- Liste interventions : affichée sur Dashboard ET Mes interventions -->
+      <ng-container *ngIf="activeItem === 'dashboard' || activeItem === 'interventions'">
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>{{ activeItem === 'dashboard' ? 'Signalements' : 'Mes interventions' }}</h2>
+            <p class="recent-subtitle">
+              Vue synthétique des demandes en fonction de leur statut et de leur niveau d’urgence.
+            </p>
+          </div>
+
+          <!-- Capsule filtres + recherche -->
+          <div class="filters-shell">
+            <!-- Ligne 1 : filtres statut -->
+            <div class="filters-row top-row">
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'TOUS'" (click)="setStatutFilter('TOUS')">
+                <span class="status-dot all"></span>
+                Toutes ({{ interventions.length }})
+              </button>
+
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'A_FAIRE'" (click)="setStatutFilter('A_FAIRE')">
+                <span class="status-dot pending"></span>
+                À faire ({{ aFaire }})
+              </button>
+
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'EN_COURS'" (click)="setStatutFilter('EN_COURS')">
+                <span class="status-dot progress"></span>
+                En cours ({{ enCours }})
+              </button>
+
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'TERMINEE'" (click)="setStatutFilter('TERMINEE')">
+                <span class="status-dot done"></span>
+                Terminées ({{ terminees }})
+              </button>
+
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'ANNULEE'" (click)="setStatutFilter('ANNULEE')">
+                <span class="status-dot cancelled"></span>
+                Annulées ({{ annulees }})
+              </button>
+
+              <button type="button" class="chip-filter big" [class.active]="statutFilter === 'DECLINEE'" (click)="setStatutFilter('DECLINEE')">
+                <span class="status-dot cancelled"></span>
+                Déclinées ({{ declinees }})
+              </button>
+            </div>
+
+            <!-- Ligne 2 : urgences + recherche -->
+            <div class="filters-row bottom-row">
+              <div class="filters-left">
+                <span class="filter-label">Urgence :</span>
+
+                <button type="button" class="chip-filter" [class.active]="urgenceFilter === 'TOUTES'" (click)="setUrgenceFilter('TOUTES')">
+                  Toutes
+                </button>
+                <button type="button" class="chip-filter" [class.active]="urgenceFilter === 'BASSE'" (click)="setUrgenceFilter('BASSE')">
+                  Basse
+                </button>
+                <button type="button" class="chip-filter" [class.active]="urgenceFilter === 'MOYENNE'" (click)="setUrgenceFilter('MOYENNE')">
+                  Moyenne
+                </button>
+                <button type="button" class="chip-filter" [class.active]="urgenceFilter === 'HAUTE'" (click)="setUrgenceFilter('HAUTE')">
+                  Haute
+                </button>
+              </div>
+
+              <div class="filters-search">
+                <span class="material-icons search-icon">search</span>
+                <input 
+                  type="text" 
+                  name="searchTerm"
+                  placeholder="Rechercher par titre, lieu..." 
+                  [value]="searchTerm"
+                  (input)="searchTerm = $any($event.target).value; applyFilters()" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableau des interventions -->
+          <div class="signals-table">
+            <div class="signals-header-row">
+              <div class="col-title">Titre</div>
+              <div class="col-status">Statut</div>
+              <div class="col-urgency">Urgence</div>
+              <div class="col-actions">Actions</div>
+            </div>
+
+            <div class="signals-row" *ngFor="let i of paginatedInterventions">
+              <div class="col-title">
+                <div class="request-title">{{ i.titre }}</div>
+                <div class="request-meta">
+                  Créée le {{ i.dateCreation | date:'dd/MM/yyyy' }} · {{ i.lieu }}
+                </div>
+              </div>
+
+              <div class="col-status">
+                <span class="status-chip" [ngClass]="{ pending: i.statut === 'A_FAIRE', progress: i.statut === 'EN_COURS', done: i.statut === 'TERMINEE', cancelled: i.statut === 'ANNULEE' }">
+                  {{ i.statut === 'A_FAIRE' ? 'À faire' : i.statut === 'EN_COURS' ? 'En cours' : i.statut === 'TERMINEE' ? 'Terminée' : 'Déclinée' }}
+                </span>
+              </div>
+
+              <div class="col-urgency">
+                <span class="urgence-chip" [ngClass]="{ low: i.urgence === 'BASSE', medium: i.urgence === 'MOYENNE', high: i.urgence === 'HAUTE' }">
+                  {{ i.urgence === 'BASSE' ? 'Basse' : i.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+                </span>
+              </div>
+
+              <div class="col-actions">
+                <button type="button" class="details-btn" (click)="openDetails(i)">
+                  <span class="material-icons">visibility</span>
+                  <span>Voir détails</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Message si aucun résultat -->
+            <div class="empty-state" *ngIf="paginatedInterventions.length === 0">
+              <span class="material-icons empty-icon">search_off</span>
+              <p class="empty-message">Aucune intervention trouvée</p>
+              <p class="empty-hint">Essayez de modifier vos filtres ou votre recherche</p>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="resp-pagination" *ngIf="paginatedInterventions.length > 0 && totalPages > 1">
+            <div>
+              Affichage {{ pageStartIndex }}–{{ pageEndIndex }} sur {{ interventions.length }} interventions
+            </div>
+
+            <div class="resp-pagination-buttons">
+              <button
+                class="resp-page-btn"
+                (click)="goToPage(currentPage - 1)"
+                [disabled]="currentPage === 1"
+              >
+                Précédent
+              </button>
+
+              <button
+                class="resp-page-btn"
+                *ngFor="let page of totalPagesArray"
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="resp-page-btn"
+                (click)="goToPage(currentPage + 1)"
+                [disabled]="currentPage === totalPages"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+      <ng-container *ngIf="activeItem === 'profile'">
+        <section class="profile-page">
+          <!-- Header -->
+          <div class="profile-top">
+            <div>
+              <h2>Mon profil</h2>
+              <p>
+                Gérez vos informations personnelles et les paramètres de votre compte
+                Technicien.
+              </p>
+            </div>
+
+            <button type="button" class="secondary-btn" (click)="goToDashboard()">
+              <span class="material-icons">arrow_back</span>
+              Retour au tableau de bord
+            </button>
+          </div>
+
+          <div class="profile-grid-v2">
+            <!-- LEFT: Infos personnelles -->
+            <article class="profile-card-v2">
+              <div class="card-title">
+                <h3>Informations personnelles</h3>
+                <p>
+                  Ces informations permettent d’identifier le technicien dans
+                  l’application.
+                </p>
+              </div>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label>Nom</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="profileDraft.lastName"
+                    placeholder="Ex : Mané"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Prénom</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="profileDraft.firstName"
+                    placeholder="Ex : Ousmane"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Adresse e-mail</label>
+                  <input
+                    type="email"
+                    [(ngModel)]="profileDraft.email"
+                    placeholder="ex: technicien@uasz.sn"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Téléphone</label>
+                  <input
+                    type="tel"
+                    [(ngModel)]="profileDraft.phone"
+                    placeholder="Ex : +221 77 000 00 00"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Service / Unité</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="profileDraft.service"
+                    placeholder="Ex : Service Informatique"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Département / Composante</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="profileDraft.department"
+                    placeholder="Ex : UFR Sciences et Technologies"
+                  />
+                </div>
+
+                <div class="field">
+                  <label>Spécialité</label>
+                  <select [(ngModel)]="profileDraft.speciality">
+                    <option value="">Non définie</option>
+                    <option value="BUREAUTIQUE">Bureautique</option>
+                    <option value="RESEAU">Réseau</option>
+                    <option value="AUDIOVISUEL">Audiovisuel</option>
+                    <option value="ELECTRICITE">Électricité</option>
+                    <option value="AUTRE">Autre</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Disponibilité</label>
+                  <select [(ngModel)]="profileDraft.availability">
+                    <option value="DISPONIBLE">Disponible</option>
+                    <option value="EN_INTERVENTION">En intervention</option>
+                    <option value="INDISPONIBLE">Indisponible</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="actions-row">
+                <button type="button" class="secondary-btn" (click)="resetProfileDraft()">
+                  Réinitialiser
+                </button>
+
+                <button type="button" class="primary-btn" (click)="saveProfileV2()">
+                  Enregistrer les modifications
+                </button>
+              </div>
+
+              <div class="profile-toast" [ngClass]="profileSavedMsgType" *ngIf="profileSavedMsg">
+                <span class="material-icons">{{ profileSavedMsgType === 'success' ? 'check_circle' : profileSavedMsgType === 'error' ? 'error' : 'info' }}</span>
+                <span>{{ profileSavedMsg }}</span>
+              </div>
+            </article>
+
+            <!-- RIGHT column -->
+            <div class="right-col">
+              <!-- Role & account -->
+              <article class="profile-card-v2">
+                <div class="card-title">
+                  <h3>Rôle et compte</h3>
+                  <p>Résumé de votre rôle dans le système de maintenance UASZ.</p>
+                </div>
+
+                <div class="role-box">
+                  <div class="role-avatar">{{ usernameInitial }}</div>
+
+                  <div class="role-meta">
+                    <div class="role-name">Utilisateur</div>
+                    <div class="role-email">{{ profileDraft.email || '—' }}</div>
+
+                    <div class="role-badge-row">
+                      <span class="role-label">Rôle</span>
+                      <span class="role-chip">TECHNICIEN</span>
+                    </div>
+                  </div>
+                </div>
+
+                <ul class="role-list">
+                  <li>
+                    <span class="material-icons">task_alt</span>
+                    Prioriser les interventions et suivre leur avancement.
+                  </li>
+                  <li>
+                    <span class="material-icons">assignment</span>
+                    Traiter les signalements qui vous sont affectés.
+                  </li>
+                  <li>
+                    <span class="material-icons">inventory_2</span>
+                    Consommer des pièces du stock si nécessaire.
+                  </li>
+                  <li>
+                    <span class="material-icons">insights</span>
+                    Renseigner des notes et clôturer l’intervention.
+                  </li>
+                </ul>
+              </article>
+
+              <!-- Security -->
+              <article class="profile-card-v2">
+                <div class="card-title">
+                  <h3>Sécurité &amp; mot de passe</h3>
+                  <p>Modifiez régulièrement votre mot de passe pour sécuriser votre compte.</p>
+                </div>
+
+                <div class="security-grid">
+                  <div class="field">
+                    <label>Mot de passe actuel</label>
+                    <div class="password-input-wrapper">
+                      <input [type]="showCurrentPassword ? 'text' : 'password'" [(ngModel)]="passwordForm.current" />
+                      <button type="button" class="toggle-password-btn" (click)="showCurrentPassword = !showCurrentPassword">
+                        <span class="material-icons">{{ showCurrentPassword ? 'visibility_off' : 'visibility' }}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label>Nouveau mot de passe</label>
+                    <div class="password-input-wrapper">
+                      <input
+                        [type]="showNewPassword ? 'text' : 'password'"
+                        [(ngModel)]="passwordForm.new"
+                        placeholder="Minimum 8 caractères"
+                      />
+                      <button type="button" class="toggle-password-btn" (click)="showNewPassword = !showNewPassword">
+                        <span class="material-icons">{{ showNewPassword ? 'visibility_off' : 'visibility' }}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="field full">
+                    <label>Confirmer</label>
+                    <div class="password-input-wrapper">
+                      <input
+                        [type]="showConfirmPassword ? 'text' : 'password'"
+                        [(ngModel)]="passwordForm.confirm"
+                        placeholder="Répéter le mot de passe"
+                      />
+                      <button type="button" class="toggle-password-btn" (click)="showConfirmPassword = !showConfirmPassword">
+                        <span class="material-icons">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="actions-row right">
+                  <button
+                    type="button"
+                    class="primary-btn"
+                    [disabled]="!canChangePassword()"
+                    (click)="changePassword()"
+                  >
+                    Mettre à jour
+                  </button>
+                </div>
+
+                <div class="profile-toast" [ngClass]="passwordMsgType" *ngIf="passwordMsg">
+                  <span class="material-icons">{{ passwordMsgType === 'success' ? 'check_circle' : passwordMsgType === 'error' ? 'error' : 'info' }}</span>
+                  <span>{{ passwordMsg }}</span>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- MAINTENANCES PRÉVENTIVES -->
+      <ng-container *ngIf="activeItem === 'maintenances-preventives'">
+        <section class="recent-requests maintenances-preventives-section">
+          <div class="recent-header">
+            <h2>Maintenances préventives</h2>
+            <p class="recent-subtitle">
+              Maintenances planifiées qui vous sont affectées par le responsable maintenance.
+            </p>
+          </div>
+
+          <!-- Filtres -->
+          <div class="filters-shell">
+            <!-- Ligne statuts -->
+            <div class="filters-row top-row">
+              <button
+                type="button"
+                class="chip-filter big"
+                [class.active]="maintenanceStatutFilter === 'TOUTES'"
+                (click)="setMaintenanceStatutFilter('TOUTES')"
+              >
+                <span class="status-dot all"></span>
+                Toutes ({{ maintenancesPreventives.length }})
+              </button>
+
+              <button
+                type="button"
+                class="chip-filter big"
+                [class.active]="maintenanceStatutFilter === 'PLANIFIEE'"
+                (click)="setMaintenanceStatutFilter('PLANIFIEE')"
+              >
+                <span class="status-dot pending"></span>
+                Planifiées ({{ getNbMaintenancesByStatut('PLANIFIEE') }})
+              </button>
+
+              <button
+                type="button"
+                class="chip-filter big"
+                [class.active]="maintenanceStatutFilter === 'EN_RETARD'"
+                (click)="setMaintenanceStatutFilter('EN_RETARD')"
+              >
+                <span class="status-dot progress"></span>
+                En retard ({{ getNbMaintenancesByStatut('EN_RETARD') }})
+              </button>
+
+              <button
+                type="button"
+                class="chip-filter big"
+                [class.active]="maintenanceStatutFilter === 'REALISEE'"
+                (click)="setMaintenanceStatutFilter('REALISEE')"
+              >
+                <span class="status-dot done"></span>
+                Réalisées ({{ getNbMaintenancesByStatut('REALISEE') }})
+              </button>
+
+              <button
+                type="button"
+                class="chip-filter big"
+                [class.active]="maintenanceStatutFilter === 'ANNULEE'"
+                (click)="setMaintenanceStatutFilter('ANNULEE')"
+              >
+                <span class="status-dot"></span>
+                Annulées ({{ getNbMaintenancesByStatut('ANNULEE') }})
+              </button>
+            </div>
+
+            <!-- Ligne recherche -->
+            <div class="filters-row bottom-row">
+              <div class="filters-search">
+                <span class="material-icons search-icon">search</span>
+                <input
+                  type="text"
+                  name="maintenanceSearchTerm"
+                  placeholder="Rechercher par équipement, description..."
+                  [value]="maintenanceSearchTerm"
+                  (input)="maintenanceSearchTerm = $any($event.target).value; applyMaintenanceFilters()"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableau des maintenances -->
+          <div class="signals-table">
+            <div class="signals-header-row">
+              <div class="col-title">Équipement</div>
+              <div class="col-status">Fréquence</div>
+              <div class="col-urgency">Prochaine date</div>
+              <div class="col-status">Statut</div>
+              <div class="col-actions">Actions</div>
+            </div>
+
+            <div class="signals-row" *ngFor="let m of maintenancesPaginated">
+              <div class="col-title">
+                <div class="request-title">{{ m.equipementReference }}</div>
+                <div class="request-meta" *ngIf="m.typeEquipement">
+                  {{ m.typeEquipement }}
+                </div>
+              </div>
+
+              <div class="col-status">
+                <span class="place-chip">{{ m.frequence }}</span>
+              </div>
+
+              <div class="col-urgency">
+                <span class="place-chip">{{ m.prochaineDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+
+              <div class="col-status">
+                <span
+                  class="status-chip"
+                  [ngClass]="{
+                    'pending': m.statut === 'PLANIFIEE',
+                    'progress': m.statut === 'EN_RETARD',
+                    'done': m.statut === 'REALISEE'
+                  }"
+                >
+                  {{
+                    m.statut === 'PLANIFIEE' ? 'Planifiée' :
+                      m.statut === 'EN_RETARD' ? 'En retard' :
+                        m.statut === 'REALISEE' ? 'Réalisée' : 'Annulée'
+                  }}
+                </span>
+              </div>
+
+              <div class="col-actions">
+                <button type="button" class="details-btn" (click)="openMaintenanceDetails(m)">
+                  <span class="material-icons">visibility</span>
+                  <span>Voir détails</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Message si aucun résultat -->
+            <div class="empty-state" *ngIf="maintenancesPaginated.length === 0">
+              <span class="material-icons empty-icon">search_off</span>
+              <p class="empty-message">Aucune maintenance préventive trouvée</p>
+              <p class="empty-hint">Les maintenances planifiées apparaîtront ici</p>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="resp-pagination" *ngIf="maintenancesFiltered.length > maintenanceItemsPerPage">
+            <div>
+              Affichage {{ maintenancePageStartIndex }}–{{ maintenancePageEndIndex }} sur {{ maintenancesFiltered.length }} maintenances
+            </div>
+
+            <div class="resp-pagination-buttons">
+              <button
+                class="resp-page-btn"
+                (click)="goToMaintenancePage(maintenanceCurrentPage - 1)"
+                [disabled]="maintenanceCurrentPage === 1"
+              >
+                Précédent
+              </button>
+
+              <button
+                class="resp-page-btn"
+                *ngFor="let page of maintenanceTotalPagesArray"
+                [class.active]="page === maintenanceCurrentPage"
+                (click)="goToMaintenancePage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="resp-page-btn"
+                (click)="goToMaintenancePage(maintenanceCurrentPage + 1)"
+                [disabled]="maintenanceCurrentPage === maintenanceTotalPages"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- ÉQUIPEMENTS -->
+      <ng-container *ngIf="activeItem === 'equipements'">
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>Mes équipements</h2>
+            <p class="recent-subtitle">
+              Équipements liés à vos interventions. Consultation uniquement.
+            </p>
+          </div>
+
+          <div class="equip-top">
+            <div class="filters-search equip-search">
+              <span class="material-icons search-icon">search</span>
+              <input
+                type="text"
+                name="equipSearch"
+                placeholder="Rechercher par nom, code, lieu..."
+                [value]="equipSearch"
+                (input)="equipSearch = $any($event.target).value; onEquipSearchChange()"
+              />
+            </div>
+          </div>
+
+          <div class="equip-table" *ngIf="equipementsView.length > 0; else emptyEquip">
+            <div class="equip-header-row">
+              <div class="eq-col-name">Équipement</div>
+              <div class="eq-col-place">Lieu</div>
+              <div class="eq-col-count">Interventions</div>
+              <div class="eq-col-action">Action</div>
+            </div>
+
+            <div class="equip-row" *ngFor="let e of equipementsView">
+              <div class="eq-col-name">
+                <div class="eq-name">{{ e.nom }}</div>
+                <div class="eq-meta">{{ e.type }} · {{ e.code }}</div>
+              </div>
+
+              <div class="eq-col-place">
+                <span class="place-chip">{{ e.lieu }}</span>
+              </div>
+
+              <div class="eq-col-count">
+                <span class="count-pill">{{ e.interventionsCount }}</span>
+              </div>
+
+              <div class="eq-col-action">
+                <button type="button" class="details-btn" (click)="openEquipementDetails(e)">
+                  <span class="material-icons">visibility</span>
+                  <span>Voir détails</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #emptyEquip>
+            <div class="empty-state">
+              <span class="material-icons empty-icon">search_off</span>
+              <p class="empty-message">Aucun équipement trouvé</p>
+              <p class="empty-hint">Essayez de modifier votre recherche</p>
+            </div>
+          </ng-template>
+        </section>
+      </ng-container>
+
+      <!-- MES DEMANDES -->
+      <ng-container *ngIf="activeItem === 'mes-demandes'">
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>Toutes mes demandes</h2>
+            <button class="primary-btn" (click)="openNewDemandeModal()">
+              Nouvelle demande de panne
+            </button>
+          </div>
+
+          <!-- Filtres -->
+          <div class="filters-shell">
+            <!-- Ligne statuts -->
+            <div class="filters-row top-row">
+              <button
+                type="button"
+                class="chip-filter big"
+                [class.active]="demandeStatutFilter === 'TOUTES'"
+                (click)="setDemandeStatutFilter('TOUTES')"
+              >
+                <span class="status-dot all"></span>
+                Toutes ({{ mesDemandes.length }})
+              </button>
+
+              <button
+                type="button"
+                class="chip-filter big"
+                [class.active]="demandeStatutFilter === 'EN_ATTENTE'"
+                (click)="setDemandeStatutFilter('EN_ATTENTE')"
+              >
+                <span class="status-dot pending"></span>
+                En attente ({{ demandesEnAttente }})
+              </button>
+
+              <button
+                type="button"
+                class="chip-filter big"
+                [class.active]="demandeStatutFilter === 'EN_COURS'"
+                (click)="setDemandeStatutFilter('EN_COURS')"
+              >
+                <span class="status-dot progress"></span>
+                En cours ({{ demandesEnCours }})
+              </button>
+
+              <button
+                type="button"
+                class="chip-filter big"
+                [class.active]="demandeStatutFilter === 'RESOLUE'"
+                (click)="setDemandeStatutFilter('RESOLUE')"
+              >
+                <span class="status-dot done"></span>
+                Résolues ({{ demandesResolues }})
+              </button>
+            </div>
+
+            <!-- Ligne urgences + recherche -->
+            <div class="filters-row bottom-row">
+              <div class="filters-left">
+                <span class="filter-label">Urgence :</span>
+                  <button
+                    type="button"
+                    class="chip-filter"
+                    [class.active]="demandeUrgenceFilter === 'TOUTES'"
+                    (click)="setDemandeUrgenceFilter('TOUTES')"
+                  >
+                    Toutes
+                  </button>
+
+                  <button
+                    type="button"
+                    class="chip-filter"
+                    [class.active]="demandeUrgenceFilter === 'BASSE'"
+                    (click)="setDemandeUrgenceFilter('BASSE')"
+                  >
+                    Basse
+                  </button>
+
+                  <button
+                    type="button"
+                    class="chip-filter"
+                    [class.active]="demandeUrgenceFilter === 'MOYENNE'"
+                    (click)="setDemandeUrgenceFilter('MOYENNE')"
+                  >
+                    Moyenne
+                  </button>
+
+                  <button
+                    type="button"
+                    class="chip-filter"
+                    [class.active]="demandeUrgenceFilter === 'HAUTE'"
+                    (click)="setDemandeUrgenceFilter('HAUTE')"
+                  >
+                    Haute
+                  </button>
+                </div>
+
+              <div class="filters-search">
+                <span class="material-icons search-icon">search</span>
+                <input
+                  type="text"
+                  name="demandeSearchTerm"
+                  placeholder="Rechercher par titre, lieu, statut..."
+                  [value]="demandeSearchTerm"
+                  (input)="demandeSearchTerm = $any($event.target).value; applyDemandeFilters()"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableau des demandes -->
+          <div class="signals-table">
+            <div class="signals-header-row">
+              <div class="col-title">Titre</div>
+              <div class="col-status">Statut</div>
+              <div class="col-urgency">Urgence</div>
+              <div class="col-actions">Actions</div>
+            </div>
+
+            <div class="signals-row" *ngFor="let d of paginatedDemandes">
+              <div class="col-title">
+                <div class="request-title">{{ d.titre }}</div>
+                <div class="request-meta">
+                  Créée le {{ d.dateCreation | date:'dd/MM/yyyy' }} · {{ d.lieu }}
+                </div>
+              </div>
+
+              <div class="col-status">
+                <span
+                  class="status-chip"
+                  [ngClass]="{
+                    'pending': d.statut === 'EN_ATTENTE',
+                    'progress': d.statut === 'EN_COURS',
+                    'done': d.statut === 'RESOLUE'
+                  }"
+                >
+                  {{
+                    d.statut === 'EN_ATTENTE' ? 'En attente' :
+                      d.statut === 'EN_COURS' ? 'En cours' :
+                        'Résolue'
+                  }}
+                </span>
+              </div>
+
+              <div class="col-urgency">
+                <span
+                  class="urgence-chip"
+                  [ngClass]="{
+                    'low': d.urgence === 'BASSE',
+                    'medium': d.urgence === 'MOYENNE',
+                    'high': d.urgence === 'HAUTE'
+                  }"
+                >
+                  {{ d.urgence === 'BASSE' ? 'Basse' : d.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+                </span>
+              </div>
+
+              <div class="col-actions">
+                <button type="button" class="details-btn" (click)="openDemandeDetails(d)">
+                  <span class="material-icons">visibility</span>
+                  <span>Voir détails</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Message si aucun résultat -->
+            <div class="empty-state" *ngIf="paginatedDemandes.length === 0">
+              <span class="material-icons empty-icon">search_off</span>
+              <p class="empty-message">Aucune demande trouvée</p>
+              <p class="empty-hint">Essayez de modifier vos filtres ou votre recherche</p>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="resp-pagination" *ngIf="filteredDemandes.length > demandeItemsPerPage">
+            <div>
+              Affichage {{ demandePageStartIndex }}–{{ demandePageEndIndex }} sur {{ filteredDemandes.length }} demandes
+            </div>
+
+            <div class="resp-pagination-buttons">
+              <button
+                class="resp-page-btn"
+                (click)="goToDemandesPage(demandeCurrentPage - 1)"
+                [disabled]="demandeCurrentPage === 1"
+              >
+                Précédent
+              </button>
+
+              <button
+                class="resp-page-btn"
+                *ngFor="let page of demandeTotalPagesArray"
+                [class.active]="page === demandeCurrentPage"
+                (click)="goToDemandesPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="resp-page-btn"
+                (click)="goToDemandesPage(demandeCurrentPage + 1)"
+                [disabled]="demandeCurrentPage === demandeTotalPages"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- Historique / Help (placeholder propre, sans casser) -->
+      <ng-container *ngIf="activeItem === 'historique'">
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>Historique</h2>
+            <p class="recent-subtitle">
+              Retrouvez vos interventions terminées, avec filtres et détails.
+            </p>
+          </div>
+
+          <!-- Résumé -->
+          <div class="history-summary">
+            <div class="summary-pill">
+              <span class="material-icons">task_alt</span>
+              Total terminées : <strong>{{ terminees }}</strong>
+            </div>
+          </div>
+
+          <!-- Filtres Historique -->
+          <div class="history-filters">
+            <div class="history-row">
+              <div class="filters-left">
+                <span class="filter-label">Urgence :</span>
+
+                <button
+                  type="button"
+                  class="chip-filter"
+                  [class.active]="historiqueUrgence === 'TOUTES'"
+                  (click)="setHistoriqueUrgence('TOUTES')"
+                >
+                  Toutes
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-filter"
+                  [class.active]="historiqueUrgence === 'BASSE'"
+                  (click)="setHistoriqueUrgence('BASSE')"
+                >
+                  Basse
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-filter"
+                  [class.active]="historiqueUrgence === 'MOYENNE'"
+                  (click)="setHistoriqueUrgence('MOYENNE')"
+                >
+                  Moyenne
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-filter"
+                  [class.active]="historiqueUrgence === 'HAUTE'"
+                  (click)="setHistoriqueUrgence('HAUTE')"
+                >
+                  Haute
+                </button>
+              </div>
+
+              <div class="filters-search history-search">
+                <span class="material-icons search-icon">search</span>
+                <input
+                  type="text"
+                  name="historiqueSearch"
+                  placeholder="Rechercher (titre, lieu...)"
+                  [value]="historiqueSearch"
+                  (input)="historiqueSearch = $any($event.target).value; applyHistoriqueFilters()"
+                />
+              </div>
+            </div>
+
+            <div class="history-row date-row">
+              <div class="date-field">
+                <label>Du</label>
+                <input
+                  type="date"
+                  [(ngModel)]="historiqueFrom"
+                  (ngModelChange)="applyHistoriqueFilters()"
+                />
+              </div>
+
+              <div class="date-field">
+                <label>Au</label>
+                <input
+                  type="date"
+                  [(ngModel)]="historiqueTo"
+                  (ngModelChange)="applyHistoriqueFilters()"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableau Historique -->
+          <div class="signals-table" *ngIf="paginatedHistorique.length > 0; else emptyHistory">
+            <div class="signals-header-row">
+              <div class="col-title">Titre</div>
+              <div class="col-status">Statut</div>
+              <div class="col-urgency">Urgence</div>
+              <div class="col-actions">Actions</div>
+            </div>
+
+            <div class="signals-row" *ngFor="let i of paginatedHistorique">
+              <div class="col-title">
+                <div class="request-title">{{ i.titre }}</div>
+                <div class="request-meta">
+                  Terminée le {{ i.dateCreation | date:'dd/MM/yyyy' }} · {{ i.lieu }}
+                </div>
+              </div>
+
+              <div class="col-status">
+                <span class="status-chip done">Terminée</span>
+              </div>
+
+              <div class="col-urgency">
+          <span
+            class="urgence-chip"
+            [ngClass]="{
+              low: i.urgence === 'BASSE',
+              medium: i.urgence === 'MOYENNE',
+              high: i.urgence === 'HAUTE'
+            }"
+          >
+            {{ i.urgence === 'BASSE' ? 'Basse' : i.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+          </span>
+              </div>
+
+              <div class="col-actions">
+                <button type="button" class="details-btn" (click)="openDetails(i)">
+                  <span class="material-icons">visibility</span>
+                  <span>Voir détails</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #emptyHistory>
+            <div class="empty-state">
+              <span class="material-icons empty-icon">search_off</span>
+              <p class="empty-message">Aucune intervention trouvée</p>
+              <p>Votre historique s’alimentera à mesure que vous clôturez des interventions.</p>
+            </div>
+          </ng-template>
+
+          <!-- Pagination Historique -->
+          <div class="resp-pagination" *ngIf="paginatedHistorique.length > 0 && historiqueTotalPages > 1">
+            <div>
+              Affichage {{ historiquePageStartIndex }}–{{ historiquePageEndIndex }} sur {{ getTotalTerminees() }} interventions
+            </div>
+
+            <div class="resp-pagination-buttons">
+              <button
+                class="resp-page-btn"
+                (click)="goToHistoriquePage(historiquePage - 1)"
+                [disabled]="historiquePage === 1"
+              >
+                Précédent
+              </button>
+
+              <button
+                class="resp-page-btn"
+                *ngFor="let page of historiqueTotalPagesArray"
+                [class.active]="page === historiquePage"
+                (click)="goToHistoriquePage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="resp-page-btn"
+                (click)="goToHistoriquePage(historiquePage + 1)"
+                [disabled]="historiquePage === historiqueTotalPages"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+
+      <ng-container *ngIf="activeItem === 'help'">
+        <section class="recent-requests">
+          <div class="recent-header">
+            <h2>Aide &amp; support</h2>
+            <p class="recent-subtitle">
+              Guides rapides, contacts et réponses aux questions fréquentes.
+            </p>
+          </div>
+
+          <div class="help-shell">
+            <!-- ================= LEFT : FAQ ================= -->
+            <div class="help-left">
+              <div class="help-section-title">
+                <div class="help-badge material-icons">info</div>
+                <div>
+                  <h3>Questions fréquentes</h3>
+                  <p>Quelques réponses rapides avant de contacter le support.</p>
+                </div>
+              </div>
+
+              <!-- FAQ item 1 -->
+              <div class="faq-card">
+                <h4>Comment traiter une intervention “À faire” ?</h4>
+                <p>
+                  Ouvrez <strong>Mes interventions</strong>, cliquez sur <strong>Voir détails</strong>,
+                  puis <strong>Accepter l’intervention</strong> ou <strong>Décliner</strong>.
+                </p>
+              </div>
+
+              <!-- FAQ item 2 -->
+              <div class="faq-card">
+                <h4>Pourquoi le bouton “Terminer l’intervention” est désactivé ?</h4>
+                <p>
+                  Il devient actif uniquement si vous avez ajouté une <strong>image</strong> et une
+                  <strong>note technicien</strong>. Les pièces utilisées sont <strong>optionnelles</strong>.
+                </p>
+              </div>
+
+              <!-- FAQ item 3 -->
+              <div class="faq-card">
+                <h4>Comment ajouter des pièces utilisées ?</h4>
+                <p>
+                  Dans la modale “En cours”, choisissez une <strong>pièce</strong> dans la liste,
+                  puis saisissez une <strong>quantité ≥ 1</strong>. Vous pouvez ajouter plusieurs pièces.
+                </p>
+              </div>
+
+              <!-- FAQ item 4 -->
+              <div class="faq-card">
+                <h4>Que se passe-t-il si je refuse une intervention ?</h4>
+                <p>
+                  Un message de confirmation s’affiche, puis le Responsable Maintenance est informé.
+                </p>
+              </div>
+            </div>
+
+            <!-- ================= RIGHT : CONTACT BOX ================= -->
+            <div class="help-right">
+              <div class="contact-card">
+                <h3>Besoin d’un coup de main ?</h3>
+                <p>
+                  Si vous ne trouvez pas la réponse à votre question, vous pouvez contacter
+                  l’équipe maintenance.
+                </p>
+
+                <div class="contact-lines">
+                  <div class="contact-line">
+                    <span class="material-icons">mail</span>
+                    <span>maintenance@uasz.sn</span>
+                  </div>
+                  <div class="contact-line">
+                    <span class="material-icons">call</span>
+                    <span>+221 77 123 45 67</span>
+                  </div>
+                  <div class="contact-line">
+                    <span class="material-icons">schedule</span>
+                    <span>Lundi – Vendredi, 8h00 – 17h00</span>
+                  </div>
+                </div>
+
+                <div class="contact-actions">
+                  <button type="button" class="primary-btn" (click)="setActive('interventions')">
+                    Voir mes interventions
+                  </button>
+                  <button type="button" class="secondary-btn" (click)="setActive('dashboard')">
+                    Retour au dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- BACKDROP -->
+      <div
+        class="modal-backdrop"
+        *ngIf="decisionModalOpen || editionModalOpen || refuseModalOpen || equipementModalOpen || showNewDemandeModal || showDemandeDetailsModal || showMaintenanceDetailsModal"
+        (click)="closeModals()"
+      ></div>
+
+      <!-- MODALE 1 : décision -->
+      <section class="modal-card" *ngIf="decisionModalOpen && selectedIntervention">
+        <header class="modal-header">
+          <h3>Détails de la demande</h3>
+          <button type="button" class="modal-close-btn" (click)="closeModals()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="modal-main-title">
+            <h2>{{ selectedIntervention.titre }}</h2>
+            <p class="modal-meta">
+              Créée le {{ selectedIntervention.dateCreation | date:'dd/MM/yyyy' }} · {{ selectedIntervention.lieu }}
+              <span *ngIf="selectedIntervention.signaleePar"> · Signalée par {{ selectedIntervention.signaleePar }}</span>
+            </p>
+          </div>
+
+          <div class="modal-tags">
+            <div class="modal-tag-item">
+              <span class="tag-label">Statut actuel</span>
+              <span class="status-chip" [ngClass]="{
+                pending: selectedIntervention.statut === 'A_FAIRE',
+                progress: selectedIntervention.statut === 'EN_COURS',
+                done: selectedIntervention.statut === 'TERMINEE',
+                cancelled: selectedIntervention.statut === 'DECLINEE' || selectedIntervention.statut === 'ANNULEE'
+              }">
+                {{ selectedIntervention.statut === 'A_FAIRE' ? 'À faire' : 
+                   selectedIntervention.statut === 'EN_COURS' ? 'En cours' : 
+                   selectedIntervention.statut === 'TERMINEE' ? 'Terminée' : 
+                   selectedIntervention.statut === 'DECLINEE' ? 'Déclinée' : 'Annulée' }}</span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Urgence</span>
+              <span class="urgence-chip" [ngClass]="{
+                low: selectedIntervention.urgence === 'BASSE',
+                medium: selectedIntervention.urgence === 'MOYENNE',
+                high: selectedIntervention.urgence === 'HAUTE'
+              }">
+                {{ selectedIntervention.urgence === 'BASSE' ? 'Basse' : selectedIntervention.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+              </span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Lieu</span>
+              <span class="place-chip">{{ selectedIntervention.lieu }}</span>
+            </div>
+          </div>
+
+          <!-- Description de la panne -->
+          <div class="modal-section" *ngIf="selectedIntervention.description">
+            <h4>Description de la panne</h4>
+            <p class="description-text">{{ selectedIntervention.description }}</p>
+          </div>
+
+          <!-- Commentaire interne du responsable -->
+          <div class="modal-section" *ngIf="selectedIntervention.commentaireResponsable">
+            <h4>Commentaire interne (Responsable)</h4>
+            <p class="description-text">{{ selectedIntervention.commentaireResponsable }}</p>
+          </div>
+
+          <!-- Image de la panne (jointe par le demandeur) -->
+          <div class="modal-section">
+            <h4>Image de la panne (jointe par le demandeur)</h4>
+            
+            <div *ngIf="selectedIntervention.imageUrl; else noImageDecision">
+              <button
+                class="secondary-btn small pagination-btn"
+                type="button"
+                (click)="showImageInDetails = !showImageInDetails"
+              >
+                {{ showImageInDetails ? "Masquer l'image" : "Afficher l'image" }}
+              </button>
+
+              <div class="panne-image-wrapper" *ngIf="showImageInDetails">
+                <img 
+                  [src]="'http://localhost:8080' + selectedIntervention.imageUrl" 
+                  alt="Image de la panne"
+                  (click)="openImageLightbox('http://localhost:8080' + selectedIntervention.imageUrl)"
+                />
+              </div>
+            </div>
+
+            <ng-template #noImageDecision>
+              <p class="modal-help" style="color: #6b7280; font-style: italic;">
+                Aucune image n'a été jointe par le demandeur.
+              </p>
+            </ng-template>
+          </div>
+
+
+          <!-- Informations de déclin (si déclinée ET c'est moi qui ai décliné) -->
+          <div class="modal-section" *ngIf="shouldShowDeclineInfo(selectedIntervention)">
+            <h4>Informations de déclin</h4>
+            
+            <div class="decline-info-box">
+              <div class="decline-info-row" *ngIf="selectedIntervention.dateRefus">
+                <span class="decline-label">Date du déclin :</span>
+                <span class="decline-value">{{ selectedIntervention.dateRefus | date:'dd/MM/yyyy à HH:mm' }}</span>
+              </div>
+              
+              <div class="decline-info-row" *ngIf="selectedIntervention.technicienNom">
+                <span class="decline-label">Décliné par :</span>
+                <span class="decline-value">{{ selectedIntervention.technicienNom }}</span>
+              </div>
+              
+              <div class="decline-info-row" *ngIf="selectedIntervention.raisonRefus">
+                <span class="decline-label">Raison du déclin :</span>
+                <p class="decline-reason">{{ selectedIntervention.raisonRefus }}</p>
+              </div>
+              
+              <div *ngIf="!selectedIntervention.raisonRefus && !selectedIntervention.dateRefus">
+                <p class="modal-help" style="color: #6b7280; font-style: italic;">
+                  Aucune information de déclin disponible.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p class="modal-help" *ngIf="selectedIntervention.statut === 'A_FAIRE'">Voulez-vous prendre en charge cette intervention ? Vous pourrez ensuite ajouter vos notes,
+            pièces utilisées et l’image de l’équipement.
+          </p>
+        </div>
+
+        <footer class="modal-footer" *ngIf="selectedIntervention.statut === 'A_FAIRE'">
+          <button type="button" class="secondary-btn" (click)="refuserIntervention()">
+            Décliner l’intervention
+          </button>
+
+          <button type="button" class="primary-btn" (click)="accepterIntervention()">
+            Accepter l’intervention et démarrer
+          </button>
+        </footer>
+        
+        <footer class="modal-footer" *ngIf="selectedIntervention.statut === 'DECLINEE'">
+          <button type="button" class="secondary-btn" (click)="closeModals()">
+            Fermer
+          </button>
+        </footer>
+      </section>
+
+      <!-- MODALE REFUS -->
+      <section class="modal-card small-modal" *ngIf="refuseModalOpen && selectedIntervention">
+        <header class="modal-header">
+          <h3>Décliner l’intervention ?</h3>
+          <button type="button" class="modal-close-btn" (click)="cancelRefuse()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <p class="modal-alert-text">
+            Vous êtes sur le point de <strong>Décliner</strong> l’intervention « {{ selectedIntervention.titre }} ».
+          </p>
+          <p class="modal-help">
+            Le responsable maintenance sera notifié de ce refus. Veuillez indiquer la raison du refus.
+          </p>
+          
+          <!-- 🆕 Champ de raison du refus -->
+          <div class="form-group" style="margin-top: 1rem;">
+            <label for="raisonRefus">Raison du refus <span style="color: #ef4444;">*</span></label>
+            <textarea
+              id="raisonRefus"
+              [(ngModel)]="raisonRefus"
+              placeholder="Expliquez pourquoi vous refusez cette intervention (minimum 10 caractères)..."
+              rows="4"
+              style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-family: inherit; resize: vertical;"
+            ></textarea>
+            <small style="color: #6b7280; display: block; margin-top: 0.25rem;">
+              {{ raisonRefus.length }} / 500 caractères
+            </small>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="cancelRefuse()">
+            Annuler
+          </button>
+
+          <button 
+            type="button" 
+            class="primary-btn danger" 
+            (click)="confirmRefuse()"
+            [disabled]="!raisonRefus || raisonRefus.trim().length < 10"
+          >
+            Confirmer le refus
+          </button>
+        </footer>
+      </section>
+
+      <!-- MODALE 2 : édition technicien -->
+      <section class="modal-card" *ngIf="editionModalOpen && selectedIntervention">
+        <header class="modal-header">
+          <h3>Intervention en traitement</h3>
+          <button type="button" class="modal-close-btn" (click)="closeModals()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="modal-main-title">
+            <h2>{{ selectedIntervention.titre }}</h2>
+            <p class="modal-meta">
+              Créée le {{ selectedIntervention.dateCreation | date:'dd/MM/yyyy' }} · {{ selectedIntervention.lieu }}
+              <span *ngIf="selectedIntervention.signaleePar"> · Signalée par {{ selectedIntervention.signaleePar }}</span>
+            </p>
+          </div>
+
+          <div class="modal-tags">
+            <div class="modal-tag-item">
+              <span class="tag-label">Statut</span>
+              <span class="status-chip" [ngClass]="{
+                progress: selectedIntervention.statut === 'EN_COURS',
+                done: selectedIntervention.statut === 'TERMINEE'
+              }">
+                {{ selectedIntervention.statut === 'EN_COURS' ? 'En cours' : 'Terminée' }}
+              </span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Urgence</span>
+              <span class="urgence-chip" [ngClass]="{
+                low: selectedIntervention.urgence === 'BASSE',
+                medium: selectedIntervention.urgence === 'MOYENNE',
+                high: selectedIntervention.urgence === 'HAUTE'
+              }">
+                {{ selectedIntervention.urgence === 'BASSE' ? 'Basse' : selectedIntervention.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+              </span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Lieu</span>
+              <span class="place-chip">{{ selectedIntervention.lieu }}</span>
+            </div>
+
+            <div class="modal-tag-item" *ngIf="selectedIntervention.typeEquipement">
+              <span class="tag-label">Type d'équipement</span>
+              <span class="place-chip">{{ selectedIntervention.typeEquipement }}</span>
+            </div>
+          </div>
+
+          <!-- Description de la panne -->
+          <div class="modal-section" *ngIf="selectedIntervention.description">
+            <h4>Description de la panne</h4>
+            <p class="description-text">{{ selectedIntervention.description }}</p>
+          </div>
+
+          <!-- Commentaire interne du responsable -->
+          <div class="modal-section" *ngIf="selectedIntervention.commentaireResponsable">
+            <h4>Commentaire interne (Responsable)</h4>
+            <p class="description-text">{{ selectedIntervention.commentaireResponsable }}</p>
+          </div>
+
+          <!-- Image de la panne (jointe par le demandeur) -->
+          <div class="modal-section">
+            <h4>Image de la panne (jointe par le demandeur)</h4>
+            
+            <div *ngIf="selectedIntervention.imageUrl; else noImageEdition">
+              <button
+                class="secondary-btn small pagination-btn"
+                type="button"
+                (click)="showImageInDetails = !showImageInDetails"
+              >
+                {{ showImageInDetails ? "Masquer l'image" : "Afficher l'image" }}
+              </button>
+
+              <div class="panne-image-wrapper" *ngIf="showImageInDetails">
+                <img 
+                  [src]="'http://localhost:8080' + selectedIntervention.imageUrl" 
+                  alt="Image de la panne"
+                  (click)="openImageLightbox('http://localhost:8080' + selectedIntervention.imageUrl)"
+                />
+              </div>
+            </div>
+
+            <ng-template #noImageEdition>
+              <p class="modal-help" style="color: #6b7280; font-style: italic;">
+                Aucune image n'a été jointe par le demandeur.
+              </p>
+            </ng-template>
+          </div>
+
+          <div class="modal-section">
+            <h4>Note technicien <span class="required-asterisk" *ngIf="selectedIntervention?.statut !== 'TERMINEE'">*</span></h4>
+            <textarea
+              [(ngModel)]="updateNote"
+              rows="4"
+              placeholder="Notes internes, diagnostic, actions réalisées, tests effectués..."
+              [disabled]="selectedIntervention?.statut === 'TERMINEE'"
+              [class.disabled-field]="selectedIntervention?.statut === 'TERMINEE'"
+            ></textarea>
+          </div>
+
+          <div class="modal-section">
+            <h4>Pièces utilisées (optionnel)</h4>
+
+            <div class="piece-row" *ngFor="let sel of piecesSelection; index as idx">
+              <input
+                type="text"
+                [(ngModel)]="sel.nom"
+                class="piece-name-input"
+                placeholder="Nom de la pièce (ex: Barrette RAM 8 Go, Câble HDMI...)"
+                [disabled]="selectedIntervention?.statut === 'TERMINEE'"
+                [class.disabled-field]="selectedIntervention?.statut === 'TERMINEE'"
+              />
+
+              <input
+                type="number"
+                min="1"
+                step="1"
+                [(ngModel)]="sel.quantite"
+                (input)="validateQuantity(sel)"
+                class="piece-qty"
+                placeholder="Quantité"
+                [disabled]="selectedIntervention?.statut === 'TERMINEE' || !sel.nom || sel.nom.trim().length === 0"
+                [class.disabled-field]="selectedIntervention?.statut === 'TERMINEE'"
+              />
+
+              <button 
+                type="button" 
+                class="icon-btn remove-piece" 
+                *ngIf="piecesSelection.length > 1 && selectedIntervention?.statut !== 'TERMINEE'" 
+                (click)="removePieceRow(idx)"
+              >
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <button 
+              type="button" 
+              class="secondary-btn add-piece-btn" 
+              (click)="addPieceRow()"
+              *ngIf="selectedIntervention?.statut !== 'TERMINEE'"
+            >
+              + Ajouter une pièce
+            </button>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="closeModals()">Fermer</button>
+
+          <button
+            type="button"
+            class="primary-btn"
+            (click)="terminerIntervention()"
+            [disabled]="!updateNote || !updateNote.trim()"
+            *ngIf="selectedIntervention?.statut !== 'TERMINEE'"
+          >
+            Terminer l’intervention
+          </button>
+        </footer>
+      </section>
+
+      <!-- MODALE ÉQUIPEMENT -->
+      <section class="modal-card" *ngIf="equipementModalOpen && selectedEquipement">
+        <header class="modal-header">
+          <h3>Détails équipement</h3>
+          <button type="button" class="modal-close-btn" (click)="closeModals()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="modal-main-title">
+            <h2>{{ selectedEquipement.nom }}</h2>
+            <p class="modal-meta">
+              {{ selectedEquipement.type }} · {{ selectedEquipement.code }} · {{ selectedEquipement.lieu }}
+            </p>
+          </div>
+
+          <div class="equip-modal-grid">
+            <div class="equip-modal-image" *ngIf="selectedEquipement.imageUrl">
+              <img [src]="'http://localhost:8080' + selectedEquipement.imageUrl" alt="Équipement" (click)="openImageLightbox('http://localhost:8080' + selectedEquipement.imageUrl)" style="cursor: pointer;" />
+            </div>
+
+            <div class="equip-modal-info">
+              <div class="modal-tags">
+                <div class="modal-tag-item">
+                  <span class="tag-label">Type</span>
+                  <span class="place-chip">{{ selectedEquipement.type }}</span>
+                </div>
+                <div class="modal-tag-item">
+                  <span class="tag-label">Code</span>
+                  <span class="place-chip">{{ selectedEquipement.code }}</span>
+                </div>
+                <div class="modal-tag-item">
+                  <span class="tag-label">Lieu</span>
+                  <span class="place-chip">{{ selectedEquipement.lieu }}</span>
+                </div>
+                <div class="modal-tag-item">
+                  <span class="tag-label">Total interventions</span>
+                  <span class="count-pill">{{ equipInterventions.length }}</span>
+                </div>
+              </div>
+
+              <p class="modal-help">
+                Historique complet des interventions sur cet équipement :
+              </p>
+
+              <!-- Statistiques des interventions -->
+              <div class="equip-stats-row" *ngIf="equipInterventions.length > 0" style="display: flex; gap: 1rem; margin: 1rem 0; padding: 0.75rem; background: #f9fafb; border-radius: 12px;">
+                <div class="equip-stat-item" style="flex: 1; text-align: center;">
+                  <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">À faire</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #f59e0b;">{{ getEquipStatCount('A_FAIRE') }}</div>
+                </div>
+                <div class="equip-stat-item" style="flex: 1; text-align: center;">
+                  <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">En cours</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #3b82f6;">{{ getEquipStatCount('EN_COURS') }}</div>
+                </div>
+                <div class="equip-stat-item" style="flex: 1; text-align: center;">
+                  <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">Terminées</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #16a34a;">{{ getEquipStatCount('TERMINEE') }}</div>
+                </div>
+              </div>
+
+              <div class="mini-list" *ngIf="equipInterventions.length > 0; else noEquipInterv">
+                <div class="mini-item" *ngFor="let it of equipInterventions">
+                  <div class="mini-left">
+                    <div class="mini-title">{{ it.titre }}</div>
+                    <div class="mini-meta">
+                      {{ it.dateCreation | date:'dd/MM/yyyy' }} · {{ it.lieu }}
+                    </div>
+                  </div>
+                  <div class="mini-right">
+                    <span class="status-chip" [ngClass]="{
+                      pending: it.statut === 'A_FAIRE',
+                      progress: it.statut === 'EN_COURS',
+                      done: it.statut === 'TERMINEE',
+                      cancelled: it.statut === 'ANNULEE'
+                    }">
+                      {{ it.statut === 'A_FAIRE' ? 'À faire' : it.statut === 'EN_COURS' ? 'En cours' : it.statut === 'TERMINEE' ? 'Terminée' : 'Déclinée' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <ng-template #noEquipInterv>
+                <div class="empty-inline">
+                  Aucune intervention liée trouvée.
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="closeModals()">Fermer</button>
+        </footer>
+      </section>
+
+      <!-- MODALE NOUVELLE DEMANDE -->
+      <div class="modal-backdrop" *ngIf="showNewDemandeModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2>Nouvelle demande de panne</h2>
+            <button class="icon-btn" (click)="closeModals()">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div class="form-grid">
+
+              <div class="form-field">
+                <label for="titre">Titre de la demande<span class="required">*</span></label>
+                <input
+                  id="titre"
+                  type="text"
+                  name="titre"
+                  [(ngModel)]="nouvelleDemande.titre"
+                  placeholder="Ex : PC en panne"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="lieu">Lieu<span class="required">*</span></label>
+                <input
+                  id="lieu"
+                  type="text"
+                  name="lieu"
+                  [(ngModel)]="nouvelleDemande.lieu"
+                  placeholder="Ex : PGF-SUP salle 10"
+                />
+              </div>
+
+              <!-- Type d'équipement (preset) -->
+              <div class="form-field">
+                <label for="equipementPreset">Type d'équipement<span class="required">*</span></label>
+
+                <select
+                  id="equipementPreset"
+                  name="equipementPreset"
+                  [(ngModel)]="selectedEquipementPreset"
+                  (ngModelChange)="onEquipementPresetChange()"
+                >
+                  <option value="" disabled>Choisissez un équipement…</option>
+
+                  <option *ngFor="let name of equipementsPreset" [value]="name">
+                    {{ name === 'AUTRE' ? 'Autre (équipement non listé)' : name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Champ "Autre" si nécessaire -->
+              <div class="form-field" *ngIf="selectedEquipementPreset === 'AUTRE'">
+                <label for="equipementAutre">Précisez l'équipement<span class="required">*</span></label>
+                <input
+                  id="equipementAutre"
+                  type="text"
+                  name="equipementAutre"
+                  [(ngModel)]="equipementAutre"
+                  placeholder="Ex : Lampe"
+                />
+              </div>
+
+              <!-- Urgence du demandeur -->
+              <div class="form-field">
+                <label for="urgenceDemandeur">Urgence (votre estimation)<span class="required">*</span></label>
+                <select
+                  id="urgenceDemandeur"
+                  name="urgenceDemandeur"
+                  [(ngModel)]="nouvelleDemande.urgenceDemandeur"
+                >
+                  <option [ngValue]="null" disabled>Choisissez une urgence…</option>
+                  <option [ngValue]="'BASSE'">Basse</option>
+                  <option [ngValue]="'MOYENNE'">Moyenne</option>
+                  <option [ngValue]="'HAUTE'">Haute</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="image">
+                  Image de l'équipement <span class="required">*</span>
+                </label>
+                <input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  (change)="onDemandeImageSelected($event)"
+                />
+
+                <p class="error-text" *ngIf="demandeImageError">
+                  {{ demandeImageError }}
+                </p>
+
+                <!-- Aperçu + bouton suppression -->
+                <div
+                  class="image-preview-wrapper"
+                  *ngIf="nouvelleDemande.imagePreview"
+                >
+                  <img
+                    [src]="nouvelleDemande.imagePreview"
+                    alt="Aperçu de l'image"
+                    class="image-preview"
+                  />
+                  <button
+                    type="button"
+                    class="remove-img-btn"
+                    (click)="removeDemandeImage()"
+                    aria-label="Retirer l'image"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-field form-full">
+                <label for="description">Description de la panne</label>
+                <textarea
+                  id="description"
+                  rows="4"
+                  name="description"
+                  [(ngModel)]="nouvelleDemande.description"
+                  placeholder="Décrivez la panne : symptômes, contexte, fréquence, impact sur vos activités…"
+                ></textarea>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="secondary-btn" (click)="closeModals()">
+              Annuler
+            </button>
+            <button
+              class="primary-btn"
+              (click)="submitNouvelleDemande()"
+              [disabled]="!isNouvelleDemandeValid()"
+            >
+              Enregistrer la demande
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODALE DÉTAILS DEMANDE -->
+      <section class="modal-card" *ngIf="showDemandeDetailsModal && selectedDemande">
+        <header class="modal-header">
+          <h3>Détails de la demande</h3>
+          <button type="button" class="modal-close-btn" (click)="closeModals()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="modal-main-title">
+            <h2>{{ selectedDemande.titre }}</h2>
+            <p class="modal-meta">
+              Créée le {{ selectedDemande.dateCreation | date:'dd/MM/yyyy' }} · {{ selectedDemande.lieu }}
+            </p>
+          </div>
+
+          <div class="modal-tags">
+            <div class="modal-tag-item">
+              <span class="tag-label">Statut</span>
+              <span class="status-chip" [ngClass]="{
+                pending: selectedDemande.statut === 'EN_ATTENTE',
+                progress: selectedDemande.statut === 'EN_COURS',
+                done: selectedDemande.statut === 'RESOLUE'
+              }">
+                {{ selectedDemande.statut === 'EN_ATTENTE' ? 'En attente' : selectedDemande.statut === 'EN_COURS' ? 'En cours' : 'Résolue' }}
+              </span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Urgence</span>
+              <span class="urgence-chip" [ngClass]="{
+                low: selectedDemande.urgence === 'BASSE',
+                medium: selectedDemande.urgence === 'MOYENNE',
+                high: selectedDemande.urgence === 'HAUTE'
+              }">
+                {{ selectedDemande.urgence === 'BASSE' ? 'Basse' : selectedDemande.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+              </span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Type d'équipement</span>
+              <span class="place-chip">{{ selectedDemande.typeEquipement }}</span>
+            </div>
+          </div>
+
+          <div class="modal-section" *ngIf="selectedDemande.description">
+            <h4>Description</h4>
+            <p class="description-text">{{ selectedDemande.description }}</p>
+          </div>
+
+          <div class="modal-section">
+            <h4>Image jointe</h4>
+            
+            <div *ngIf="selectedDemande.imageUrl; else noDemandeImage">
+              <button
+                class="secondary-btn small pagination-btn"
+                type="button"
+                (click)="showDemandeImageInDetails = !showDemandeImageInDetails"
+              >
+                {{ showDemandeImageInDetails ? "Masquer l'image" : "Afficher l'image" }}
+              </button>
+
+              <div class="panne-image-wrapper" *ngIf="showDemandeImageInDetails">
+                <img 
+                  [src]="selectedDemande.imageUrl" 
+                  alt="Image de la demande"
+                  (click)="openImageLightbox(selectedDemande.imageUrl)"
+                  style="cursor: pointer;"
+                />
+              </div>
+            </div>
+
+            <ng-template #noDemandeImage>
+              <p class="modal-help" style="color: #6b7280; font-style: italic;">
+                Aucune image jointe
+              </p>
+            </ng-template>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="closeModals()">Fermer</button>
+        </footer>
+      </section>
+
+      <!-- MODALE DÉTAILS MAINTENANCE PRÉVENTIVE -->
+      <section class="modal-card" *ngIf="showMaintenanceDetailsModal && selectedMaintenance">
+        <header class="modal-header">
+          <h3>{{ selectedMaintenance.statut === 'REALISEE' ? 'Détails de la maintenance réalisée' : 'Réaliser la maintenance préventive' }}</h3>
+          <button type="button" class="modal-close-btn" (click)="closeModals()">
+            <span class="material-icons">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="modal-main-title">
+            <h2>{{ selectedMaintenance.equipementReference }}</h2>
+            <p class="modal-meta" *ngIf="selectedMaintenance.typeEquipement">
+              {{ selectedMaintenance.typeEquipement }}
+            </p>
+          </div>
+
+          <div class="modal-tags">
+            <div class="modal-tag-item">
+              <span class="tag-label">Statut</span>
+              <span class="status-chip" [ngClass]="{
+                pending: selectedMaintenance.statut === 'PLANIFIEE',
+                progress: selectedMaintenance.statut === 'EN_RETARD',
+                done: selectedMaintenance.statut === 'REALISEE'
+              }">
+                {{ selectedMaintenance.statut === 'PLANIFIEE' ? 'Planifiée' : selectedMaintenance.statut === 'EN_RETARD' ? 'En retard' : selectedMaintenance.statut === 'REALISEE' ? 'Réalisée' : 'Annulée' }}
+              </span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Fréquence</span>
+              <span class="place-chip">{{ selectedMaintenance.frequence }}</span>
+            </div>
+
+            <div class="modal-tag-item">
+              <span class="tag-label">Prochaine date</span>
+              <span class="place-chip">{{ selectedMaintenance.prochaineDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+
+            <div class="modal-tag-item" *ngIf="selectedMaintenance.dateRealisee">
+              <span class="tag-label">Date de réalisation</span>
+              <span class="place-chip">{{ selectedMaintenance.dateRealisee | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="modal-section" *ngIf="selectedMaintenance.description">
+            <h4>Description de la maintenance</h4>
+            <p class="description-text">{{ selectedMaintenance.description }}</p>
+          </div>
+
+          <!-- Formulaire de réalisation (si pas encore réalisée ET pas annulée) -->
+          <div class="modal-section" *ngIf="selectedMaintenance.statut !== 'REALISEE' && selectedMaintenance.statut !== 'ANNULEE'">
+            <h4>Rapport de maintenance <span class="required-asterisk">*</span></h4>
+            <textarea
+              rows="4"
+              [(ngModel)]="maintenanceRapport"
+              placeholder="Décrivez les opérations effectuées, l'état de l'équipement, les observations..."
+            ></textarea>
+          </div>
+
+          <div class="modal-section" *ngIf="selectedMaintenance.statut !== 'REALISEE' && selectedMaintenance.statut !== 'ANNULEE'">
+            <h4>Pièces utilisées (optionnel)</h4>
+            <div class="piece-row" *ngFor="let piece of maintenancePiecesSelection; let i = index">
+              <input
+                type="text"
+                class="piece-name-input"
+                [(ngModel)]="piece.nom"
+                placeholder="Nom de la pièce"
+              />
+              <input
+                type="number"
+                class="piece-qty"
+                [(ngModel)]="piece.quantite"
+                placeholder="Qté"
+                min="1"
+              />
+              <button
+                type="button"
+                class="icon-btn remove-piece"
+                (click)="removeMaintenancePieceRow(i)"
+                *ngIf="maintenancePiecesSelection.length > 1"
+              >
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+            <button type="button" class="secondary-btn add-piece-btn" (click)="addMaintenancePieceRow()">
+              <span class="material-icons">add</span>
+              Ajouter une pièce
+            </button>
+          </div>
+
+          <!-- Message si maintenance annulée -->
+          <div class="modal-section" *ngIf="selectedMaintenance.statut === 'ANNULEE'">
+            <div class="alert-box warning">
+              <span class="material-icons">warning</span>
+              <div>
+                <strong>Maintenance annulée</strong>
+                <p>Cette maintenance préventive a été annulée. Vous ne pouvez plus la modifier.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Affichage du rapport si déjà réalisée -->
+          <div class="modal-section" *ngIf="selectedMaintenance.statut === 'REALISEE' && selectedMaintenance.rapport">
+            <h4>Rapport de maintenance</h4>
+            <p class="description-text">{{ selectedMaintenance.rapport }}</p>
+          </div>
+
+          <!-- Affichage des pièces si déjà réalisée -->
+          <div class="modal-section" *ngIf="selectedMaintenance.statut === 'REALISEE' && selectedMaintenance.piecesUtilisees">
+            <h4>Pièces utilisées</h4>
+            <div class="mini-list">
+              <div class="mini-item" *ngFor="let piece of parseMaintenancePiecesUtilisees(selectedMaintenance.piecesUtilisees)">
+                <div>
+                  <div class="mini-title">{{ piece.nom }}</div>
+                </div>
+                <span class="count-pill">{{ piece.quantite }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="secondary-btn" (click)="closeModals()">Fermer</button>
+          <button 
+            type="button" 
+            class="primary-btn" 
+            *ngIf="selectedMaintenance.statut !== 'REALISEE' && selectedMaintenance.statut !== 'ANNULEE'"
+            [disabled]="!maintenanceRapport.trim()"
+            (click)="realiserMaintenance()"
+          >
+            <span class="material-icons">check_circle</span>
+            Marquer comme réalisée
+          </button>
+        </footer>
+      </section>
+
+      <!-- TOAST -->
+      <div
+        class="toast"
+        *ngIf="toastVisible"
+        [ngClass]="{ success: toastType === 'success', danger: toastType === 'danger', info: toastType === 'info' }"
+      >
+        <span class="material-icons toast-icon">
+          {{ toastType === 'success' ? 'check_circle' : toastType === 'danger' ? 'error' : 'info' }}
+        </span>
+        <span class="toast-message">{{ toastMessage }}</span>
+      </div>
+
+      <!-- LIGHTBOX pour agrandir l'image -->
+      <div
+        class="image-lightbox-overlay"
+        *ngIf="isImageLightboxOpen"
+        (click)="closeImageLightbox()"
+      >
+        <div class="lightbox-content" (click)="$event.stopPropagation()">
+          <button class="lightbox-close" type="button" (click)="closeImageLightbox()">
+            ✕
+          </button>
+          <img
+            class="lightbox-image"
+            [src]="lightboxImageSrc!"
+            alt="Zoom image panne"
+          />
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ===== MODALE DE CONFIRMATION DE DÉCONNEXION (EXTÉRIEURE AU BLUR) ===== -->
+<div class="modal-overlay" *ngIf="showLogoutModal" (click)="closeLogoutModal()">
+  <div class="modal-content logout-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la déconnexion</h3>
+      <button class="modal-close" (click)="closeLogoutModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="logout-icon">
+        <span class="material-icons">logout</span>
+      </div>
+      <p>Êtes-vous sûr de vouloir vous déconnecter ?</p>
+      <p class="logout-subtitle">Vous devrez vous reconnecter pour accéder à votre tableau de bord.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="secondary-btn" (click)="closeLogoutModal()">
+        Annuler
+      </button>
+      <button type="button" class="danger-btn" (click)="confirmLogout()">
+        <span class="material-icons">logout</span>
+        Se déconnecter
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+
