@@ -1,0 +1,99 @@
+================================================================================
+POURQUOI LE TIRET S'AFFICHE TOUJOURS?
+================================================================================
+
+Le code a ete modifie et compile avec succes.
+MAIS le backend n'a pas ete redemarre.
+
+Le backend en cours d'execution utilise encore l'ANCIENNE version du code.
+
+================================================================================
+SOLUTION EN 3 ETAPES
+================================================================================
+
+ETAPE 1: ARRETER LE BACKEND
+----------------------------
+Dans le terminal ou le backend tourne:
+  - Appuyez sur Ctrl+C
+  - Attendez que le processus se termine
+
+Si vous ne trouvez pas le terminal:
+  - Gestionnaire des taches (Ctrl+Shift+Esc)
+  - Cherchez "java.exe"
+  - Terminez le processus
+
+
+ETAPE 2: REDEMARRER LE BACKEND
+-------------------------------
+Dans le dossier backend, executez:
+
+  mvn spring-boot:run
+
+Attendez de voir:
+  "Started UaszMaintenanceBackendApplication"
+
+
+ETAPE 3: RAFRAICHIR LE FRONTEND
+--------------------------------
+Dans le navigateur:
+  - Appuyez sur Ctrl+Shift+R (rafraichissement force)
+  - Ouvrez le dashboard Responsable
+  - Verifiez l'affichage
+
+================================================================================
+VERIFICATION
+================================================================================
+
+Pour verifier que le backend a bien ete redemarre, executez:
+
+  ./verifier-backend-redemarre.ps1
+
+Ce script vous dira si:
+  - Le backend est accessible
+  - L'objet demandeur est present dans la reponse
+  - Les noms s'affichent correctement
+
+================================================================================
+RESULTAT ATTENDU
+================================================================================
+
+AVANT (ancienne version):
+  Titre: PC en panne
+  Demandeur: —
+
+APRES (nouvelle version):
+  Titre: PC en panne
+  Demandeur: Jean Dupont
+
+================================================================================
+EN CAS DE PROBLEME
+================================================================================
+
+Si le tiret s'affiche toujours apres le redemarrage:
+
+1. Verifiez que le backend a bien redemarre:
+   ./verifier-backend-redemarre.ps1
+
+2. Videz le cache du navigateur:
+   - F12 (outils dev)
+   - Onglet Network
+   - Cochez "Disable cache"
+   - Ctrl+Shift+R
+
+3. Verifiez la base de donnees:
+   - Les utilisateurs ont-ils un prenom et un nom?
+   - Table: utilisateurs
+   - Colonnes: prenom, nom
+
+================================================================================
+FICHIERS MODIFIES (DEJA FAIT)
+================================================================================
+
+✓ PanneResponse.java - Ajout demandeur
+✓ PanneService.java - Mapping demandeur
+✓ Panne.java - JsonIgnoreProperties
+✓ Compilation reussie
+
+IL NE RESTE QU'A REDEMARRER LE BACKEND!
+
+================================================================================

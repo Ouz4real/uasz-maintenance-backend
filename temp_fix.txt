@@ -1,0 +1,8 @@
+Ligne à modifier dans dashboard-responsable.component.ts ligne 1270:
+AVANT: nom: dto.nom ?? '—',
+APRÈS: nom: dto.nom ?? '—',
+       prenom: dto.prenom ?? null,
+
+Ligne à modifier ligne 1274:
+AVANT: serviceUnite: null,
+APRÈS: serviceUnite: dto.serviceUnite ?? null,

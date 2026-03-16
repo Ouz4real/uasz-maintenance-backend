@@ -1,0 +1,56 @@
+feat: Implémentation du système de refus d'intervention (80% terminé)
+
+🎯 Fonctionnalités implémentées:
+
+Backend (100% ✅):
+- Ajout du statut REFUSEE dans StatutIntervention
+- Ajout des champs raisonRefus et dateRefus dans Intervention
+- Méthode refuserIntervention() dans InterventionService
+- Endpoint POST /api/interventions/{id}/refuser
+- Notification automatique au responsable (type WARNING)
+
+Frontend Technicien (100% ✅):
+- Méthode refuserIntervention() dans PannesService
+- Modale de refus avec textarea pour la raison
+- Validation: minimum 10 caractères
+- Compteur de caractères (0/500)
+- Bouton désactivé si raison invalide
+- Appel API + rechargement automatique des interventions
+- Toast de succès/erreur
+
+Frontend Responsable (20% ⏳):
+- À implémenter: Affichage des interventions refusées
+- À implémenter: Affichage de la raison du refus
+- À implémenter: Réaffectation à un autre technicien
+
+📊 Statistiques:
+- Backend: 4 fichiers modifiés, ~77 lignes ajoutées
+- Frontend: 3 fichiers modifiés, ~68 lignes ajoutées
+- Documentation: 8 fichiers créés, ~2100 lignes
+- Scripts: 2 fichiers créés
+
+📝 Documentation:
+- REFUS_INTERVENTION_COMPLET.md - Documentation complète
+- REFUS_INTERVENTION_GUIDE_TEST.md - Guide de test
+- TODO_FRONTEND_RESPONSABLE.md - Guide pour la suite
+- QUICK_START_REFUS.md - Démarrage rapide
+- test-refus-intervention.ps1 - Test automatique
+
+🧪 Tests:
+- Test automatique disponible (test-refus-intervention.ps1)
+- Guide de test manuel complet
+- Aucune erreur de compilation
+
+🔄 Flux:
+1. Technicien reçoit une intervention
+2. Technicien peut refuser avec une raison (≥ 10 caractères)
+3. Intervention marquée comme REFUSEE
+4. Responsable reçoit une notification avec la raison
+5. (À implémenter) Responsable peut réaffecter
+
+⏭️ Prochaines étapes:
+- Implémenter l'affichage des refus (responsable)
+- Implémenter la réaffectation (responsable)
+- Tests end-to-end complets
+
+Closes #[numéro_issue]

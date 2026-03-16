@@ -1,0 +1,80 @@
+<div class="notification-bell-container">
+  <!-- Bouton cloche avec badge -->
+  <button class="bell-button" (click)="togglePanel()" [title]="'Notifications (' + unreadCount + ')'">
+    <span class="material-icons">notifications</span>
+    <span class="badge" *ngIf="unreadCount > 0" [style.background-color]="themeColor">
+      {{ unreadCount > 99 ? '99+' : unreadCount }}
+    </span>
+  </button>
+  
+  <!-- Panel de notifications -->
+  <div class="notification-panel" *ngIf="showPanel">
+    <div class="panel-header">
+      <h3>Notifications</h3>
+      <div class="header-actions">
+        <button 
+          class="text-btn" 
+          (click)="markAllAsRead()" 
+          *ngIf="unreadCount > 0"
+          [style.color]="themeColor"
+        >
+          Tout marquer comme lu
+        </button>
+        <button class="close-btn" (click)="closePanel()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="panel-body">
+      <!-- Loading -->
+      <div class="loading-state" *ngIf="loading">
+        <span class="material-icons spinning">refresh</span>
+        <p>Chargement...</p>
+      </div>
+      
+      <!-- Liste vide -->
+      <div class="empty-state" *ngIf="!loading && notifications.length === 0">
+        <span class="material-icons">notifications_none</span>
+        <p>Aucune notification</p>
+      </div>
+      
+      <!-- Liste des notifications -->
+      <div class="notifications-list" *ngIf="!loading && notifications.length > 0">
+        <div 
+          class="notification-item" 
+          *ngFor="let notif of notifications"
+          [class.unread]="!notif.lu"
+          (click)="markAsRead(notif, $event)"
+        >
+          <div class="notif-icon" [style.background-color]="getColor(notif.type) + '20'">
+            <span class="material-icons" [style.color]="getColor(notif.type)">
+              {{ getIcon(notif.type) }}
+            </span>
+          </div>
+          
+          <div class="notif-content">
+            <div class="notif-title">{{ notif.titre }}</div>
+            <div class="notif-message" [title]="notif.message">{{ notif.message }}</div>
+            <div class="notif-time">{{ getRelativeTime(notif.dateCreation) }}</div>
+          </div>
+          
+          <div class="notif-actions">
+            <button 
+              class="delete-btn" 
+              (click)="deleteNotification(notif.id, $event)"
+              title="Supprimer"
+            >
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          
+          <div class="unread-indicator" *ngIf="!notif.lu" [style.background-color]="themeColor"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Backdrop pour fermer le panel -->
+  <div class="panel-backdrop" *ngIf="showPanel" (click)="closePanel()"></div>
+</div>

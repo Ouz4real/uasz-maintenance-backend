@@ -1,0 +1,2526 @@
+<!-- src/app/pages/dashboard/dashboardSuperviseur/dashboard-superviseur.component.html -->
+
+<!-- Notification Toast -->
+<div *ngIf="showNotification" 
+     class="toast-notification"
+     [ngClass]="{
+       'toast-success': notificationType === 'success',
+       'toast-error': notificationType === 'error',
+       'toast-warning': notificationType === 'warning'
+     }">
+  <div class="toast-content">
+    <span class="material-icons toast-icon">
+      {{ notificationType === 'success' ? 'check_circle' : notificationType === 'warning' ? 'warning' : 'error_outline' }}
+    </span>
+    <p class="toast-message">{{ notificationMessage }}</p>
+    <button class="toast-close" (click)="closeNotification()">
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+</div>
+
+<div class="dashboard-layout" [class.blur-background]="showLogoutModal || showNewDemandeModal || showDemandeDetailsModal">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="avatar-circle">{{ usernameInitial }}</div>
+      <div class="sidebar-title">
+        <h1>Maintenance UASZ</h1>
+        <p>Supervision globale</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'dashboard'"
+        (click)="setActive('dashboard')"
+      >
+        <span class="nav-icon material-icons">dashboard</span>
+        <span class="nav-label">Tableau de bord</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'signalements'"
+        (click)="setActive('signalements')"
+      >
+        <span class="nav-icon material-icons">assignment</span>
+        <span class="nav-label">Signalements</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'interventions'"
+        (click)="setActive('interventions')"
+      >
+        <span class="nav-icon material-icons">handyman</span>
+        <span class="nav-label">Interventions</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'equipements'"
+        (click)="setActive('equipements')"
+      >
+        <span class="nav-icon material-icons">devices</span>
+        <span class="nav-label">Équipements</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'mes-demandes'"
+        (click)="setActive('mes-demandes')"
+      >
+        <span class="nav-icon material-icons">build</span>
+        <span class="nav-label">Mes demandes</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'stats'"
+        (click)="setActive('stats')"
+      >
+        <span class="nav-icon material-icons">bar_chart</span>
+        <span class="nav-label">Rapports & Stats</span>
+      </button>
+
+      <button
+        class="nav-item"
+        [class.active]="activeItem === 'help'"
+        (click)="setActive('help')"
+      >
+        <span class="nav-icon material-icons">help_outline</span>
+        <span class="nav-label">Aide & Support</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2>
+          <ng-container *ngIf="activeItem === 'dashboard'">Tableau de bord · Superviseur</ng-container>
+          <ng-container *ngIf="activeItem === 'signalements'">Signalements · Statistiques des pannes</ng-container>
+          <ng-container *ngIf="activeItem === 'interventions'">Interventions · Statistiques</ng-container>
+          <ng-container *ngIf="activeItem === 'equipements'">Équipements</ng-container>
+          <ng-container *ngIf="activeItem === 'mes-demandes'">Mes demandes</ng-container>
+          <ng-container *ngIf="activeItem === 'stats'">Rapports & Stats</ng-container>
+          <ng-container *ngIf="activeItem === 'profil'">Mon profil</ng-container>
+          <ng-container *ngIf="activeItem === 'help'">Aide & Support</ng-container>
+        </h2>
+        <p>
+          <ng-container *ngIf="activeItem === 'dashboard'">Vue globale des signalements, interventions, performance.</ng-container>
+          <ng-container *ngIf="activeItem === 'signalements'">Analyse détaillée des pannes par statut et priorité.</ng-container>
+          <ng-container *ngIf="activeItem === 'interventions'">Suivi des interventions et temps de réalisation.</ng-container>
+          <ng-container *ngIf="activeItem === 'equipements'">Gestion du parc d'équipements.</ng-container>
+          <ng-container *ngIf="activeItem === 'stats'">Rapports et analyses statistiques.</ng-container>
+          <ng-container *ngIf="activeItem === 'profil'">Gérez vos informations personnelles.</ng-container>
+          <ng-container *ngIf="activeItem === 'help'">Documentation et assistance.</ng-container>
+        </p>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Composant de notification -->
+        <app-notification-bell 
+          [themeColor]="'#7c3aed'"
+          (notificationClicked)="onNotificationClicked($event)">
+        </app-notification-bell>
+        
+        <!-- Bouton rond avec les 3 bandes horizontales -->
+        <button
+          class="topbar-menu-btn"
+          (click)="toggleUserMenu()"
+          aria-label="Menu utilisateur"
+        >
+          <span class="material-icons">menu</span>
+        </button>
+
+        <!-- Overlay clic extérieur pour fermer le menu -->
+        <div
+          class="user-menu-overlay"
+          *ngIf="userMenuOpen"
+          (click)="closeUserMenu()"
+        ></div>
+
+        <!-- MENU UTILISATEUR -->
+        <div *ngIf="userMenuOpen" class="user-menu">
+          <div class="user-menu-header">
+            <div class="menu-avatar">{{ usernameInitial }}</div>
+            <div>
+              <div class="menu-name">{{ username }}</div>
+              <div class="menu-role">superviseur</div>
+            </div>
+          </div>
+
+          <div class="user-menu-body">
+            <button class="menu-item" (click)="goToDashboard()">
+              <span class="menu-icon material-icons">dashboard</span>
+              Tableau de bord
+            </button>
+
+            <button class="menu-item" (click)="openProfile()">
+              <span class="menu-icon material-icons">person</span>
+              Mon profil
+            </button>
+          </div>
+
+          <div class="user-menu-footer">
+            <button class="menu-item logout" (click)="openLogoutModal()">
+              <span class="menu-icon material-icons">logout</span>
+              Se déconnecter
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== CONTENU ===== -->
+    <section class="content">
+      <!-- WELCOME -->
+      <section class="welcome-card" *ngIf="activeItem === 'dashboard'">
+        <h1>Bienvenue, {{ username }}</h1>
+        <p>
+          Supervision globale du parc, des pannes, interventions et statistiques générales.
+        </p>
+      </section>
+
+      <!-- Loading state -->
+      <div *ngIf="isLoading" class="loading-state">
+        <p>Chargement des données...</p>
+      </div>
+
+      <!-- Error state -->
+      <div *ngIf="errorMessage && !isLoading" class="error-state">
+        <span class="material-icons">error_outline</span>
+        <p>{{ errorMessage }}</p>
+        <button class="primary-btn" (click)="loadDashboardData()">Réessayer</button>
+      </div>
+
+      <!-- Dashboard content -->
+      <ng-container *ngIf="dashboardData && !isLoading">
+        <!-- STATS PANNES (visible sur dashboard et signalements) -->
+        <section class="stats-section" *ngIf="activeItem === 'dashboard' || activeItem === 'signalements'">
+          <h2 class="section-title">
+            <span class="material-icons">assignment</span>
+            Statistiques des pannes
+          </h2>
+          
+          <!-- Filtres de période (visible uniquement dans Signalements) -->
+          <div *ngIf="activeItem === 'signalements'" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label style="font-size: 0.9rem; color: #4b5563;">Du:</label>
+              <input 
+                type="date" 
+                [(ngModel)]="dateDebut"
+                [max]="maxDate"
+                (change)="onDateChange()"
+                style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.9rem;"
+              />
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label style="font-size: 0.9rem; color: #4b5563;">Au:</label>
+              <input 
+                type="date" 
+                [(ngModel)]="dateFin"
+                [max]="maxDate"
+                (change)="onDateChange()"
+                style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.9rem;"
+              />
+            </div>
+            
+            <button 
+              class="secondary-btn" 
+              (click)="resetDates()"
+              style="display: flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.8rem;"
+            >
+              <span class="material-icons" style="font-size: 18px;">refresh</span>
+              Réinitialiser
+            </button>
+            
+            <button 
+              class="primary-btn" 
+              (click)="exportToPDF()" 
+              [disabled]="!datesValidSignalements"
+                style="display: flex; align-items: center; gap: 0.5rem;"
+              >
+                <span class="material-icons" style="font-size: 18px;">picture_as_pdf</span>
+                Exporter en PDF
+              </button>
+          </div>
+          
+          <!-- Cartes de statistiques (visible uniquement sur dashboard) -->
+          <div class="stats-row" *ngIf="activeItem === 'dashboard'">
+            <article class="stat-card">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">list_alt</span>
+                <h3>Total pannes</h3>
+              </div>
+              <div class="stat-value">{{ displayData!.totalPannes }}</div>
+              <p class="stat-description">Pannes enregistrées</p>
+            </article>
+
+            <article class="stat-card status-pending">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">schedule</span>
+                <h3>En attente</h3>
+              </div>
+              <div class="stat-value">{{ displayData!.pannesOuvertes }}</div>
+              <p class="stat-description">Non assignées</p>
+            </article>
+
+            <article class="stat-card status-progress">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">build</span>
+                <h3>En cours</h3>
+              </div>
+              <div class="stat-value">{{ displayData!.pannesEnCours }}</div>
+              <p class="stat-description">En traitement</p>
+            </article>
+
+            <article class="stat-card status-done">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">check_circle</span>
+                <h3>Résolues</h3>
+              </div>
+              <div class="stat-value">{{ displayData!.pannesResolues }}</div>
+              <p class="stat-description">Terminées</p>
+            </article>
+
+            <article class="stat-card status-cancelled">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">cancel</span>
+                <h3>Annulées</h3>
+              </div>
+              <div class="stat-value">{{ displayData!.pannesAnnulees }}</div>
+              <p class="stat-description">Non traitées</p>
+            </article>
+          </div>
+
+          <!-- Diagramme en barres -->
+          <div class="chart-container">
+            <div class="chart-header">
+              <h3 class="chart-title">Répartition des pannes par statut</h3>
+              <div class="chart-type-selector">
+                <button 
+                  class="chart-type-btn" 
+                  [class.active]="chartTypePannes === 'vertical'"
+                  (click)="setChartTypePannes('vertical')"
+                  title="Barres verticales"
+                >
+                  <span class="material-icons">bar_chart</span>
+                </button>
+                <button 
+                  class="chart-type-btn" 
+                  [class.active]="chartTypePannes === 'pie'"
+                  (click)="setChartTypePannes('pie')"
+                  title="Diagramme circulaire"
+                >
+                  <span class="material-icons">pie_chart</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Graphique vertical -->
+            <div class="vertical-bar-chart" *ngIf="chartTypePannes === 'vertical'">
+              <div class="vertical-bars-container">
+                <!-- Barre En attente -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill status-pending" 
+                      [style.height.%]="(displayData!.pannesOuvertes / displayData!.totalPannes) * 100"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesOuvertes }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">En attente</div>
+                </div>
+
+                <!-- Barre En cours -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill status-progress" 
+                      [style.height.%]="(displayData!.pannesEnCours / displayData!.totalPannes) * 100"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesEnCours }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">En cours</div>
+                </div>
+
+                <!-- Barre Résolues -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill status-done" 
+                      [style.height.%]="(displayData!.pannesResolues / displayData!.totalPannes) * 100"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesResolues }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">Résolues</div>
+                </div>
+
+                <!-- Barre Annulées -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill status-cancelled" 
+                      [style.height.%]="(displayData!.pannesAnnulees / displayData!.totalPannes) * 100"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesAnnulees }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">Annulées</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Diagramme circulaire -->
+            <div class="pie-chart-wrapper" *ngIf="chartTypePannes === 'pie'">
+              <!-- Le diagramme circulaire -->
+              <div class="pie-chart">
+                <svg viewBox="0 0 200 200" class="pie-svg">
+                  <!-- Segment En attente (orange) -->
+                  <circle
+                    *ngIf="displayData!.pannesOuvertes > 0"
+                    class="pie-segment pie-pending"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegment(displayData!.pannesOuvertes, displayData!.totalPannes) + ' ' + (502.4 - getPieSegment(displayData!.pannesOuvertes, displayData!.totalPannes))"
+                    [attr.stroke-dashoffset]="getPieOffset(0)"
+                  />
+                  
+                  <!-- Segment En cours (bleu) -->
+                  <circle
+                    *ngIf="displayData!.pannesEnCours > 0"
+                    class="pie-segment pie-progress"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegment(displayData!.pannesEnCours, displayData!.totalPannes) + ' ' + (502.4 - getPieSegment(displayData!.pannesEnCours, displayData!.totalPannes))"
+                    [attr.stroke-dashoffset]="getPieOffset(displayData!.pannesOuvertes)"
+                  />
+                  
+                  <!-- Segment Résolues (vert) -->
+                  <circle
+                    *ngIf="displayData!.pannesResolues > 0"
+                    class="pie-segment pie-done"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegment(displayData!.pannesResolues, displayData!.totalPannes) + ' ' + (502.4 - getPieSegment(displayData!.pannesResolues, displayData!.totalPannes))"
+                    [attr.stroke-dashoffset]="getPieOffset(displayData!.pannesOuvertes + displayData!.pannesEnCours)"
+                  />
+                  
+                  <!-- Segment Annulées (gris) -->
+                  <circle
+                    *ngIf="displayData!.pannesAnnulees > 0"
+                    class="pie-segment pie-cancelled"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegment(displayData!.pannesAnnulees, displayData!.totalPannes) + ' ' + (502.4 - getPieSegment(displayData!.pannesAnnulees, displayData!.totalPannes))"
+                    [attr.stroke-dashoffset]="getPieOffset(displayData!.pannesOuvertes + displayData!.pannesEnCours + displayData!.pannesResolues)"
+                  />
+                  
+                  <!-- Centre blanc -->
+                  <circle cx="100" cy="100" r="60" fill="#ffffff" />
+                  
+                  <!-- Texte central -->
+                  <text x="100" y="95" text-anchor="middle" dominant-baseline="auto" class="pie-center-value">{{ displayData!.totalPannes }}</text>
+                  <text x="100" y="115" text-anchor="middle" dominant-baseline="auto" class="pie-center-label">Total</text>
+                </svg>
+              </div>
+
+              <!-- Légende -->
+              <div class="pie-legend">
+                <div class="legend-item">
+                  <span class="legend-color legend-pending"></span>
+                  <span class="legend-label">En attente</span>
+                  <span class="legend-value">{{ displayData!.pannesOuvertes }} ({{ getPiePercentage(displayData!.pannesOuvertes, displayData!.totalPannes) }}%)</span>
+                </div>
+                
+                <div class="legend-item">
+                  <span class="legend-color legend-progress"></span>
+                  <span class="legend-label">En cours</span>
+                  <span class="legend-value">{{ displayData!.pannesEnCours }} ({{ getPiePercentage(displayData!.pannesEnCours, displayData!.totalPannes) }}%)</span>
+                </div>
+                
+                <div class="legend-item">
+                  <span class="legend-color legend-done"></span>
+                  <span class="legend-label">Résolues</span>
+                  <span class="legend-value">{{ displayData!.pannesResolues }} ({{ getPiePercentage(displayData!.pannesResolues, displayData!.totalPannes) }}%)</span>
+                </div>
+                
+                <div class="legend-item">
+                  <span class="legend-color legend-cancelled"></span>
+                  <span class="legend-label">Annulées</span>
+                  <span class="legend-value">{{ displayData!.pannesAnnulees }} ({{ getPiePercentage(displayData!.pannesAnnulees, displayData!.totalPannes) }}%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STATS PRIORITÉS (visible sur dashboard et signalements) -->
+        <section class="stats-section" *ngIf="activeItem === 'dashboard' || activeItem === 'signalements'">
+          <h2 class="section-title">
+            <span class="material-icons">priority_high</span>
+            Répartition par priorité
+          </h2>
+          
+          <!-- Cartes de statistiques (visible uniquement sur dashboard) -->
+          <div class="stats-row priority-row" *ngIf="activeItem === 'dashboard'">
+            <article class="stat-card priority-high">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">warning</span>
+                <h3>Priorité Haute</h3>
+              </div>
+              <div class="stat-value">{{ displayData!.pannesPrioriteHaute }}</div>
+              <p class="stat-description">Urgences critiques</p>
+            </article>
+
+            <article class="stat-card priority-medium">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">info</span>
+                <h3>Priorité Moyenne</h3>
+              </div>
+              <div class="stat-value">{{ displayData!.pannesPrioriteMoyenne }}</div>
+              <p class="stat-description">Traitement standard</p>
+            </article>
+
+            <article class="stat-card priority-low">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">low_priority</span>
+                <h3>Priorité Basse</h3>
+              </div>
+              <div class="stat-value">{{ displayData!.pannesPrioriteBasse }}</div>
+              <p class="stat-description">Non urgentes</p>
+            </article>
+          </div>
+
+          <!-- Diagramme en barres -->
+          <div class="chart-container">
+            <div class="chart-header">
+              <h3 class="chart-title">Distribution des priorités</h3>
+              <div class="chart-type-selector">
+                <button 
+                  class="chart-type-btn" 
+                  [class.active]="chartTypePriorites === 'vertical'"
+                  (click)="setChartTypePriorites('vertical')"
+                  title="Barres verticales"
+                >
+                  <span class="material-icons">bar_chart</span>
+                </button>
+                <button 
+                  class="chart-type-btn" 
+                  [class.active]="chartTypePriorites === 'pie'"
+                  (click)="setChartTypePriorites('pie')"
+                  title="Diagramme circulaire"
+                >
+                  <span class="material-icons">pie_chart</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Graphique vertical -->
+            <div class="vertical-bar-chart" *ngIf="chartTypePriorites === 'vertical'">
+              <div class="vertical-bars-container">
+                <!-- Barre Priorité Haute -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill priority-high-bar" 
+                      [style.height.%]="(displayData!.pannesPrioriteHaute / displayData!.totalPannes) * 100"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesPrioriteHaute }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">Priorité Haute</div>
+                </div>
+
+                <!-- Barre Priorité Moyenne -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill priority-medium-bar" 
+                      [style.height.%]="(displayData!.pannesPrioriteMoyenne / displayData!.totalPannes) * 100"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesPrioriteMoyenne }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">Priorité Moyenne</div>
+                </div>
+
+                <!-- Barre Priorité Basse -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill priority-low-bar" 
+                      [style.height.%]="(displayData!.pannesPrioriteBasse / displayData!.totalPannes) * 100"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesPrioriteBasse }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">Priorité Basse</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Diagramme circulaire des priorités -->
+            <div class="pie-chart-wrapper" *ngIf="chartTypePriorites === 'pie'">
+              <!-- Le diagramme circulaire -->
+              <div class="pie-chart">
+                <svg viewBox="0 0 200 200" class="pie-svg">
+                  <!-- Segment Priorité Haute (rouge) -->
+                  <circle
+                    *ngIf="displayData!.pannesPrioriteHaute > 0"
+                    class="pie-segment pie-priority-high"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegment(displayData!.pannesPrioriteHaute, displayData!.totalPannes) + ' ' + (502.4 - getPieSegment(displayData!.pannesPrioriteHaute, displayData!.totalPannes))"
+                    [attr.stroke-dashoffset]="getPieOffset(0)"
+                  />
+                  
+                  <!-- Segment Priorité Moyenne (orange) -->
+                  <circle
+                    *ngIf="displayData!.pannesPrioriteMoyenne > 0"
+                    class="pie-segment pie-priority-medium"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegment(displayData!.pannesPrioriteMoyenne, displayData!.totalPannes) + ' ' + (502.4 - getPieSegment(displayData!.pannesPrioriteMoyenne, displayData!.totalPannes))"
+                    [attr.stroke-dashoffset]="getPieOffset(displayData!.pannesPrioriteHaute)"
+                  />
+                  
+                  <!-- Segment Priorité Basse (vert) -->
+                  <circle
+                    *ngIf="displayData!.pannesPrioriteBasse > 0"
+                    class="pie-segment pie-priority-low"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegment(displayData!.pannesPrioriteBasse, displayData!.totalPannes) + ' ' + (502.4 - getPieSegment(displayData!.pannesPrioriteBasse, displayData!.totalPannes))"
+                    [attr.stroke-dashoffset]="getPieOffset(displayData!.pannesPrioriteHaute + displayData!.pannesPrioriteMoyenne)"
+                  />
+                  
+                  <!-- Centre blanc -->
+                  <circle cx="100" cy="100" r="60" fill="#ffffff" />
+                  
+                  <!-- Texte central -->
+                  <text x="100" y="95" text-anchor="middle" dominant-baseline="auto" class="pie-center-value">{{ displayData!.totalPannes }}</text>
+                  <text x="100" y="115" text-anchor="middle" dominant-baseline="auto" class="pie-center-label">Total</text>
+                </svg>
+              </div>
+
+              <!-- Légende -->
+              <div class="pie-legend">
+                <div class="legend-item">
+                  <span class="legend-color legend-priority-high"></span>
+                  <span class="legend-label">Priorité Haute</span>
+                  <span class="legend-value">{{ displayData!.pannesPrioriteHaute }} ({{ getPiePercentage(displayData!.pannesPrioriteHaute, displayData!.totalPannes) }}%)</span>
+                </div>
+                
+                <div class="legend-item">
+                  <span class="legend-color legend-priority-medium"></span>
+                  <span class="legend-label">Priorité Moyenne</span>
+                  <span class="legend-value">{{ displayData!.pannesPrioriteMoyenne }} ({{ getPiePercentage(displayData!.pannesPrioriteMoyenne, displayData!.totalPannes) }}%)</span>
+                </div>
+                
+                <div class="legend-item">
+                  <span class="legend-color legend-priority-low"></span>
+                  <span class="legend-label">Priorité Basse</span>
+                  <span class="legend-value">{{ displayData!.pannesPrioriteBasse }} ({{ getPiePercentage(displayData!.pannesPrioriteBasse, displayData!.totalPannes) }}%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- INDICATEURS DE PERFORMANCE (visible uniquement sur dashboard) -->
+        <section class="stats-section" *ngIf="activeItem === 'dashboard'">
+          <h2 class="section-title">
+            <span class="material-icons">speed</span>
+            Indicateurs de performance
+          </h2>
+          
+          <div class="stats-row performance-row">
+            <article class="stat-card performance">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">timer</span>
+                <h3>MTTR (Temps moyen de résolution)</h3>
+              </div>
+              <div class="stat-value">{{ formatTemps(fullData!.tempsMoyenResolutionMinutes) }}</div>
+              <p class="stat-description">Mean Time To Repair</p>
+            </article>
+
+            <article class="stat-card performance">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">devices</span>
+                <h3>Équipements impactés</h3>
+              </div>
+              <div class="stat-value">{{ fullData!.nombreEquipementsImpactes }}</div>
+              <p class="stat-description">Avec au moins une panne</p>
+            </article>
+
+            <article class="stat-card performance">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">trending_up</span>
+                <h3>Taux de résolution</h3>
+              </div>
+              <div class="stat-value">{{ tauxResolution }}%</div>
+              <p class="stat-description">Pannes résolues / Total</p>
+            </article>
+          </div>
+        </section>
+
+        <!-- STATS INTERVENTIONS (visible sur dashboard et interventions) -->
+        <section class="stats-section" *ngIf="activeItem === 'dashboard' || activeItem === 'interventions'">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+            <h2 class="section-title">
+              <span class="material-icons">handyman</span>
+              Statistiques des interventions
+            </h2>
+            
+            <!-- Filtres de période (visible uniquement dans Interventions) -->
+            <div *ngIf="activeItem === 'interventions'" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label style="font-size: 0.9rem; color: #4b5563;">Du:</label>
+                <input 
+                  type="date" 
+                  [(ngModel)]="dateDebutInterventions"
+                  [max]="maxDate"
+                  (change)="onDateChangeInterventions()"
+                  style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.9rem;"
+                />
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label style="font-size: 0.9rem; color: #4b5563;">Au:</label>
+                <input 
+                  type="date" 
+                  [(ngModel)]="dateFinInterventions"
+                  [max]="maxDate"
+                  (change)="onDateChangeInterventions()"
+                  style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.9rem;"
+                />
+              </div>
+              
+              <button 
+                class="secondary-btn" 
+                (click)="resetDatesInterventions()"
+                style="display: flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.8rem;"
+              >
+                <span class="material-icons" style="font-size: 18px;">refresh</span>
+                Réinitialiser
+              </button>
+              
+              <button 
+                class="primary-btn" 
+                (click)="exportInterventionsToPDF()" 
+                [disabled]="!datesValidInterventions"
+                style="display: flex; align-items: center; gap: 0.5rem;"
+              >
+                <span class="material-icons" style="font-size: 18px;">picture_as_pdf</span>
+                Exporter en PDF
+              </button>
+            </div>
+          </div>
+          
+          <!-- Cartes de statistiques (visible uniquement sur dashboard) -->
+          <div class="stats-row" *ngIf="activeItem === 'dashboard'">
+            <article class="stat-card">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">list_alt</span>
+                <h3>Total interventions</h3>
+              </div>
+              <div class="stat-value">{{ fullData!.totalInterventions }}</div>
+              <p class="stat-description">Toutes interventions</p>
+            </article>
+
+            <article class="stat-card status-pending">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">event</span>
+                <h3>Planifiées</h3>
+              </div>
+              <div class="stat-value">{{ fullData!.interventionsPlanifiees }}</div>
+              <p class="stat-description">À venir</p>
+            </article>
+
+            <article class="stat-card status-progress">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">build_circle</span>
+                <h3>En cours</h3>
+              </div>
+              <div class="stat-value">{{ fullData!.interventionsEnCours }}</div>
+              <p class="stat-description">En réalisation</p>
+            </article>
+
+            <article class="stat-card status-done">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">task_alt</span>
+                <h3>Terminées</h3>
+              </div>
+              <div class="stat-value">{{ fullData!.interventionsTerminees }}</div>
+              <p class="stat-description">Complétées</p>
+            </article>
+
+            <article class="stat-card status-cancelled">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">block</span>
+                <h3>Annulées</h3>
+              </div>
+              <div class="stat-value">{{ fullData!.interventionsAnnulees }}</div>
+              <p class="stat-description">Non réalisées</p>
+            </article>
+          </div>
+
+          <!-- Graphique des signalements (pannes) -->
+          <div class="chart-container">
+            <div class="chart-header">
+              <h3 class="chart-title">Répartition des signalements par statut</h3>
+              <div class="chart-type-selector">
+                <button 
+                  class="chart-type-btn" 
+                  [class.active]="chartTypeInterventions === 'vertical'"
+                  (click)="setChartTypeInterventions('vertical')"
+                  title="Barres verticales"
+                >
+                  <span class="material-icons">bar_chart</span>
+                </button>
+                <button 
+                  class="chart-type-btn" 
+                  [class.active]="chartTypeInterventions === 'pie'"
+                  (click)="setChartTypeInterventions('pie')"
+                  title="Diagramme circulaire"
+                >
+                  <span class="material-icons">pie_chart</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Graphique vertical -->
+            <div class="vertical-bar-chart" *ngIf="chartTypeInterventions === 'vertical'">
+              <div class="vertical-bars-container">
+                <!-- Barre Planifiées -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill status-pending" 
+                      [style.height.%]="getTotalInterventionsForChart() > 0 ? (displayData!.interventionsPlanifiees / getTotalInterventionsForChart()) * 100 : 0"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.interventionsPlanifiees }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">Planifiées</div>
+                </div>
+
+                <!-- Barre En cours -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill status-progress" 
+                      [style.height.%]="getTotalInterventionsForChart() > 0 ? (displayData!.pannesEnCours / getTotalInterventionsForChart()) * 100 : 0"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesEnCours }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">En cours</div>
+                </div>
+
+                <!-- Barre Résolues -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill status-done" 
+                      [style.height.%]="getTotalInterventionsForChart() > 0 ? (displayData!.pannesResolues / getTotalInterventionsForChart()) * 100 : 0"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesResolues }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">Résolues</div>
+                </div>
+
+                <!-- Barre Annulées -->
+                <div class="vertical-bar-item">
+                  <div class="vertical-bar-track">
+                    <div 
+                      class="vertical-bar-fill status-cancelled" 
+                      [style.height.%]="getTotalInterventionsForChart() > 0 ? (displayData!.pannesAnnulees / getTotalInterventionsForChart()) * 100 : 0"
+                    >
+                      <span class="vertical-bar-value">{{ displayData!.pannesAnnulees }}</span>
+                    </div>
+                  </div>
+                  <div class="vertical-bar-label">Annulées</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Diagramme circulaire des signalements -->
+            <div class="pie-chart-wrapper" *ngIf="chartTypeInterventions === 'pie'">
+              <!-- Le diagramme circulaire -->
+              <div class="pie-chart">
+                <svg viewBox="0 0 200 200" class="pie-svg">
+                  <!-- Segment Planifiées (orange) -->
+                  <circle
+                    *ngIf="displayData!.interventionsPlanifiees > 0"
+                    class="pie-segment pie-pending"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegmentInterventions(displayData!.interventionsPlanifiees) + ' ' + (502.4 - getPieSegmentInterventions(displayData!.interventionsPlanifiees))"
+                    [attr.stroke-dashoffset]="getPieOffsetInterventions(0)"
+                  />
+                  
+                  <!-- Segment En cours (bleu) -->
+                  <circle
+                    *ngIf="displayData!.pannesEnCours > 0"
+                    class="pie-segment pie-progress"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegmentInterventions(displayData!.pannesEnCours) + ' ' + (502.4 - getPieSegmentInterventions(displayData!.pannesEnCours))"
+                    [attr.stroke-dashoffset]="getPieOffsetInterventions(displayData!.interventionsPlanifiees)"
+                  />
+                  
+                  <!-- Segment Résolues (vert) -->
+                  <circle
+                    *ngIf="displayData!.pannesResolues > 0"
+                    class="pie-segment pie-done"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegmentInterventions(displayData!.pannesResolues) + ' ' + (502.4 - getPieSegmentInterventions(displayData!.pannesResolues))"
+                    [attr.stroke-dashoffset]="getPieOffsetInterventions(displayData!.interventionsPlanifiees + displayData!.pannesEnCours)"
+                  />
+                  
+                  <!-- Segment Annulées (gris) -->
+                  <circle
+                    *ngIf="displayData!.pannesAnnulees > 0"
+                    class="pie-segment pie-cancelled"
+                    cx="100"
+                    cy="100"
+                    r="80"
+                    [attr.stroke-dasharray]="getPieSegmentInterventions(displayData!.pannesAnnulees) + ' ' + (502.4 - getPieSegmentInterventions(displayData!.pannesAnnulees))"
+                    [attr.stroke-dashoffset]="getPieOffsetInterventions(displayData!.interventionsPlanifiees + displayData!.pannesEnCours + displayData!.pannesResolues)"
+                  />
+                  
+                  <!-- Centre blanc -->
+                  <circle cx="100" cy="100" r="60" fill="#ffffff" />
+                  
+                  <!-- Texte central -->
+                  <text x="100" y="95" text-anchor="middle" dominant-baseline="auto" class="pie-center-value">{{ getTotalInterventionsForChart() }}</text>
+                  <text x="100" y="115" text-anchor="middle" dominant-baseline="auto" class="pie-center-label">Total</text>
+                </svg>
+              </div>
+
+              <!-- Légende -->
+              <div class="pie-legend">
+                <div class="legend-item">
+                  <span class="legend-color legend-pending"></span>
+                  <span class="legend-label">Planifiées</span>
+                  <span class="legend-value">{{ displayData!.interventionsPlanifiees }} ({{ getPiePercentageInterventions(displayData!.interventionsPlanifiees) }}%)</span>
+                </div>
+                
+                <div class="legend-item">
+                  <span class="legend-color legend-progress"></span>
+                  <span class="legend-label">En cours</span>
+                  <span class="legend-value">{{ displayData!.pannesEnCours }} ({{ getPiePercentageInterventions(displayData!.pannesEnCours) }}%)</span>
+                </div>
+                
+                <div class="legend-item">
+                  <span class="legend-color legend-done"></span>
+                  <span class="legend-label">Résolues</span>
+                  <span class="legend-value">{{ displayData!.pannesResolues }} ({{ getPiePercentageInterventions(displayData!.pannesResolues) }}%)</span>
+                </div>
+                
+                <div class="legend-item">
+                  <span class="legend-color legend-cancelled"></span>
+                  <span class="legend-label">Annulées</span>
+                  <span class="legend-value">{{ displayData!.pannesAnnulees }} ({{ getPiePercentageInterventions(displayData!.pannesAnnulees) }}%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TEMPS MOYEN RÉALISATION (visible uniquement sur dashboard) -->
+        <section class="stats-section" *ngIf="activeItem === 'dashboard'">
+          <div class="stats-row performance-row">
+            <article class="stat-card performance highlight">
+              <div class="stat-header">
+                <span class="material-icons stat-icon">access_time</span>
+                <h3>Temps moyen de réalisation</h3>
+              </div>
+              <div class="stat-value">{{ formatTemps(fullData!.tempsMoyenRealisationMinutes) }}</div>
+              <p class="stat-description">Durée moyenne d'une intervention</p>
+            </article>
+          </div>
+        </section>
+
+        <!-- ===== SECTION ÉQUIPEMENTS ===== -->
+        <ng-container *ngIf="activeItem === 'equipements'">
+          <!-- Notification toast pour les erreurs de filtrage -->
+          <div *ngIf="errorMessageEquipements && equipementStats" 
+               style="position: fixed; top: 80px; right: 20px; z-index: 1000; background: #fee2e2; color: #991b1b; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease-out;">
+            <span class="material-icons" style="font-size: 24px;">error_outline</span>
+            <div>
+              <p style="margin: 0; font-weight: 600; font-size: 0.95rem;">{{ errorMessageEquipements }}</p>
+            </div>
+          </div>
+
+          <!-- Loading state -->
+          <div *ngIf="isLoadingEquipements && !equipementStats" class="loading-state">
+            <p>Chargement des statistiques équipements...</p>
+          </div>
+
+          <!-- Error state (seulement si pas de données du tout) -->
+          <div *ngIf="errorMessageEquipements && !equipementStats && !isLoadingEquipements" class="error-state">
+            <span class="material-icons">error_outline</span>
+            <p>{{ errorMessageEquipements }}</p>
+            <button class="primary-btn" (click)="loadEquipementStats()">Réessayer</button>
+          </div>
+
+          <!-- Contenu équipements -->
+          <ng-container *ngIf="equipementStats">
+            <!-- Titre de la section -->
+            <h2 class="section-title" style="margin-bottom: 1rem;">
+              <span class="material-icons">devices</span>
+              Statistiques des équipements
+            </h2>
+
+            <!-- Section avec filtres et graphique par type -->
+            <section class="stats-section">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <!-- Filtres de dates -->
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label style="font-size: 0.9rem; color: #4b5563;">Du:</label>
+                    <input 
+                      type="date" 
+                      [(ngModel)]="dateDebutEquipements"
+                      [max]="maxDate"
+                      (change)="onDateChangeEquipements()"
+                      style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.9rem;"
+                    />
+                  </div>
+                  
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label style="font-size: 0.9rem; color: #4b5563;">Au:</label>
+                    <input 
+                      type="date" 
+                      [(ngModel)]="dateFinEquipements"
+                      [max]="maxDate"
+                      (change)="onDateChangeEquipements()"
+                      style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.9rem;"
+                    />
+                  </div>
+                  
+                  <button 
+                    *ngIf="dateDebutEquipements && dateFinEquipements"
+                    class="secondary-btn"
+                    (click)="resetDatesEquipements()"
+                    style="display: flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.8rem;"
+                  >
+                    <span class="material-icons" style="font-size: 18px;">refresh</span>
+                    Réinitialiser
+                  </button>
+                  
+                  <button 
+                    class="primary-btn"
+                    (click)="exportEquipementsToPDF()"
+                    [disabled]="!datesValidEquipements"
+                    style="display: flex; align-items: center; gap: 0.5rem;"
+                  >
+                    <span class="material-icons" style="font-size: 18px;">picture_as_pdf</span>
+                    Exporter en PDF
+                  </button>
+                </div>
+              </div>
+
+              <!-- Graphique Répartition par type -->
+              <div class="chart-container" id="equipement-type-chart">
+                <div class="chart-header">
+                  <h3 class="chart-title">Répartition par type d'équipement</h3>
+                  <div class="chart-type-selector">
+                    <button 
+                      class="chart-type-btn" 
+                      [class.active]="chartTypeEquipementsType === 'vertical'"
+                      (click)="setChartTypeEquipementsType('vertical')"
+                      title="Barres verticales"
+                    >
+                      <span class="material-icons">bar_chart</span>
+                    </button>
+                    <button 
+                      class="chart-type-btn" 
+                      [class.active]="chartTypeEquipementsType === 'pie'"
+                      (click)="setChartTypeEquipementsType('pie')"
+                      title="Diagramme circulaire"
+                    >
+                      <span class="material-icons">pie_chart</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Graphique vertical -->
+                <div class="vertical-bar-chart" *ngIf="chartTypeEquipementsType === 'vertical'">
+                  <div class="vertical-bars-container">
+                    <div class="vertical-bar-item" *ngFor="let item of getTop5TypesWithOthers(); let i = index">
+                      <div class="vertical-bar-track">
+                        <div 
+                          class="vertical-bar-fill" 
+                          [ngClass]="i === 0 ? 'bar-type-0' : i === 1 ? 'bar-type-1' : i === 2 ? 'bar-type-2' : i === 3 ? 'bar-type-3' : i === 4 ? 'bar-type-4' : 'bar-type-others'"
+                          [style.height.%]="getTotalPannesType() > 0 ? (item.nombre / getTotalPannesType()) * 100 : 0"
+                        >
+                          <span class="vertical-bar-value">{{ item.nombre }}</span>
+                        </div>
+                      </div>
+                      <div class="vertical-bar-label" [title]="item.type">{{ item.type.length > 15 ? item.type.substring(0, 15) + '...' : item.type }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Diagramme circulaire -->
+                <div class="pie-chart-wrapper" *ngIf="chartTypeEquipementsType === 'pie'">
+                  <div class="pie-chart">
+                    <svg viewBox="0 0 200 200" class="pie-svg">
+                      <ng-container *ngFor="let item of getTop5TypesWithOthers(); let i = index">
+                        <circle
+                          *ngIf="item.nombre > 0"
+                          class="pie-segment"
+                          [ngClass]="i < 5 ? 'pie-type-' + i : 'pie-type-others'"
+                          cx="100"
+                          cy="100"
+                          r="80"
+                          [attr.stroke-dasharray]="getPieSegmentEquipement(item.nombre, getTotalPannesType()) + ' ' + (502.4 - getPieSegmentEquipement(item.nombre, getTotalPannesType()))"
+                          [attr.stroke-dashoffset]="getPieOffsetEquipement(getSumTop5Types(i), getTotalPannesType())"
+                        />
+                      </ng-container>
+                      
+                      <circle cx="100" cy="100" r="60" fill="#ffffff" />
+                      <text x="100" y="95" text-anchor="middle" dominant-baseline="auto" class="pie-center-value">{{ getTotalPannesType() }}</text>
+                      <text x="100" y="115" text-anchor="middle" dominant-baseline="auto" class="pie-center-label">Total</text>
+                    </svg>
+                  </div>
+
+                  <div class="pie-legend">
+                    <div class="legend-item" *ngFor="let item of getTop5TypesWithOthers(); let i = index">
+                      <span class="legend-color" [ngClass]="i < 5 ? 'legend-type-' + i : 'legend-type-others'"></span>
+                      <span class="legend-label" [title]="item.type">{{ item.type.length > 20 ? item.type.substring(0, 20) + '...' : item.type }}</span>
+                      <span class="legend-value">{{ item.nombre }} ({{ getEquipementPercentage(item.nombre, getTotalPannesType()) }}%)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Répartition par localisation -->
+            <section class="stats-section">
+              <div class="chart-container" id="equipement-localisation-chart">
+                <div class="chart-header">
+                  <h3 class="chart-title">Répartition par localisation</h3>
+                  <div class="chart-type-selector">
+                    <button 
+                      class="chart-type-btn" 
+                      [class.active]="chartTypeEquipementsLocalisation === 'vertical'"
+                      (click)="setChartTypeEquipementsLocalisation('vertical')"
+                      title="Barres verticales"
+                    >
+                      <span class="material-icons">bar_chart</span>
+                    </button>
+                    <button 
+                      class="chart-type-btn" 
+                      [class.active]="chartTypeEquipementsLocalisation === 'pie'"
+                      (click)="setChartTypeEquipementsLocalisation('pie')"
+                      title="Diagramme circulaire"
+                    >
+                      <span class="material-icons">pie_chart</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Graphique vertical -->
+                <div class="vertical-bar-chart" *ngIf="chartTypeEquipementsLocalisation === 'vertical'">
+                  <div class="vertical-bars-container">
+                    <div class="vertical-bar-item" *ngFor="let item of getTop5LocalisationsWithOthers(); let i = index">
+                      <div class="vertical-bar-track">
+                        <div 
+                          class="vertical-bar-fill" 
+                          [ngClass]="i === 0 ? 'bar-loc-0' : i === 1 ? 'bar-loc-1' : i === 2 ? 'bar-loc-2' : i === 3 ? 'bar-loc-3' : i === 4 ? 'bar-loc-4' : 'bar-type-others'"
+                          [style.height.%]="getTotalPannesLocalisation() > 0 ? (item.nombre / getTotalPannesLocalisation()) * 100 : 0"
+                        >
+                          <span class="vertical-bar-value">{{ item.nombre }}</span>
+                        </div>
+                      </div>
+                      <div class="vertical-bar-label" [title]="item.localisation">{{ item.localisation.length > 15 ? item.localisation.substring(0, 15) + '...' : item.localisation }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Diagramme circulaire -->
+                <div class="pie-chart-wrapper" *ngIf="chartTypeEquipementsLocalisation === 'pie'">
+                  <div class="pie-chart">
+                    <svg viewBox="0 0 200 200" class="pie-svg">
+                      <ng-container *ngFor="let item of getTop5LocalisationsWithOthers(); let i = index">
+                        <circle
+                          *ngIf="item.nombre > 0"
+                          class="pie-segment"
+                          [ngClass]="i < 5 ? 'pie-loc-' + i : 'pie-type-others'"
+                          cx="100"
+                          cy="100"
+                          r="80"
+                          [attr.stroke-dasharray]="getPieSegmentEquipement(item.nombre, getTotalPannesLocalisation()) + ' ' + (502.4 - getPieSegmentEquipement(item.nombre, getTotalPannesLocalisation()))"
+                          [attr.stroke-dashoffset]="getPieOffsetEquipement(getSumTop5Localisations(i), getTotalPannesLocalisation())"
+                        />
+                      </ng-container>
+                      
+                      <circle cx="100" cy="100" r="60" fill="#ffffff" />
+                      <text x="100" y="95" text-anchor="middle" dominant-baseline="auto" class="pie-center-value">{{ getTotalPannesLocalisation() }}</text>
+                      <text x="100" y="115" text-anchor="middle" dominant-baseline="auto" class="pie-center-label">Total</text>
+                    </svg>
+                  </div>
+
+                  <div class="pie-legend">
+                    <div class="legend-item" *ngFor="let item of getTop5LocalisationsWithOthers(); let i = index">
+                      <span class="legend-color" [ngClass]="i < 5 ? 'legend-loc-' + i : 'legend-type-others'"></span>
+                      <span class="legend-label" [title]="item.localisation">{{ item.localisation.length > 20 ? item.localisation.substring(0, 20) + '...' : item.localisation }}</span>
+                      <span class="legend-value">{{ item.nombre }} ({{ getEquipementPercentage(item.nombre, getTotalPannesLocalisation()) }}%)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Top équipements problématiques -->
+            <section class="stats-section" *ngIf="equipementStats.topEquipementsProblematiques.length > 0">
+              <h2 class="section-title">
+                <span class="material-icons">warning</span>
+                Équipements les plus problématiques
+              </h2>
+              
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Nombre de pannes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let equip of getPaginatedEquipementsProblematiques()">
+                      <td><strong>{{ equip.type }}</strong></td>
+                      <td><span class="badge badge-danger">{{ equip.nombrePannes }}</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="resp-pagination" *ngIf="getTotalPagesEquipements() > 1">
+                  <div>
+                    Affichage {{ equipementsPageStartIndex }}–{{ equipementsPageEndIndex }} sur {{ equipementsTotalCount }} équipements
+                  </div>
+
+                  <div class="resp-pagination-buttons">
+                    <button 
+                      class="resp-page-btn" 
+                      [disabled]="currentPageEquipements === 1"
+                      (click)="previousPageEquipements()"
+                    >
+                      Précédent
+                    </button>
+
+                    <ng-container *ngFor="let page of getPagesEquipements()">
+                      <button 
+                        *ngIf="page !== '...'"
+                        class="resp-page-btn"
+                        [class.active]="page === currentPageEquipements"
+                        (click)="goToPageEquipements($any(page))"
+                      >
+                        {{ page }}
+                      </button>
+                      <span *ngIf="page === '...'" class="pagination-ellipsis">...</span>
+                    </ng-container>
+
+                    <button 
+                      class="resp-page-btn"
+                      [disabled]="currentPageEquipements === getTotalPagesEquipements()"
+                      (click)="nextPageEquipements()"
+                    >
+                      Suivant
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+          </ng-container>
+        </ng-container>
+
+        <!-- ===== SECTION RAPPORTS & STATS ===== -->
+        <ng-container *ngIf="activeItem === 'stats'">
+          <!-- Notification toast pour les erreurs de dates -->
+          <div *ngIf="errorMessageExport" 
+               style="position: fixed; top: 80px; right: 20px; z-index: 1000; background: #fee2e2; color: #991b1b; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease-out;">
+            <span class="material-icons" style="font-size: 24px;">error_outline</span>
+            <div>
+              <p style="margin: 0; font-weight: 600; font-size: 0.95rem;">{{ errorMessageExport }}</p>
+            </div>
+          </div>
+
+          <h2 class="section-title" style="margin-bottom: 2rem;">
+            <span class="material-icons">bar_chart</span>
+            Rapports & Statistiques
+          </h2>
+
+          <!-- Exports de Données -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">file_download</span>
+              Exports de Données
+            </h3>
+            <p class="subsection-description">Exportez vos données au format Excel ou CSV</p>
+            
+            <!-- Filtres de période -->
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
+              <span style="font-weight: 600; color: #374151;">Période de données:</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label style="font-size: 0.9rem; color: #4b5563;">Du:</label>
+                <input 
+                  type="date" 
+                  [(ngModel)]="dateDebutExport"
+                  [max]="maxDate"
+                  (change)="onDateChangeExport()"
+                  style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.9rem;"
+                />
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label style="font-size: 0.9rem; color: #4b5563;">Au:</label>
+                <input 
+                  type="date" 
+                  [(ngModel)]="dateFinExport"
+                  [max]="maxDate"
+                  (change)="onDateChangeExport()"
+                  style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.9rem;"
+                />
+              </div>
+
+              <button 
+                *ngIf="dateDebutExport && dateFinExport"
+                class="secondary-btn"
+                (click)="resetDatesExport()"
+                style="margin-left: auto;"
+              >
+                <span class="material-icons">refresh</span>
+                Réinitialiser
+              </button>
+            </div>
+
+            <div class="exports-grid">
+              <div class="export-item">
+                <div class="export-info">
+                  <span class="material-icons">build</span>
+                  <div>
+                    <h4>Interventions</h4>
+                    <p>Toutes les interventions et maintenances</p>
+                  </div>
+                </div>
+                <div class="export-actions">
+                  <button 
+                    class="secondary-btn" 
+                    (click)="exportInterventionsExcel()"
+                    [disabled]="!isExportDatesValid && dateDebutExport && dateFinExport"
+                  >
+                    <span class="material-icons">table_chart</span>
+                    Excel
+                  </button>
+                  <button 
+                    class="secondary-btn" 
+                    (click)="exportInterventionsCSV()"
+                    [disabled]="!isExportDatesValid && dateDebutExport && dateFinExport"
+                  >
+                    <span class="material-icons">description</span>
+                    CSV
+                  </button>
+                </div>
+              </div>
+
+              <div class="export-item">
+                <div class="export-info">
+                  <span class="material-icons">warning</span>
+                  <div>
+                    <h4>Signalements</h4>
+                    <p>Toutes les pannes signalées</p>
+                  </div>
+                </div>
+                <div class="export-actions">
+                  <button 
+                    class="secondary-btn" 
+                    (click)="exportSignalementsExcel()"
+                    [disabled]="!isExportDatesValid && dateDebutExport && dateFinExport"
+                  >
+                    <span class="material-icons">table_chart</span>
+                    Excel
+                  </button>
+                  <button 
+                    class="secondary-btn" 
+                    (click)="exportSignalementsCSV()"
+                    [disabled]="!isExportDatesValid && dateDebutExport && dateFinExport"
+                  >
+                    <span class="material-icons">description</span>
+                    CSV
+                  </button>
+                </div>
+              </div>
+
+              <div class="export-item">
+                <div class="export-info">
+                  <span class="material-icons">devices</span>
+                  <div>
+                    <h4>Équipements</h4>
+                    <p>Statistiques des équipements</p>
+                  </div>
+                </div>
+                <div class="export-actions">
+                  <button 
+                    class="secondary-btn" 
+                    (click)="exportEquipementsExcel()"
+                    [disabled]="!isExportDatesValid && dateDebutExport && dateFinExport"
+                  >
+                    <span class="material-icons">table_chart</span>
+                    Excel
+                  </button>
+                  <button 
+                    class="secondary-btn" 
+                    (click)="exportEquipementsCSV()"
+                    [disabled]="!isExportDatesValid && dateDebutExport && dateFinExport"
+                  >
+                    <span class="material-icons">description</span>
+                    CSV
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </ng-container>
+
+        <!-- ===== SECTION MES DEMANDES ===== -->
+        <ng-container *ngIf="activeItem === 'mes-demandes'">
+          <div class="recent-requests">
+            <div class="recent-header">
+              <h2>Toutes mes demandes</h2>
+              <button class="primary-btn" (click)="openNewDemandeModal()">
+                Nouvelle demande de panne
+              </button>
+            </div>
+
+            <!-- 🔍 Filtres statut / urgence / recherche -->
+            <div class="filters-shell">
+              <!-- Ligne statuts -->
+              <div class="filters-row top-row">
+                <button
+                  type="button"
+                  class="chip-filter big"
+                  [class.active]="demandeStatutFilter === 'TOUTES'"
+                  (click)="demandeStatutFilter = 'TOUTES'; demandeCurrentPage = 1"
+                >
+                  <span class="status-dot all"></span>
+                  Toutes ({{ demandes.length }})
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-filter big"
+                  [class.active]="demandeStatutFilter === 'EN_ATTENTE'"
+                  (click)="demandeStatutFilter = 'EN_ATTENTE'; demandeCurrentPage = 1"
+                >
+                  <span class="status-dot pending"></span>
+                  En attente
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-filter big"
+                  [class.active]="demandeStatutFilter === 'EN_COURS'"
+                  (click)="demandeStatutFilter = 'EN_COURS'; demandeCurrentPage = 1"
+                >
+                  <span class="status-dot progress"></span>
+                  En cours
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-filter big"
+                  [class.active]="demandeStatutFilter === 'RESOLUE'"
+                  (click)="demandeStatutFilter = 'RESOLUE'; demandeCurrentPage = 1"
+                >
+                  <span class="status-dot done"></span>
+                  Résolues
+                </button>
+              </div>
+
+              <!-- Ligne urgences + recherche -->
+              <div class="filters-row bottom-row">
+                <div class="filters-left">
+                  <span class="filter-label">Urgence :</span>
+
+                    <button
+                      type="button"
+                      class="chip-filter"
+                      [class.active]="demandeUrgenceFilter === 'TOUTES'"
+                      (click)="demandeUrgenceFilter = 'TOUTES'; demandeCurrentPage = 1"
+                    >
+                      Toutes
+                    </button>
+
+                    <button
+                      type="button"
+                      class="chip-filter"
+                      [class.active]="demandeUrgenceFilter === 'BASSE'"
+                      (click)="demandeUrgenceFilter = 'BASSE'; demandeCurrentPage = 1"
+                    >
+                      Basse
+                    </button>
+
+                    <button
+                      type="button"
+                      class="chip-filter"
+                      [class.active]="demandeUrgenceFilter === 'MOYENNE'"
+                      (click)="demandeUrgenceFilter = 'MOYENNE'; demandeCurrentPage = 1"
+                    >
+                      Moyenne
+                    </button>
+
+                    <button
+                      type="button"
+                      class="chip-filter"
+                      [class.active]="demandeUrgenceFilter === 'HAUTE'"
+                      (click)="demandeUrgenceFilter = 'HAUTE'; demandeCurrentPage = 1"
+                    >
+                      Haute
+                    </button>
+                  </div>
+
+                <div class="filters-search">
+                    <span class="material-icons search-icon">search</span>
+                    <input
+                      type="text"
+                      placeholder="Rechercher par titre, lieu, statut..."
+                      [(ngModel)]="demandeSearchTerm"
+                      (input)="demandeCurrentPage = 1"
+                    />
+                </div>
+              </div>
+            </div>
+
+            <!-- Tableau des demandes -->
+            <div class="signals-table">
+              <div class="signals-header-row">
+                <div class="col-title">Titre</div>
+                <div class="col-status">Statut</div>
+                <div class="col-urgency">Urgence</div>
+                <div class="col-actions">Actions</div>
+              </div>
+
+              <div class="signals-row" *ngFor="let d of pagedDemandes">
+                <div class="col-title">
+                  <div class="request-title">{{ d.titre }}</div>
+                  <div class="request-meta">
+                    Créée le {{ d.dateCreation | date:'dd/MM/yyyy' }} · {{ d.lieu }}
+                  </div>
+                </div>
+
+                <div class="col-status">
+                  <span
+                    class="status-chip"
+                    [ngClass]="{
+                      'pending': d.statut === 'EN_ATTENTE',
+                      'progress': d.statut === 'EN_COURS',
+                      'done': d.statut === 'RESOLUE'
+                    }"
+                  >
+                    {{
+                      d.statut === 'EN_ATTENTE' ? 'En attente' :
+                        d.statut === 'EN_COURS' ? 'En cours' :
+                          'Résolue'
+                    }}
+                  </span>
+                </div>
+
+                <div class="col-urgency">
+                  <span
+                    class="urgence-chip"
+                    [ngClass]="{
+                      'low': d.urgence === 'BASSE',
+                      'medium': d.urgence === 'MOYENNE',
+                      'high': d.urgence === 'HAUTE'
+                    }"
+                  >
+                    {{ d.urgence === 'BASSE' ? 'Basse' : d.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+                  </span>
+                </div>
+
+                <div class="col-actions">
+                  <button type="button" class="details-btn" (click)="openDemandeDetails(d)">
+                    <span class="material-icons">visibility</span>
+                    <span>Voir détails</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Message si aucun résultat -->
+              <div class="empty-state" *ngIf="pagedDemandes.length === 0">
+                <span class="material-icons empty-icon">search_off</span>
+                <p class="empty-message">Aucune demande trouvée</p>
+                <p class="empty-hint">Essayez de modifier vos filtres ou votre recherche</p>
+              </div>
+            </div>
+
+            <!-- 🔢 Pagination -->
+            <div
+              class="resp-pagination"
+              *ngIf="filteredDemandes.length > demandePageSize"
+            >
+              <div>
+                Affichage {{ demandePageStartIndex }}–{{ demandePageEndIndex }} sur {{ filteredDemandes.length }} demandes
+              </div>
+
+              <div class="resp-pagination-buttons">
+                <button
+                  class="resp-page-btn"
+                  (click)="goToDemandePageNumber(demandeCurrentPage - 1)"
+                  [disabled]="demandeCurrentPage === 1"
+                >
+                  Précédent
+                </button>
+
+                <ng-container *ngFor="let page of getVisibleDemandesPages()">
+                  <button
+                    *ngIf="page !== '...'"
+                    class="resp-page-btn"
+                    [class.active]="page === demandeCurrentPage"
+                    (click)="goToDemandePageNumber($any(page))"
+                  >
+                    {{ page }}
+                  </button>
+                  <span *ngIf="page === '...'" class="pagination-ellipsis">...</span>
+                </ng-container>
+
+                <button
+                  class="resp-page-btn"
+                  (click)="goToDemandePageNumber(demandeCurrentPage + 1)"
+                  [disabled]="demandeCurrentPage === demandeTotalPages"
+                >
+                  Suivant
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </ng-container>
+
+        <!-- ===== SECTION MON PROFIL ===== -->
+        <ng-container *ngIf="activeItem === 'profil'">
+          <!-- Header profil -->
+          <div class="profile-page-header">
+            <div>
+              <h2>Mon profil</h2>
+              <p>
+                Gérez vos informations personnelles et les paramètres de votre compte Superviseur.
+              </p>
+            </div>
+
+            <button
+              class="secondary-btn profile-back-btn"
+              type="button"
+              (click)="setActive('dashboard')"
+            >
+              <span class="material-icons">arrow_back</span>
+              Retour au tableau de bord
+            </button>
+          </div>
+
+          <!-- Grille principale : infos perso + rôle -->
+          <div class="profile-grid">
+            <!-- Carte informations personnelles -->
+            <div class="profile-card">
+              <h3 class="profile-card-title">Informations personnelles</h3>
+              <p class="profile-card-subtitle">
+                Ces informations permettent d'identifier le superviseur dans l'application.
+              </p>
+
+              <div class="form-grid profile-form-grid">
+                <div class="form-field">
+                  <label for="profilNom">Nom</label>
+                  <input
+                    id="profilNom"
+                    type="text"
+                    [(ngModel)]="profilForm.nom"
+                    placeholder="Ex : Diallo"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="profilPrenom">Prénom</label>
+                  <input
+                    id="profilPrenom"
+                    type="text"
+                    [(ngModel)]="profilForm.prenom"
+                    placeholder="Ex : Amadou"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="profilEmail">Adresse e-mail</label>
+                  <input
+                    id="profilEmail"
+                    type="email"
+                    [(ngModel)]="profilForm.email"
+                    placeholder="Ex : superviseur@uasz.sn"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="profilTelephone">Téléphone</label>
+                  <input
+                    id="profilTelephone"
+                    type="text"
+                    [(ngModel)]="profilForm.telephone"
+                    placeholder="Ex : +221 77 000 00 00"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="profilService">Service / Unité</label>
+                  <input
+                    id="profilService"
+                    type="text"
+                    [(ngModel)]="profilForm.service"
+                    placeholder="Ex : Service de Supervision"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="profilDepartement">Département / Filière</label>
+                  <input
+                    id="profilDepartement"
+                    type="text"
+                    [(ngModel)]="profilForm.departement"
+                    placeholder="Ex : Département Maintenance"
+                  />
+                </div>
+              </div>
+
+              <div class="profile-actions-row">
+                <button
+                  type="button"
+                  class="secondary-btn"
+                  (click)="resetProfilForm()"
+                >
+                  Réinitialiser
+                </button>
+                <button
+                  type="button"
+                  class="primary-btn"
+                  (click)="enregistrerProfil()"
+                >
+                  Enregistrer les modifications
+                </button>
+              </div>
+            </div>
+
+            <!-- Carte rôle et compte -->
+            <div class="profile-card profile-summary-card">
+              <h3 class="profile-card-title">Rôle et compte</h3>
+              <p class="profile-card-subtitle">
+                Résumé de votre rôle dans le système de maintenance UASZ.
+              </p>
+
+              <div class="profile-user-block">
+                <div class="profile-user-avatar">
+                  {{ usernameInitial }}
+                </div>
+                <div>
+                  <div class="profile-user-label">Utilisateur</div>
+                  <div class="profile-user-email">
+                    {{ profilForm.email }}
+                  </div>
+                  <div class="profile-role-line">
+                    <span class="profile-role-chip">
+                      SUPERVISEUR
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <ul class="profile-role-list">
+                <li>
+                  <span class="material-icons profile-role-icon">visibility</span>
+                  Superviser l'ensemble des signalements et interventions de maintenance.
+                </li>
+                <li>
+                  <span class="material-icons profile-role-icon">analytics</span>
+                  Analyser les statistiques et tendances pour optimiser les opérations.
+                </li>
+                <li>
+                  <span class="material-icons profile-role-icon">assessment</span>
+                  Générer des rapports détaillés sur les performances du service.
+                </li>
+                <li>
+                  <span class="material-icons profile-role-icon">devices_other</span>
+                  Surveiller l'état du parc d'équipements et identifier les problèmes récurrents.
+                </li>
+                <li>
+                  <span class="material-icons profile-role-icon">groups</span>
+                  Coordonner les équipes techniques et responsables de maintenance.
+                </li>
+                <li>
+                  <span class="material-icons profile-role-icon">notifications</span>
+                  Recevoir des alertes sur les pannes critiques et les interventions urgentes.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Carte sécurité -->
+          <div class="profile-card profile-security-card">
+            <h3 class="profile-card-title">Sécurité & mot de passe</h3>
+            <p class="profile-card-subtitle">
+              Modifiez régulièrement votre mot de passe pour sécuriser votre compte.
+            </p>
+
+            <div class="form-grid profile-form-grid">
+              <div class="form-field form-full">
+                <label for="profilOldPwd">Mot de passe actuel</label>
+                <div class="password-input-wrapper">
+                  <input
+                    id="profilOldPwd"
+                    [type]="showCurrentPassword ? 'text' : 'password'"
+                    [(ngModel)]="profilForm.motDePasseActuel"
+                    placeholder="Saisissez votre mot de passe actuel"
+                  />
+                  <button type="button" class="toggle-password-btn" (click)="showCurrentPassword = !showCurrentPassword">
+                    <span class="material-icons">{{ showCurrentPassword ? 'visibility_off' : 'visibility' }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="profilNewPwd">Nouveau mot de passe</label>
+                <div class="password-input-wrapper">
+                  <input
+                    id="profilNewPwd"
+                    [type]="showNewPassword ? 'text' : 'password'"
+                    [(ngModel)]="profilForm.nouveauMotDePasse"
+                    placeholder="Nouveau mot de passe"
+                  />
+                  <button type="button" class="toggle-password-btn" (click)="showNewPassword = !showNewPassword">
+                    <span class="material-icons">{{ showNewPassword ? 'visibility_off' : 'visibility' }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="profilConfirmPwd">Confirmation</label>
+                <div class="password-input-wrapper">
+                  <input
+                    id="profilConfirmPwd"
+                    [type]="showConfirmPassword ? 'text' : 'password'"
+                    [(ngModel)]="profilForm.confirmationMotDePasse"
+                    placeholder="Confirmez le nouveau mot de passe"
+                  />
+                  <button type="button" class="toggle-password-btn" (click)="showConfirmPassword = !showConfirmPassword">
+                    <span class="material-icons">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-actions-row">
+              <button
+                type="button"
+                class="primary-btn"
+                (click)="mettreAJourMotDePasse()"
+              >
+                Mettre à jour le mot de passe
+              </button>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ===== SECTION AIDE & SUPPORT ===== -->
+        <ng-container *ngIf="activeItem === 'help'">
+          <h2 class="section-title" style="margin-bottom: 2rem;">
+            <span class="material-icons">help</span>
+            Aide & Support
+          </h2>
+
+          <!-- Guide de démarrage rapide -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">rocket_launch</span>
+              Guide de démarrage rapide
+            </h3>
+            
+            <div class="help-cards-grid">
+              <div class="help-card">
+                <div class="help-card-icon dashboard-icon">
+                  <span class="material-icons">dashboard</span>
+                </div>
+                <h4>Tableau de bord</h4>
+                <p>Consultez les statistiques globales des signalements, interventions et équipements en temps réel pour une vue d'ensemble complète.</p>
+              </div>
+
+              <div class="help-card">
+                <div class="help-card-icon signalements-icon">
+                  <span class="material-icons">warning</span>
+                </div>
+                <h4>Signalements</h4>
+                <p>Analysez les pannes par statut et priorité. Filtrez par période pour identifier les tendances et les zones problématiques.</p>
+              </div>
+
+              <div class="help-card">
+                <div class="help-card-icon interventions-icon">
+                  <span class="material-icons">build</span>
+                </div>
+                <h4>Interventions</h4>
+                <p>Suivez les maintenances planifiées et les interventions en cours. Surveillez les temps de réalisation et la performance.</p>
+              </div>
+
+              <div class="help-card">
+                <div class="help-card-icon equipements-icon">
+                  <span class="material-icons">devices</span>
+                </div>
+                <h4>Équipements</h4>
+                <p>Visualisez les statistiques par type et localisation. Identifiez les équipements problématiques nécessitant une attention particulière.</p>
+              </div>
+
+              <div class="help-card">
+                <div class="help-card-icon stats-icon">
+                  <span class="material-icons">build</span>
+                </div>
+                <h4>Mes demandes</h4>
+                <p>Créez et suivez vos propres demandes de maintenance. Consultez l'historique et le statut de vos signalements.</p>
+              </div>
+
+              <div class="help-card">
+                <div class="help-card-icon stats-icon">
+                  <span class="material-icons">bar_chart</span>
+                </div>
+                <h4>Rapports & Stats</h4>
+                <p>Exportez vos données en Excel, CSV ou PDF. Générez des rapports détaillés pour l'analyse et la prise de décision.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Bonnes pratiques de supervision -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">verified</span>
+              Bonnes pratiques de supervision
+            </h3>
+
+            <div class="best-practices-grid">
+              <div class="practice-card">
+                <div class="practice-icon monitoring-icon">
+                  <span class="material-icons">visibility</span>
+                </div>
+                <div class="practice-content">
+                  <h4>Surveillance proactive</h4>
+                  <p>Consultez régulièrement le tableau de bord pour identifier rapidement les anomalies et les tendances préoccupantes.</p>
+                </div>
+              </div>
+
+              <div class="practice-card">
+                <div class="practice-icon analysis-icon">
+                  <span class="material-icons">analytics</span>
+                </div>
+                <div class="practice-content">
+                  <h4>Analyse des tendances</h4>
+                  <p>Utilisez les filtres de période pour comparer les performances sur différentes périodes et identifier les améliorations ou dégradations.</p>
+                </div>
+              </div>
+
+              <div class="practice-card">
+                <div class="practice-icon priority-icon">
+                  <span class="material-icons">priority_high</span>
+                </div>
+                <div class="practice-content">
+                  <h4>Gestion des priorités</h4>
+                  <p>Surveillez les pannes haute priorité et assurez-vous qu'elles sont traitées rapidement par les équipes de maintenance.</p>
+                </div>
+              </div>
+
+              <div class="practice-card">
+                <div class="practice-icon report-icon">
+                  <span class="material-icons">assessment</span>
+                </div>
+                <div class="practice-content">
+                  <h4>Rapports réguliers</h4>
+                  <p>Générez des rapports hebdomadaires ou mensuels pour suivre l'évolution des indicateurs clés de performance (KPI).</p>
+                </div>
+              </div>
+
+              <div class="practice-card">
+                <div class="practice-icon equipment-icon">
+                  <span class="material-icons">devices_other</span>
+                </div>
+                <div class="practice-content">
+                  <h4>Équipements critiques</h4>
+                  <p>Identifiez les équipements les plus problématiques et planifiez des maintenances préventives pour réduire les pannes.</p>
+                </div>
+              </div>
+
+              <div class="practice-card">
+                <div class="practice-icon team-icon">
+                  <span class="material-icons">groups</span>
+                </div>
+                <div class="practice-content">
+                  <h4>Coordination d'équipe</h4>
+                  <p>Assurez une communication efficace entre les techniciens, responsables et demandeurs pour optimiser les interventions.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- FAQ -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">quiz</span>
+              Questions fréquentes (FAQ)
+            </h3>
+
+            <div class="faq-container">
+              <div class="faq-item" [class.active]="activeFaqIndex === 0" (click)="toggleFaq(0)">
+                <div class="faq-question">
+                  <span>Comment filtrer les données par période ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 0 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 0">
+                  <p>Dans chaque section (Signalements, Interventions, Équipements), vous trouverez des filtres de dates "Du" et "Au". Sélectionnez vos dates et les graphiques se mettront à jour automatiquement. Utilisez le bouton "Réinitialiser" pour revenir à toutes les données.</p>
+                </div>
+              </div>
+
+              <div class="faq-item" [class.active]="activeFaqIndex === 1" (click)="toggleFaq(1)">
+                <div class="faq-question">
+                  <span>Comment exporter les données ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 1 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 1">
+                  <p>Allez dans la section "Rapports & Stats". Vous pouvez exporter les Interventions, Signalements ou Équipements en format Excel ou CSV. Sélectionnez une période si nécessaire, puis cliquez sur le bouton d'export souhaité.</p>
+                </div>
+              </div>
+
+              <div class="faq-item" [class.active]="activeFaqIndex === 2" (click)="toggleFaq(2)">
+                <div class="faq-question">
+                  <span>Comment générer un rapport PDF ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 2 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 2">
+                  <p>Dans les sections Signalements, Interventions et Équipements, vous trouverez un bouton "Exporter en PDF". Le rapport inclura tous les graphiques et tableaux visibles avec la période sélectionnée.</p>
+                </div>
+              </div>
+
+              <div class="faq-item" [class.active]="activeFaqIndex === 3" (click)="toggleFaq(3)">
+                <div class="faq-question">
+                  <span>Que signifient les différents statuts de pannes ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 3 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 3">
+                  <ul>
+                    <li><strong>Ouvertes :</strong> Pannes signalées en attente d'assignation à un technicien</li>
+                    <li><strong>En cours :</strong> Pannes assignées à un technicien et en cours de traitement</li>
+                    <li><strong>Résolues :</strong> Pannes traitées et résolues avec succès</li>
+                    <li><strong>Annulées :</strong> Pannes annulées (doublon, erreur de signalement, etc.)</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="faq-item" [class.active]="activeFaqIndex === 4" (click)="toggleFaq(4)">
+                <div class="faq-question">
+                  <span>Comment interpréter le taux de résolution ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 4 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 4">
+                  <p>Le taux de résolution est le pourcentage de pannes résolues par rapport au total des pannes traitées (résolues + annulées). Un taux élevé (>85%) indique une bonne performance de l'équipe de maintenance et une qualité de service optimale.</p>
+                </div>
+              </div>
+
+              <div class="faq-item" [class.active]="activeFaqIndex === 5" (click)="toggleFaq(5)">
+                <div class="faq-question">
+                  <span>Comment créer une demande de maintenance ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 5 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 5">
+                  <p>Allez dans la section "Mes demandes" et cliquez sur "Nouvelle demande de panne". Remplissez le formulaire avec le titre, le lieu, le type d'équipement, l'urgence et joignez obligatoirement une photo. Votre demande sera traitée par l'équipe de maintenance.</p>
+                </div>
+              </div>
+
+              <div class="faq-item" [class.active]="activeFaqIndex === 6" (click)="toggleFaq(6)">
+                <div class="faq-question">
+                  <span>Pourquoi certaines dates sont-elles désactivées ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 6 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 6">
+                  <p>Les dates futures sont automatiquement désactivées car elles n'ont pas encore de données. De plus, la date de début doit toujours être antérieure à la date de fin. Un message d'erreur s'affichera si vous sélectionnez des dates invalides.</p>
+                </div>
+              </div>
+
+              <div class="faq-item" [class.active]="activeFaqIndex === 7" (click)="toggleFaq(7)">
+                <div class="faq-question">
+                  <span>Comment identifier les équipements problématiques ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 7 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 7">
+                  <p>Dans la section "Équipements", consultez le tableau "Équipements les plus problématiques" qui liste les équipements ayant le plus grand nombre de pannes. Utilisez ces informations pour planifier des maintenances préventives ou envisager des remplacements.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Contact et support -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">contact_support</span>
+              Besoin d'aide supplémentaire ?
+            </h3>
+
+            <div class="contact-cards-grid">
+              <div class="contact-card">
+                <div class="contact-icon email-icon">
+                  <span class="material-icons">email</span>
+                </div>
+                <h4>Support technique</h4>
+                <p>support@uasz-maintenance.sn</p>
+                <a href="mailto:support@uasz-maintenance.sn" class="contact-link">Envoyer un email</a>
+              </div>
+
+              <div class="contact-card">
+                <div class="contact-icon phone-icon">
+                  <span class="material-icons">phone</span>
+                </div>
+                <h4>Assistance téléphonique</h4>
+                <p>+221 33 123 45 67</p>
+                <p class="contact-hours">Lun-Ven: 8h-18h</p>
+              </div>
+
+              <div class="contact-card">
+                <div class="contact-icon docs-icon">
+                  <span class="material-icons">description</span>
+                </div>
+                <h4>Documentation complète</h4>
+                <p>Guides détaillés et tutoriels</p>
+                <button class="secondary-btn" style="margin-top: 0.5rem;" (click)="openDocumentation()">
+                  <span class="material-icons">open_in_new</span>
+                  Consulter
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Version et informations -->
+          <section class="stats-section" style="text-align: center; padding: 2rem;">
+            <div style="color: #6b7280; font-size: 0.875rem;">
+              <p style="margin-bottom: 0.5rem;">
+                <strong>UASZ Maintenance System</strong> - Version 1.0.0
+              </p>
+              <p style="margin: 0;">
+                © 2026 Université Assane Seck de Ziguinchor. Tous droits réservés.
+              </p>
+            </div>
+          </section>
+        </ng-container>
+
+      </ng-container>
+    </section>
+  </main>
+</div>
+
+<!-- ===== MODALE DE CONFIRMATION DE DÉCONNEXION ===== -->
+<div class="modal-overlay" *ngIf="showLogoutModal" (click)="closeLogoutModal()">
+  <div class="modal-content logout-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la déconnexion</h3>
+      <button class="modal-close" (click)="closeLogoutModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="logout-icon">
+        <span class="material-icons">logout</span>
+      </div>
+      <p>Êtes-vous sûr de vouloir vous déconnecter ?</p>
+      <p class="logout-subtitle">Vous devrez vous reconnecter pour accéder à votre tableau de bord.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="secondary-btn" (click)="closeLogoutModal()">
+        Annuler
+      </button>
+      <button type="button" class="danger-btn" (click)="confirmLogout()">
+        <span class="material-icons">logout</span>
+        Se déconnecter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL DOCUMENTATION ===== -->
+<div class="modal-backdrop" *ngIf="showDocumentationModal" (click)="closeDocumentation()">
+  <div class="modal documentation-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <span class="material-icons">menu_book</span>
+        Documentation Complète
+      </h2>
+      <button class="icon-btn" (click)="closeDocumentation()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body documentation-content">
+      <!-- Contenu de la documentation -->
+      <div class="doc-content">
+        <section id="intro" class="doc-section">
+          <h3>Introduction</h3>
+          <p>Bienvenue dans le système de gestion de maintenance de l'UASZ. Cette documentation vous guide à travers toutes les fonctionnalités disponibles dans votre dashboard superviseur.</p>
+        </section>
+
+        <section id="dashboard" class="doc-section">
+          <h3>Tableau de bord</h3>
+          <p>Le tableau de bord vous offre une vue d'ensemble en temps réel de l'état du système de maintenance:</p>
+          <ul>
+            <li><strong>Statistiques globales:</strong> Total des pannes, taux de résolution, temps moyen</li>
+            <li><strong>Répartition par statut:</strong> Visualisez les pannes ouvertes, en cours, résolues et annulées</li>
+            <li><strong>Répartition par priorité:</strong> Identifiez rapidement les pannes critiques</li>
+          </ul>
+        </section>
+
+        <section id="signalements" class="doc-section">
+          <h3>Signalements</h3>
+          <p>Cette section vous permet d'analyser en détail tous les signalements de pannes:</p>
+          <ul>
+            <li><strong>Filtrage par période:</strong> Sélectionnez une plage de dates pour analyser une période spécifique</li>
+            <li><strong>Graphiques interactifs:</strong> Basculez entre diagrammes circulaires et barres verticales</li>
+            <li><strong>Export PDF:</strong> Générez un rapport complet avec tous les graphiques</li>
+          </ul>
+          <div class="doc-tip">
+            <span class="material-icons">lightbulb</span>
+            <p><strong>Astuce:</strong> Utilisez le bouton "Réinitialiser" pour revenir rapidement à la vue complète des données.</p>
+          </div>
+        </section>
+
+        <section id="interventions" class="doc-section">
+          <h3>Interventions</h3>
+          <p>Suivez l'évolution des interventions et maintenances:</p>
+          <ul>
+            <li><strong>Maintenances planifiées:</strong> Nombre de maintenances préventives programmées</li>
+            <li><strong>Pannes en cours:</strong> Interventions actuellement en traitement</li>
+            <li><strong>Pannes résolues:</strong> Interventions terminées avec succès</li>
+            <li><strong>Temps moyen:</strong> Durée moyenne de réalisation des interventions</li>
+          </ul>
+        </section>
+
+        <section id="equipements" class="doc-section">
+          <h3>Équipements</h3>
+          <p>Analysez les statistiques liées aux équipements:</p>
+          <ul>
+            <li><strong>Répartition par type:</strong> Identifiez les types d'équipements les plus problématiques</li>
+            <li><strong>Répartition par localisation:</strong> Visualisez les zones avec le plus de pannes</li>
+            <li><strong>Top 5 + Autres:</strong> Les graphiques affichent les 5 premiers éléments et regroupent le reste</li>
+          </ul>
+          <div class="doc-warning">
+            <span class="material-icons">warning</span>
+            <p><strong>Important:</strong> Les dates futures sont automatiquement désactivées. Assurez-vous que la date de début est antérieure à la date de fin.</p>
+          </div>
+        </section>
+
+        <section id="exports" class="doc-section">
+          <h3>Exports de données</h3>
+          <p>Exportez vos données pour des analyses externes:</p>
+          <ul>
+            <li><strong>Formats disponibles:</strong> Excel (.xlsx) et CSV (.csv)</li>
+            <li><strong>Types de données:</strong> Interventions, Signalements, Équipements</li>
+            <li><strong>Filtrage par période:</strong> Exportez toutes les données ou une période spécifique</li>
+            <li><strong>Noms de fichiers:</strong> Les fichiers incluent automatiquement la date et la période</li>
+          </ul>
+          <div class="doc-example">
+            <span class="material-icons">info</span>
+            <p><strong>Exemple:</strong> Un export d'interventions du 1er au 15 mars 2026 générera le fichier: <code>interventions_01-03-2026_au_15-03-2026.xlsx</code></p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="primary-btn" (click)="closeDocumentation()">
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- ========== MODAL "NOUVELLE DEMANDE" ========== -->
+<div class="modal-backdrop" *ngIf="showNewDemandeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nouvelle demande de panne</h2>
+      <button class="icon-btn" (click)="closeNewDemandeModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+
+        <div class="form-field">
+          <label for="titre">Titre de la demande<span class="required">*</span></label>
+          <input
+            id="titre"
+            type="text"
+            [(ngModel)]="newDemande.titre"
+            placeholder="Ex : PC en panne"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="lieu">Lieu<span class="required">*</span></label>
+          <input
+            id="lieu"
+            type="text"
+            [(ngModel)]="newDemande.lieu"
+            placeholder="Ex : PGF-SUP salle 10"
+          />
+        </div>
+
+        <!-- Type d'équipement (preset) -->
+        <div class="form-field">
+          <label for="equipementPreset">Type d'équipement<span class="required">*</span></label>
+
+          <select
+            id="equipementPreset"
+            name="equipementPreset"
+            [(ngModel)]="selectedEquipementPreset"
+            (ngModelChange)="selectedEquipementPreset = $event; equipementAutre = ($event === 'AUTRE') ? equipementAutre : ''"
+          >
+
+          <option value="" disabled>Choisissez un équipement…</option>
+
+            <option *ngFor="let name of equipementsPreset" [value]="name">
+              {{ name === 'AUTRE' ? 'Autre (équipement non listé)' : name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Champ "Autre" si nécessaire -->
+        <div class="form-field" *ngIf="isAutreEquipement()">
+          <label for="equipementAutre">Précisez l'équipement<span class="required">*</span></label>
+          <input
+            id="equipementAutre"
+            type="text"
+            name="equipementAutre"
+            [(ngModel)]="equipementAutre"
+            placeholder="Ex : Lampe"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="urgence">Urgence (votre estimation)<span class="required">*</span></label>
+          <select
+            id="urgence"
+            [(ngModel)]="newDemande.urgenceDemandeur"
+          >
+            <option [ngValue]="null">Choisissez une urgence...</option>
+            <option value="BASSE">Basse</option>
+            <option value="MOYENNE">Moyenne</option>
+            <option value="HAUTE">Haute</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="image">
+            Image de l'équipement <span class="required">*</span>
+          </label>
+          <input
+            id="image"
+            type="file"
+            accept="image/*"
+            (change)="onImageSelected($event)"
+          />
+
+          <p class="error-text" *ngIf="imageErrorMessage">
+            {{ imageErrorMessage }}
+          </p>
+
+          <!-- Aperçu + bouton suppression -->
+          <div
+            class="image-preview-wrapper"
+            *ngIf="newDemande.imagePreview"
+          >
+            <img
+              [src]="newDemande.imagePreview"
+              alt="Aperçu de l'image"
+              class="image-preview"
+            />
+            <button
+              type="button"
+              class="remove-img-btn"
+              (click)="removeImage()"
+              aria-label="Retirer l'image"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <div class="form-field form-full">
+          <label for="description">Description de la panne</label>
+          <textarea
+            id="description"
+            rows="4"
+            [(ngModel)]="newDemande.description"
+            placeholder="Décrivez la panne : symptômes, contexte, fréquence, impact sur vos activités…"
+          ></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="secondary-btn" (click)="closeNewDemandeModal()">
+        Annuler
+      </button>
+      <button
+        class="primary-btn"
+        (click)="submitNewDemande()"
+        [disabled]="isNewDemandeFormInvalid()"
+      >
+        Enregistrer la demande
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL "DÉTAILS DEMANDE" ========== -->
+<div class="modal-backdrop" *ngIf="showDemandeDetailsModal && selectedDemande">
+  <section class="modal-card">
+    <header class="modal-header">
+      <h3>Détails de la demande</h3>
+      <button type="button" class="modal-close-btn" (click)="closeDemandeDetails()">
+        <span class="material-icons">close</span>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <div class="modal-main-title">
+        <h2>{{ selectedDemande.titre }}</h2>
+        <p class="modal-meta">
+          Créée le {{ selectedDemande.dateCreation | date:'dd/MM/yyyy' }} · {{ selectedDemande.lieu }}
+        </p>
+      </div>
+
+      <div class="modal-tags">
+        <div class="modal-tag-item">
+          <span class="tag-label">Statut</span>
+          <span class="status-chip" [ngClass]="{
+            pending: selectedDemande.statut === 'EN_ATTENTE',
+            progress: selectedDemande.statut === 'EN_COURS',
+            done: selectedDemande.statut === 'RESOLUE'
+          }">
+            {{
+              selectedDemande.statut === 'EN_ATTENTE' ? 'En attente' :
+              selectedDemande.statut === 'EN_COURS' ? 'En cours' :
+              'Résolue'
+            }}
+          </span>
+        </div>
+
+        <div class="modal-tag-item">
+          <span class="tag-label">Urgence</span>
+          <span class="urgence-chip" [ngClass]="{
+            'low': selectedDemande.urgence === 'BASSE',
+            'medium': selectedDemande.urgence === 'MOYENNE',
+            'high': selectedDemande.urgence === 'HAUTE'
+          }">
+            {{ selectedDemande.urgence === 'BASSE' ? 'Basse' : selectedDemande.urgence === 'MOYENNE' ? 'Moyenne' : 'Haute' }}
+          </span>
+        </div>
+
+        <div class="modal-tag-item">
+          <span class="tag-label">Type d'équipement</span>
+          <span class="place-chip">{{ selectedDemande.typeEquipement }}</span>
+        </div>
+      </div>
+
+      <div class="modal-section" *ngIf="selectedDemande.description">
+        <h4>Description</h4>
+        <p class="description-text">{{ selectedDemande.description }}</p>
+      </div>
+
+      <div class="modal-section">
+        <h4>Image jointe</h4>
+        
+        <div *ngIf="selectedDemande.imageUrl; else noImage">
+          <button
+            class="secondary-btn small pagination-btn"
+            type="button"
+            (click)="toggleImageInDetails()"
+          >
+            {{ showImageInDetails ? "Masquer l'image" : "Afficher l'image" }}
+          </button>
+
+          <div class="panne-image-wrapper" *ngIf="showImageInDetails">
+            <img 
+              [src]="selectedDemande.imageUrl" 
+              alt="Image de la demande"
+              (click)="openImageLightbox(selectedDemande.imageUrl)"
+              style="cursor: pointer;"
+            />
+          </div>
+        </div>
+
+        <ng-template #noImage>
+          <p class="modal-help" style="color: #6b7280; font-style: italic;">
+            Aucune image jointe
+          </p>
+        </ng-template>
+      </div>
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" class="secondary-btn" (click)="closeDemandeDetails()">
+        Fermer
+      </button>
+    </footer>
+  </section>
+</div>
+
+<!-- LIGHTBOX pour agrandir l'image -->
+<div
+  class="image-lightbox-overlay"
+  *ngIf="isImageLightboxOpen"
+  (click)="closeImageLightbox()"
+>
+  <div class="lightbox-content" (click)="$event.stopPropagation()">
+    <button class="lightbox-close" type="button" (click)="closeImageLightbox()">
+      ✕
+    </button>
+    <img
+      class="lightbox-image"
+      [src]="lightboxImageSrc!"
+      alt="Zoom image panne"
+    />
+  </div>
+</div>

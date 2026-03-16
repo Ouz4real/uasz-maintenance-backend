@@ -1,0 +1,171 @@
+<div class="login-container">
+  <!-- Panneau gauche - Formulaire -->
+  <div class="login-panel">
+    <div class="login-content">
+      <div class="brand">
+        <div class="brand-logo">UASZ</div>
+        <div class="brand-text">
+          <h1>Maintenance UASZ</h1>
+          <p>Plateforme de gestion des équipements</p>
+        </div>
+      </div>
+
+      <div class="welcome-section">
+        <h2 class="login-title">Bon retour !</h2>
+        <p class="login-subtitle">Veuillez saisir vos identifiants pour continuer</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email ou Nom d'utilisateur</mat-label>
+          <input matInput formControlName="username" placeholder="ex: jdoe ou votre.email@uasz.sn" />
+          <mat-icon matSuffix>person</mat-icon>
+          <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
+            L'email ou le nom d'utilisateur est obligatoire
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Mot de passe</mat-label>
+          <input
+            matInput
+            [type]="hidePassword ? 'password' : 'text'"
+            formControlName="password"
+            placeholder="Votre mot de passe"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="hidePassword = !hidePassword"
+            [attr.aria-label]="'Afficher / masquer le mot de passe'"
+            [attr.aria-pressed]="!hidePassword"
+          >
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+            Le mot de passe est obligatoire
+          </mat-error>
+        </mat-form-field>
+
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <button
+          mat-raised-button
+          color="primary"
+          class="full-width login-button"
+          type="submit"
+        >
+          Se connecter
+        </button>
+      </form>
+
+      <div class="helper-text">
+        <span>Vous n'avez pas de compte ?</span>
+        <a routerLink="/register">Créer un compte</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panneau droit - Illustration -->
+  <div class="illustration-panel">
+    <div class="illustration-content">
+      <div class="illustration-header">
+        <h3>Gestion Intelligente</h3>
+        <p>Optimisez la maintenance de vos équipements</p>
+      </div>
+
+      <div class="illustration-graphic">
+        <!-- Illustration SVG de maintenance -->
+        <div class="maintenance-scene">
+          <!-- Technicien avec outils -->
+          <div class="technician">
+            <div class="tech-head"></div>
+            <div class="tech-body"></div>
+            <div class="tech-arm-left"></div>
+            <div class="tech-arm-right"></div>
+            <div class="wrench">
+              <mat-icon>build</mat-icon>
+            </div>
+          </div>
+
+          <!-- Équipements -->
+          <div class="equipment-group">
+            <div class="equipment-item">
+              <mat-icon>computer</mat-icon>
+              <div class="status-indicator status-ok"></div>
+            </div>
+            <div class="equipment-item">
+              <mat-icon>print</mat-icon>
+              <div class="status-indicator status-warning"></div>
+            </div>
+            <div class="equipment-item">
+              <mat-icon>router</mat-icon>
+              <div class="status-indicator status-ok"></div>
+            </div>
+          </div>
+
+          <!-- Éléments décoratifs -->
+          <div class="floating-icon icon-1">
+            <mat-icon>settings</mat-icon>
+          </div>
+          <div class="floating-icon icon-2">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="floating-icon icon-3">
+            <mat-icon>notifications_active</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="features-list">
+        <div class="feature-item">
+          <mat-icon>speed</mat-icon>
+          <span>Suivi en temps réel</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon>analytics</mat-icon>
+          <span>Rapports détaillés</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon>group</mat-icon>
+          <span>Collaboration d'équipe</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Compte Désactivé -->
+<div class="modal-overlay" *ngIf="showDisabledAccountModal" (click)="closeDisabledAccountModal()">
+  <div class="modal-content disabled-account-modal" (click)="$event.stopPropagation()">
+    <div class="modal-icon">
+      <mat-icon>block</mat-icon>
+    </div>
+    
+    <h2 class="modal-title">Compte Désactivé</h2>
+    
+    <p class="modal-message">{{ disabledAccountMessage }}</p>
+    
+    <div class="modal-contact-info">
+      <div class="contact-item">
+        <mat-icon>email</mat-icon>
+        <span>support@uasz.sn</span>
+      </div>
+      <div class="contact-item">
+        <mat-icon>phone</mat-icon>
+        <span>+221 33 123 45 67</span>
+      </div>
+    </div>
+    
+    <button 
+      mat-raised-button 
+      color="primary" 
+      class="modal-close-btn"
+      (click)="closeDisabledAccountModal()">
+      Fermer
+    </button>
+  </div>
+</div>
