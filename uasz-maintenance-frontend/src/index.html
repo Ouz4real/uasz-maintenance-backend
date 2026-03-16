@@ -5,6 +5,9 @@
   <title>Maintenance UASZ</title>
   <base href="/">
 
+  <!-- Polyfill pour sockjs-client (utilise global de Node.js) -->
+  <script>if (typeof global === 'undefined') { window.global = window; }</script>
+
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Icônes Material Icons -->

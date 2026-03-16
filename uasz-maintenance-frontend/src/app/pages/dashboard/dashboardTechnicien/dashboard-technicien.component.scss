@@ -1027,7 +1027,8 @@
 .error-text {
   margin-top: 0.45rem;
   font-size: 0.8rem;
-  color: #b91c1c;
+  color: #d32f2f !important;
+  font-weight: 500;
 }
 .piece-row {
   display: flex;
@@ -1364,7 +1365,8 @@ section.maintenances-preventives-section .signals-table .signals-row {
 .error-text {
   margin-top: 0.45rem;
   font-size: 0.8rem;
-  color: #b91c1c;
+  color: #d32f2f !important;
+  font-weight: 500;
 }
 
 .equipment-section {
