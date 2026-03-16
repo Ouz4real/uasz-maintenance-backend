@@ -4594,6 +4594,12 @@ select.form-control{
 
 
 /* ===== MODALE DE DÉCONNEXION ===== */
+.blur-background {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;

@@ -1,6 +1,6 @@
 <!-- src/app/pages/dashboard/dashboardResponsable/dashboard-responsable.component.html -->
 
-<div class="dashboard-layout">
+<div class="dashboard-layout" [class.blur-background]="showLogoutModal">
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar">
     <div class="sidebar-header">
@@ -2467,36 +2467,6 @@
       </div>
 
 
-      <!-- ===== MODALE DE CONFIRMATION DE DÉCONNEXION ===== -->
-      <div class="modal-overlay" *ngIf="showLogoutModal" (click)="closeLogoutModal()">
-        <div class="modal-content logout-modal" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3>Confirmer la déconnexion</h3>
-            <button class="modal-close" (click)="closeLogoutModal()">
-              <span class="material-icons">close</span>
-            </button>
-          </div>
-
-          <div class="modal-body">
-            <div class="logout-icon">
-              <span class="material-icons">logout</span>
-            </div>
-            <p>Êtes-vous sûr de vouloir vous déconnecter ?</p>
-            <p class="logout-subtitle">Vous devrez vous reconnecter pour accéder à votre tableau de bord.</p>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="secondary-btn" (click)="closeLogoutModal()">
-              Annuler
-            </button>
-            <button type="button" class="danger-btn" (click)="confirmLogout()">
-              <span class="material-icons">logout</span>
-              Se déconnecter
-            </button>
-          </div>
-        </div>
-      </div>
-
       <!-- ===== MODAL NOUVELLE MAINTENANCE PRÉVENTIVE ===== -->
       <div class="modal-backdrop" *ngIf="showPreventiveForm">
         <div class="modal">
@@ -2674,6 +2644,36 @@
 
     </section>
   </main>
+</div>
+
+<!-- ===== MODALE DE CONFIRMATION DE DÉCONNEXION ===== -->
+<div class="modal-overlay" *ngIf="showLogoutModal" (click)="closeLogoutModal()">
+  <div class="modal-content logout-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la déconnexion</h3>
+      <button class="modal-close" (click)="closeLogoutModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="logout-icon">
+        <span class="material-icons">logout</span>
+      </div>
+      <p>Êtes-vous sûr de vouloir vous déconnecter ?</p>
+      <p class="logout-subtitle">Vous devrez vous reconnecter pour accéder à votre tableau de bord.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="secondary-btn" (click)="closeLogoutModal()">
+        Annuler
+      </button>
+      <button type="button" class="danger-btn" (click)="confirmLogout()">
+        <span class="material-icons">logout</span>
+        Se déconnecter
+      </button>
+    </div>
+  </div>
 </div>
 
 <!--HZGZGZGZGZZGZGZGZZGZG-->
