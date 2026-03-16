@@ -1556,13 +1556,15 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
 
     if (!this.ALLOWED_IMAGE_TYPES.includes(file.type)) {
       this.demandeImageError = 'Format d\'image non autorisé. Veuillez choisir une image JPG ou PNG.';
-      this.removeDemandeImage();
+      this.nouvelleDemande.imageFile = null;
+      this.nouvelleDemande.imagePreview = null;
       return;
     }
 
     if (file.size > this.MAX_IMAGE_SIZE) {
       this.demandeImageError = 'Image trop volumineuse. La taille maximale autorisée est de 2 Mo.';
-      this.removeDemandeImage();
+      this.nouvelleDemande.imageFile = null;
+      this.nouvelleDemande.imagePreview = null;
       return;
     }
 
