@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Secrets - Ne jamais commiter ces fichiers ###
+src/main/resources/application-local.properties
