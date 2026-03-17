@@ -1302,6 +1302,7 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
   modalTechnicienId: number | null = null;
   modalCommentaire: string = '';
   showImageInDetails = false;
+  showResolutionImageInDetails = false;
   markAsResolved = false;
 
   get canExportSelected(): boolean {
@@ -1927,6 +1928,11 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
           (p as any).imageUrl ??
           (p as any).imagePath ??
           null,
+
+        imageResolutionUrl:
+          (p as any).imageResolutionPath
+            ? this.resolveImageUrl((p as any).imageResolutionPath)
+            : null,
       };
     });
   }
@@ -2801,6 +2807,8 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
   closeDetailsModal(): void {
     this.showDetailsModal = false;
     this.selectedDemande = null;
+    this.showImageInDetails = false;
+    this.showResolutionImageInDetails = false;
   }
 
   saveDetails(): void {

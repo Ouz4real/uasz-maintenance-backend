@@ -1943,6 +1943,36 @@
                 </ng-template>
               </div>
 
+              <!-- Image de résolution (jointe par le technicien) -->
+              <div class="details-item details-full" *ngIf="selectedDemande?.statutInterventions === 'TERMINEE' || selectedDemande?.imageResolutionUrl">
+                <span class="details-label">Image après résolution (technicien)</span>
+
+                <ng-container *ngIf="selectedDemande?.imageResolutionUrl; else noResolutionImage">
+                  <button
+                    class="secondary-btn small pagination-btn"
+                    type="button"
+                    (click)="showResolutionImageInDetails = !showResolutionImageInDetails"
+                  >
+                    {{ showResolutionImageInDetails ? "Masquer l'image" : "Afficher l'image de résolution" }}
+                  </button>
+
+                  <div class="details-image-wrapper" *ngIf="showResolutionImageInDetails">
+                    <img
+                      class="details-image"
+                      [src]="selectedDemande.imageResolutionUrl"
+                      alt="Image après résolution"
+                      (click)="openImageLightbox(selectedDemande.imageResolutionUrl)"
+                    />
+                  </div>
+                </ng-container>
+
+                <ng-template #noResolutionImage>
+                  <span class="details-value details-muted">
+                    Aucune image de résolution fournie par le technicien.
+                  </span>
+                </ng-template>
+              </div>
+
               <div class="details-item details-full">
                 <label class="details-label">
                   <input
