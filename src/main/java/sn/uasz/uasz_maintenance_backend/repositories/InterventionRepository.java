@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import sn.uasz.uasz_maintenance_backend.entities.Intervention;
 import sn.uasz.uasz_maintenance_backend.enums.StatutIntervention;
 
@@ -51,6 +52,7 @@ public interface InterventionRepository extends JpaRepository<Intervention, Long
     );
 
     @Modifying
+    @Transactional
     @Query("UPDATE Intervention i SET i.technicien = null WHERE i.technicien.id = :userId")
     void nullifyTechnicien(@Param("userId") Long userId);
 }

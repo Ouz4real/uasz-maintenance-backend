@@ -1,8 +1,10 @@
 package sn.uasz.uasz_maintenance_backend.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import sn.uasz.uasz_maintenance_backend.entities.Panne;
 import sn.uasz.uasz_maintenance_backend.enums.StatutInterventions;
 import sn.uasz.uasz_maintenance_backend.enums.StatutPanne;
@@ -147,14 +149,17 @@ public interface PanneRepository extends JpaRepository<Panne, Long> {
     long countByDateSignalementBetween(@Param("debut") LocalDate debut, @Param("fin") LocalDate fin);
 
     @Modifying
+    @Transactional
     @Query("UPDATE Panne p SET p.demandeur = null WHERE p.demandeur.id = :userId")
     void nullifyDemandeur(@Param("userId") Long userId);
 
     @Modifying
+    @Transactional
     @Query("UPDATE Panne p SET p.technicien = null WHERE p.technicien.id = :userId")
     void nullifyTechnicien(@Param("userId") Long userId);
 
     @Modifying
+    @Transactional
     @Query("UPDATE Panne p SET p.technicienDeclinant = null WHERE p.technicienDeclinant.id = :userId")
     void nullifyTechnicienDeclinant(@Param("userId") Long userId);
 }

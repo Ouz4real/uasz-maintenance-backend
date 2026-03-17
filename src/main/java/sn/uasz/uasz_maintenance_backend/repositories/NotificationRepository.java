@@ -1,9 +1,11 @@
 package sn.uasz.uasz_maintenance_backend.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import sn.uasz.uasz_maintenance_backend.entities.Notification;
 
 import java.util.List;
@@ -22,6 +24,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findTop10ByUtilisateurIdOrderByDateCreationDesc(Long utilisateurId);
 
     @Modifying
+    @Transactional
     @Query("DELETE FROM Notification n WHERE n.utilisateurId = :userId")
     void deleteByUtilisateurId(@Param("userId") Long userId);
 }
