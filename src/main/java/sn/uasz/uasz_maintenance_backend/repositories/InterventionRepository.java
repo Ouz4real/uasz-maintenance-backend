@@ -1,6 +1,7 @@
 package sn.uasz.uasz_maintenance_backend.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import sn.uasz.uasz_maintenance_backend.entities.Intervention;
@@ -48,4 +49,8 @@ public interface InterventionRepository extends JpaRepository<Intervention, Long
             @Param("technicienId") Long technicienId,
             @Param("statut") String statut
     );
+
+    @Modifying
+    @Query("UPDATE Intervention i SET i.technicien = null WHERE i.technicien.id = :userId")
+    void nullifyTechnicien(@Param("userId") Long userId);
 }

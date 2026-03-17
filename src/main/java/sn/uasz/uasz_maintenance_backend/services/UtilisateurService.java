@@ -9,6 +9,9 @@ import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
 import sn.uasz.uasz_maintenance_backend.enums.Role;
 import sn.uasz.uasz_maintenance_backend.enums.StatutIntervention;
 import sn.uasz.uasz_maintenance_backend.repositories.InterventionRepository;
+import sn.uasz.uasz_maintenance_backend.repositories.NotificationRepository;
+import sn.uasz.uasz_maintenance_backend.repositories.RefreshTokenRepository;
+import sn.uasz.uasz_maintenance_backend.repositories.PanneRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
 import sn.uasz.uasz_maintenance_backend.services.EmailService;
 import sn.uasz.uasz_maintenance_backend.services.impl.NotificationServiceImpl;
@@ -26,6 +29,10 @@ public class UtilisateurService {
     private final PasswordEncoder passwordEncoder;
     private final NotificationServiceImpl notificationService;
     private final EmailService emailService;
+    private final PanneRepository panneRepository;
+    private final InterventionRepository interventionRepository;
+    private final NotificationRepository notificationRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -256,7 +263,22 @@ public class UtilisateurService {
     public void deleteById(Long userId) {
         Utilisateur user = utilisateurRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
-        
+
+        // 1. Supprimer les refresh tokens
+        refreshTokenRepository.deleteByUtilisateur(user);
+
+        // 2. Supprimer les notifications de cet utilisateur
+        notificationRepository.deleteByUtilisateurId(userId);
+
+        // 3. Nullifier les FK dans pannes (demandeur, technicien, technicienDeclinant)
+        panneRepository.nullifyDemandeur(userId);
+        panneRepository.nullifyTechnicien(userId);
+        panneRepository.nullifyTechnicienDeclinant(userId);
+
+        // 4. Nullifier les FK dans interventions (technicien)
+        interventionRepository.nullifyTechnicien(userId);
+
+        // 5. Supprimer l'utilisateur
         utilisateurRepository.delete(user);
     }
 

@@ -20,4 +20,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     Long countUnreadByUserId(@Param("userId") Long userId);
     
     List<Notification> findTop10ByUtilisateurIdOrderByDateCreationDesc(Long utilisateurId);
+
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.utilisateurId = :userId")
+    void deleteByUtilisateurId(@Param("userId") Long userId);
 }

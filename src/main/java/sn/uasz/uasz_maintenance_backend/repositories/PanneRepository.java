@@ -145,4 +145,16 @@ public interface PanneRepository extends JpaRepository<Panne, Long> {
 
     @Query("SELECT COUNT(p) FROM Panne p WHERE CAST(p.dateSignalement AS LocalDate) BETWEEN :debut AND :fin")
     long countByDateSignalementBetween(@Param("debut") LocalDate debut, @Param("fin") LocalDate fin);
+
+    @Modifying
+    @Query("UPDATE Panne p SET p.demandeur = null WHERE p.demandeur.id = :userId")
+    void nullifyDemandeur(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("UPDATE Panne p SET p.technicien = null WHERE p.technicien.id = :userId")
+    void nullifyTechnicien(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("UPDATE Panne p SET p.technicienDeclinant = null WHERE p.technicienDeclinant.id = :userId")
+    void nullifyTechnicienDeclinant(@Param("userId") Long userId);
 }
