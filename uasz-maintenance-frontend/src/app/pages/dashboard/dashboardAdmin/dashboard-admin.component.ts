@@ -694,7 +694,7 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
 
     this.utilisateursService.create(request).subscribe({
       next: () => {
-        this.showToast('Utilisateur créé avec succès. Mot de passe par défaut: Passer123@', 'success');
+        this.showToast('Utilisateur créé avec succès. Un email avec le mot de passe temporaire a été envoyé.', 'success');
         this.closeCreateModal();
         this.chargerUtilisateurs();
         this.isSubmitting = false;
