@@ -743,4 +743,57 @@ public class EmailServiceImpl implements EmailService {
             log.error("Erreur email admin nouvel utilisateur: {}", e.getMessage());
         }
     }
+
+    @Override
+    @Async
+    public void sendWelcomeEmail(String toEmail, String prenomNom, String username, String motDePasseTemporaire) {
+        if (!emailEnabled) { log.info("Email désactivé - Email non envoyé à {}", toEmail); return; }
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Bienvenue sur UASZ Maintenance - Vos identifiants de connexion");
+            helper.setText("""
+                <!DOCTYPE html><html><head><meta charset="UTF-8">
+                <style>
+                  body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
+                  .container{max-width:600px;margin:0 auto;padding:20px}
+                  .header{background:#1d4ed8;color:white;padding:20px;text-align:center;border-radius:5px 5px 0 0}
+                  .content{background:#f9f9f9;padding:30px;border:1px solid #ddd}
+                  .credentials-box{background:#eff6ff;padding:20px;margin:20px 0;border-left:4px solid #1d4ed8;border-radius:5px}
+                  .password-box{background:#1d4ed8;color:white;padding:12px 20px;border-radius:8px;font-size:20px;font-weight:bold;letter-spacing:2px;text-align:center;margin:10px 0}
+                  .warning-box{background:#fef3c7;padding:15px;margin:15px 0;border-left:4px solid #f59e0b;border-radius:5px}
+                  .footer{background:#ecf0f1;padding:15px;text-align:center;font-size:12px;color:#7f8c8d;border-radius:0 0 5px 5px}
+                  .highlight{color:#1d4ed8;font-weight:bold}
+                </style></head><body>
+                <div class="container">
+                  <div class="header">
+                    <h2>🎉 Bienvenue sur UASZ Maintenance</h2>
+                    <p style="margin:5px 0;font-size:14px;opacity:0.9">Votre compte a été créé avec succès</p>
+                  </div>
+                  <div class="content">
+                    <p>Bonjour <span class="highlight">%s</span>,</p>
+                    <p>Votre compte sur la plateforme de gestion de maintenance de l'UASZ a été créé par l'administrateur.</p>
+                    <div class="credentials-box">
+                      <p><strong>🔑 Vos identifiants de connexion :</strong></p>
+                      <p><strong>Nom d'utilisateur :</strong> %s</p>
+                      <p><strong>Mot de passe temporaire :</strong></p>
+                      <div class="password-box">%s</div>
+                    </div>
+                    <div class="warning-box">
+                      <p><strong>⚠️ Important :</strong> Ce mot de passe est temporaire. Vous devrez le changer dès votre première connexion.</p>
+                    </div>
+                    <p>Pour vous connecter, rendez-vous sur la plateforme et utilisez ces identifiants. Vous serez automatiquement invité à définir un nouveau mot de passe.</p>
+                    <p>Cordialement,<br><strong>L'équipe de maintenance UASZ</strong></p>
+                  </div>
+                  <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ - Université Assane Seck de Ziguinchor</p></div>
+                </div></body></html>
+                """.formatted(prenomNom, username, motDePasseTemporaire), true);
+            mailSender.send(message);
+            log.info("Email de bienvenue envoyé à {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("Erreur email de bienvenue: {}", e.getMessage());
+        }
+    }
 }

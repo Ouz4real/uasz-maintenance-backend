@@ -15,4 +15,5 @@ public interface EmailService {
     void sendDemandeAffecteeTechnicienEmail(String toEmail, String technicienNom, String titreDemande, String demandeurNom, String lieu, String priorite, String date);
     // Admin
     void sendNouvelUtilisateurAdminEmail(String toEmail, String adminNom, String nouvelUtilisateurNom, String username, String email, String date);
+    void sendWelcomeEmail(String toEmail, String prenomNom, String username, String motDePasseTemporaire);
 }

@@ -10,8 +10,10 @@ import sn.uasz.uasz_maintenance_backend.enums.Role;
 import sn.uasz.uasz_maintenance_backend.enums.StatutIntervention;
 import sn.uasz.uasz_maintenance_backend.repositories.InterventionRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
+import sn.uasz.uasz_maintenance_backend.services.EmailService;
 import sn.uasz.uasz_maintenance_backend.services.impl.NotificationServiceImpl;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +25,29 @@ public class UtilisateurService {
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
     private final NotificationServiceImpl notificationService;
+    private final EmailService emailService;
+
+    private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    private String generatePassword() {
+        StringBuilder sb = new StringBuilder(12);
+        // Garantir au moins 1 majuscule, 1 minuscule, 1 chiffre, 1 spécial
+        sb.append("ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(RANDOM.nextInt(26)));
+        sb.append("abcdefghijklmnopqrstuvwxyz".charAt(RANDOM.nextInt(26)));
+        sb.append("0123456789".charAt(RANDOM.nextInt(10)));
+        sb.append("@#$!".charAt(RANDOM.nextInt(4)));
+        for (int i = 4; i < 12; i++) {
+            sb.append(CHARS.charAt(RANDOM.nextInt(CHARS.length())));
+        }
+        // Mélanger
+        char[] arr = sb.toString().toCharArray();
+        for (int i = arr.length - 1; i > 0; i--) {
+            int j = RANDOM.nextInt(i + 1);
+            char tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+        }
+        return new String(arr);
+    }
 
     /**
      * Création d’un utilisateur avec vérification d’unicité
@@ -47,13 +72,12 @@ public class UtilisateurService {
             throw new IllegalArgumentException("Email déjà utilisé : " + email);
         }
 
-        // Définir le mot de passe par défaut si non fourni (création par admin)
+        // Générer un mot de passe aléatoire sécurisé si non fourni (création par admin)
         String motDePasse = request.getMotDePasse();
         boolean mustChange = false;
         
         if (motDePasse == null || motDePasse.trim().isEmpty()) {
-            // Mot de passe par défaut pour les utilisateurs créés par l'admin
-            motDePasse = "Passer123@";
+            motDePasse = generatePassword();
             mustChange = true;
         }
 
@@ -72,7 +96,13 @@ public class UtilisateurService {
                 .build();
 
         Utilisateur saved = utilisateurRepository.save(utilisateur);
-        
+
+        // 📧 Envoyer le mot de passe temporaire par email si généré automatiquement
+        if (mustChange) {
+            String prenomNom = (saved.getPrenom() != null ? saved.getPrenom() : "") + " " + (saved.getNom() != null ? saved.getNom() : "");
+            emailService.sendWelcomeEmail(saved.getEmail(), prenomNom.trim(), saved.getUsername(), motDePasse);
+        }
+
         // 🔔 Créer une notification pour tous les responsables si c'est un technicien
         try {
             if (saved.getRole() == Role.TECHNICIEN) {
