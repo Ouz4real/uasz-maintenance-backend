@@ -1609,6 +1609,60 @@
             ></textarea>
           </div>
 
+          <!-- Image après résolution (technicien) -->
+          <div class="modal-section">
+            <h4>Image après résolution <span class="optional-label">(optionnel)</span></h4>
+
+            <!-- Si intervention terminée et image existante -->
+            <ng-container *ngIf="selectedIntervention?.statut === 'TERMINEE'">
+              <div *ngIf="selectedIntervention?.imageResolutionUrl; else noResolutionImage">
+                <button
+                  class="secondary-btn small pagination-btn"
+                  type="button"
+                  (click)="showResolutionImageInDetails = !showResolutionImageInDetails"
+                >
+                  {{ showResolutionImageInDetails ? "Masquer l'image" : "Afficher l'image de résolution" }}
+                </button>
+                <div class="panne-image-wrapper" *ngIf="showResolutionImageInDetails">
+                  <img
+                    [src]="'http://localhost:8080' + selectedIntervention.imageResolutionUrl"
+                    alt="Image après résolution"
+                    (click)="openImageLightbox('http://localhost:8080' + selectedIntervention.imageResolutionUrl)"
+                  />
+                </div>
+              </div>
+              <ng-template #noResolutionImage>
+                <p class="modal-help" style="color: #6b7280; font-style: italic;">Aucune image de résolution fournie.</p>
+              </ng-template>
+            </ng-container>
+
+            <!-- Si intervention EN_COURS : upload -->
+            <ng-container *ngIf="selectedIntervention?.statut !== 'TERMINEE'">
+              <div class="resolution-upload-zone" *ngIf="!resolutionImagePreview">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/jpg"
+                  #resolutionFileInput
+                  (change)="onResolutionImageSelected($event)"
+                  style="display:none"
+                />
+                <button type="button" class="secondary-btn" (click)="resolutionFileInput.click()">
+                  <span class="material-icons">add_photo_alternate</span>
+                  Joindre une photo de l'équipement réparé
+                </button>
+                <p class="modal-help" *ngIf="!resolutionImageError">JPG ou PNG · max 2 Mo</p>
+                <p class="field-error" *ngIf="resolutionImageError">{{ resolutionImageError }}</p>
+              </div>
+
+              <div class="resolution-preview-wrapper" *ngIf="resolutionImagePreview">
+                <img [src]="resolutionImagePreview" alt="Aperçu image résolution" class="resolution-preview-img" />
+                <button type="button" class="icon-btn remove-piece" (click)="removeResolutionImage()">
+                  <span class="material-icons">close</span>
+                </button>
+              </div>
+            </ng-container>
+          </div>
+
           <div class="modal-section">
             <h4>Pièces utilisées (optionnel)</h4>
 

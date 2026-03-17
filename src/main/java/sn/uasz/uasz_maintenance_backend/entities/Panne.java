@@ -76,6 +76,10 @@ public class Panne {
     @Column(name = "image_path", length = 255)
     private String imagePath;
 
+    // ✅ image après résolution (jointe par le technicien)
+    @Column(name = "image_resolution_path", length = 255)
+    private String imageResolutionPath;
+
     // ✅ commentaire interne pour le responsable/technicien
     @Column(name = "commentaire_interne", columnDefinition = "TEXT")
     private String commentaireInterne;

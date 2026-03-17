@@ -69,6 +69,7 @@ interface Intervention {
   noteTechnicien?: string; // Note du technicien après intervention
   pieces?: InterventionPiece[];
   imageUrl?: string; // Image de la panne jointe par le demandeur
+  imageResolutionUrl?: string; // Image après résolution jointe par le technicien
   equipementId?: number; // lien vers équipement
   dateDebutIntervention?: Date; // Date de début d'intervention
   dateFinIntervention?: Date; // Date de fin d'intervention
@@ -258,10 +259,17 @@ export class DashboardTechnicienComponent implements OnInit, OnDestroy {
   imagePreview: string | null = null;
   piecesSelection: { nom: string; quantite: number | null }[] = [];
   showImageInDetails = false; // Pour afficher/masquer l'image de la panne
+  showResolutionImageInDetails = false; // Pour afficher/masquer l'image de résolution
   
   // Lightbox pour agrandir l'image
   isImageLightboxOpen = false;
   lightboxImageSrc: string | null = null;
+
+  // Image de résolution (après intervention)
+  resolutionImageFile: File | null = null;
+  resolutionImagePreview: string | null = null;
+  resolutionImageError: string | null = null;
+  @ViewChild('resolutionFileInput') resolutionFileInputRef?: ElementRef<HTMLInputElement>;
 
   // ===== MES DEMANDES =====
   mesDemandes: Demande[] = [];
@@ -469,6 +477,7 @@ private mapPannesToInterventions(pannes: any[]): Intervention[] {
     noteTechnicien: p.noteTechnicien,
     pieces: this.parsePiecesUtilisees(p.piecesUtilisees),
     imageUrl: p.imagePath,
+    imageResolutionUrl: p.imageResolutionPath,
     equipementId: p.equipement?.id,
     dateDebutIntervention: p.dateDebutIntervention ? new Date(p.dateDebutIntervention) : undefined,
     dateFinIntervention: p.dateFinIntervention ? new Date(p.dateFinIntervention) : undefined,
@@ -911,6 +920,13 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
     this.imagePreview = null;
     this.piecesSelection = [];
     this.showImageInDetails = false; // Réinitialiser l'affichage de l'image
+    this.showResolutionImageInDetails = false;
+    this.resolutionImageFile = null;
+    this.resolutionImagePreview = null;
+    this.resolutionImageError = null;
+    if (this.resolutionFileInputRef?.nativeElement) {
+      this.resolutionFileInputRef.nativeElement.value = '';
+    }
 
     this.selectedEquipement = null;
     this.equipInterventions = [];
@@ -1047,16 +1063,49 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
       }));
   }
 
+  onResolutionImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+
+    if (!this.ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      this.resolutionImageError = 'Format non autorisé. Choisissez une image JPG ou PNG.';
+      return;
+    }
+
+    if (file.size > this.MAX_IMAGE_SIZE) {
+      this.resolutionImageError = 'Image trop volumineuse (max 2 Mo).';
+      return;
+    }
+
+    this.resolutionImageError = null;
+    this.resolutionImageFile = file;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.resolutionImagePreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeResolutionImage(): void {
+    this.resolutionImageFile = null;
+    this.resolutionImagePreview = null;
+    this.resolutionImageError = null;
+    if (this.resolutionFileInputRef?.nativeElement) {
+      this.resolutionFileInputRef.nativeElement.value = '';
+    }
+  }
+
   terminerIntervention() {
     if (!this.selectedIntervention || !this.updateNote.trim() || !this.technicienId) return;
 
     const panneId = this.selectedIntervention.id;
     const pieces = this.buildPiecesFromSelection();
 
-    // Appeler le backend pour terminer l'intervention
-    this.pannesService.terminerIntervention(panneId, this.updateNote.trim(), pieces).subscribe({
+    this.pannesService.terminerIntervention(panneId, this.updateNote.trim(), pieces, this.resolutionImageFile).subscribe({
       next: () => {
-        // Mettre à jour l'état local
         if (this.selectedIntervention) {
           this.selectedIntervention.statut = 'TERMINEE';
           this.selectedIntervention.pieces = pieces;
@@ -1067,7 +1116,6 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
         this.closeModals();
         this.showToast('Intervention terminée avec succès.', 'success');
 
-        // Recharger les données depuis le backend
         this.chargerInterventionsDepuisApi();
       },
       error: (err) => {

@@ -31,6 +31,7 @@ public class PanneResponse {
     private DemandeurInfo demandeur;
 
     private String imagePath;
+    private String imageResolutionPath;
     private String commentaireInterne;
     private String raisonRefus;
     private String dateRefus;  // Format ISO 8601

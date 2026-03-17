@@ -342,6 +342,27 @@ public class PanneService {
         }
     }
 
+    private String saveResolutionImage(Long panneId, MultipartFile file) {
+        try {
+            String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "image";
+            String ext = "";
+            int dot = original.lastIndexOf('.');
+            if (dot >= 0) ext = original.substring(dot);
+
+            String filename = "resolution-" + panneId + "-" + UUID.randomUUID() + ext;
+
+            Path dir = Paths.get("uploads", "pannes").toAbsolutePath().normalize();
+            Files.createDirectories(dir);
+
+            Path target = dir.resolve(filename);
+            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+
+            return "/uploads/pannes/" + filename;
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur enregistrement image résolution", e);
+        }
+    }
+
     @Transactional
         public PanneResponse affecterTechnicien(Long id, Long idTechnicien, Utilisateur responsableConnecte) {
 
@@ -520,6 +541,7 @@ public class PanneService {
                 )
                 
                 .imagePath(panne.getImagePath())
+                .imageResolutionPath(panne.getImageResolutionPath())
                 .commentaireInterne(panne.getCommentaireInterne())
                 .raisonRefus(panne.getRaisonRefus())
                 .dateRefus(panne.getDateRefus() != null ? panne.getDateRefus().toString() : null)
@@ -880,7 +902,7 @@ public class PanneService {
     }
 
     @Transactional
-    public PanneResponse terminerIntervention(Long panneId, Long technicienId, sn.uasz.uasz_maintenance_backend.dtos.TerminerInterventionRequest request) {
+    public PanneResponse terminerIntervention(Long panneId, Long technicienId, String noteTechnicienParam, String piecesJson, MultipartFile imageResolution) {
         Panne panne = panneRepository.findById(panneId)
                 .orElseThrow(() -> new ResourceNotFoundException("Panne introuvable"));
 
@@ -897,30 +919,26 @@ public class PanneService {
         // Terminer l'intervention
         panne.setStatutInterventions(StatutInterventions.TERMINEE);
         panne.setDateFinIntervention(LocalDateTime.now());
-        
-        // ⚠️ NE PAS changer le statut de la panne - il reste EN_COURS
-        // Seul le responsable peut marquer la panne comme RESOLUE
 
         // Enregistrer la note du technicien
-        if (request.getNoteTechnicien() != null && !request.getNoteTechnicien().trim().isEmpty()) {
-            panne.setNoteTechnicien(request.getNoteTechnicien().trim());
+        if (noteTechnicienParam != null && !noteTechnicienParam.trim().isEmpty()) {
+            panne.setNoteTechnicien(noteTechnicienParam.trim());
         }
 
-        // Enregistrer les pièces utilisées (format JSON simple)
-        if (request.getPieces() != null && !request.getPieces().isEmpty()) {
-            StringBuilder piecesJson = new StringBuilder("[");
-            for (int i = 0; i < request.getPieces().size(); i++) {
-                var piece = request.getPieces().get(i);
-                if (i > 0) piecesJson.append(",");
-                piecesJson.append("{\"nom\":\"").append(piece.getNom())
-                          .append("\",\"quantite\":").append(piece.getQuantite())
-                          .append("}");
-            }
-            piecesJson.append("]");
-            panne.setPiecesUtilisees(piecesJson.toString());
+        // Enregistrer les pièces utilisées (format JSON)
+        if (piecesJson != null && !piecesJson.trim().isEmpty() && !piecesJson.equals("[]")) {
+            panne.setPiecesUtilisees(piecesJson);
         }
 
+        // Sauvegarder d'abord pour avoir l'ID
         Panne saved = panneRepository.save(panne);
+
+        // Sauvegarder l'image de résolution si fournie
+        if (imageResolution != null && !imageResolution.isEmpty()) {
+            String resolutionPath = saveResolutionImage(saved.getId(), imageResolution);
+            saved.setImageResolutionPath(resolutionPath);
+            saved = panneRepository.save(saved);
+        }
         
         // ❌ PAS de notification au demandeur ici
         // Le demandeur ne doit recevoir une notification QUE quand le responsable marque comme RESOLUE

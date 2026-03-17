@@ -226,16 +226,18 @@ public class PanneController {
         return ResponseEntity.ok(response);
     }
 
-    // 🔥 NOUVEAU : Endpoint pour terminer une intervention
-    @PatchMapping("/{panneId}/terminer-intervention")
+    // 🔥 NOUVEAU : Endpoint pour terminer une intervention (multipart pour image résolution)
+    @PatchMapping(value = "/{panneId}/terminer-intervention", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE, "*/*"})
     @PreAuthorize("hasAnyRole('TECHNICIEN','RESPONSABLE_MAINTENANCE')")
     public ResponseEntity<PanneResponse> terminerIntervention(
             @PathVariable Long panneId,
-            @RequestBody sn.uasz.uasz_maintenance_backend.dtos.TerminerInterventionRequest request,
+            @RequestParam(value = "noteTechnicien", required = false) String noteTechnicien,
+            @RequestParam(value = "pieces", required = false) String piecesJson,
+            @RequestPart(value = "imageResolution", required = false) MultipartFile imageResolution,
             Authentication authentication
     ) {
         Utilisateur user = (Utilisateur) authentication.getPrincipal();
-        PanneResponse response = panneService.terminerIntervention(panneId, user.getId(), request);
+        PanneResponse response = panneService.terminerIntervention(panneId, user.getId(), noteTechnicien, piecesJson, imageResolution);
         return ResponseEntity.ok(response);
     }
 

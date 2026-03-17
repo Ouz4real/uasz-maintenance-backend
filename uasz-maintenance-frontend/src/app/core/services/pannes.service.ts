@@ -42,14 +42,17 @@ export class PannesService {
     );
   }
 
-  /** 🔹 Terminer une intervention (passer de EN_COURS à TERMINEE) */
-  terminerIntervention(panneId: number, noteTechnicien: string, pieces: Array<{ nom: string; quantite: number }>): Observable<any> {
+  /** 🔹 Terminer une intervention (multipart avec image optionnelle) */
+  terminerIntervention(panneId: number, noteTechnicien: string, pieces: Array<{ nom: string; quantite: number }>, imageResolution?: File | null): Observable<any> {
+    const fd = new FormData();
+    fd.append('noteTechnicien', noteTechnicien);
+    fd.append('pieces', JSON.stringify(pieces));
+    if (imageResolution) {
+      fd.append('imageResolution', imageResolution);
+    }
     return this.http.patch<any>(
       `${this.apiUrl}/${panneId}/terminer-intervention`,
-      {
-        noteTechnicien,
-        pieces
-      }
+      fd
     );
   }
 
