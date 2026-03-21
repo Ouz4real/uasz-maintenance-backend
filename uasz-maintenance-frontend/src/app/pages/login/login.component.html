@@ -20,9 +20,6 @@
           <mat-label>Email ou Nom d'utilisateur</mat-label>
           <input matInput formControlName="username" placeholder="ex: jdoe ou votre.email@uasz.sn" />
           <mat-icon matSuffix>person</mat-icon>
-          <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
-            L'email ou le nom d'utilisateur est obligatoire
-          </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -43,13 +40,18 @@
           >
             <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
-          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-            Le mot de passe est obligatoire
-          </mat-error>
         </mat-form-field>
 
         <div *ngIf="errorMessage" class="error-message">
           {{ errorMessage }}
+        </div>
+
+        <div class="form-extras">
+          <label class="remember-me">
+            <input type="checkbox" formControlName="rememberMe" />
+            <span>Se souvenir de moi</span>
+          </label>
+          <a class="forgot-link" (click)="openForgotModal()">Mot de passe oublié ?</a>
         </div>
 
         <button
@@ -134,6 +136,41 @@
           <span>Collaboration d'équipe</span>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Mot de passe oublié -->
+<div class="modal-overlay" *ngIf="showForgotModal" (click)="closeForgotModal()">
+  <div class="modal-content forgot-modal" (click)="$event.stopPropagation()">
+    <div class="modal-icon forgot-icon">
+      <mat-icon>lock_reset</mat-icon>
+    </div>
+    <h2 class="modal-title">Mot de passe oublié ?</h2>
+
+    <div *ngIf="!forgotSent">
+      <p class="modal-message">
+        Saisissez votre adresse email. Nous vous enverrons un lien pour réinitialiser votre mot de passe.
+      </p>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Adresse email</mat-label>
+        <input matInput type="email" [(ngModel)]="forgotEmail" placeholder="votre.email@uasz.sn" />
+        <mat-icon matSuffix>email</mat-icon>
+      </mat-form-field>
+      <div *ngIf="forgotError" class="forgot-error">{{ forgotError }}</div>
+      <button mat-raised-button color="primary" class="modal-close-btn forgot-submit-btn"
+        [disabled]="forgotLoading || !forgotEmail"
+        (click)="submitForgotPassword()">
+        {{ forgotLoading ? 'Envoi en cours...' : 'Envoyer le lien' }}
+      </button>
+      <button mat-button class="forgot-cancel-btn" (click)="closeForgotModal()">Annuler</button>
+    </div>
+
+    <div *ngIf="forgotSent" class="forgot-success">
+      <mat-icon class="forgot-success-icon">mark_email_read</mat-icon>
+      <p>Email envoyé ! Vérifiez votre boîte de réception et cliquez sur le lien pour réinitialiser votre mot de passe.</p>
+      <p class="forgot-success-note">Le lien est valable 30 minutes.</p>
+      <button mat-raised-button color="primary" class="modal-close-btn" (click)="closeForgotModal()">Fermer</button>
     </div>
   </div>
 </div>

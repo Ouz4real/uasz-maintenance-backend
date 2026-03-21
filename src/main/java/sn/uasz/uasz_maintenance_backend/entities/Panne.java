@@ -100,6 +100,10 @@ public class Panne {
     @Column(name = "date_refus")
     private LocalDateTime dateRefus;
 
+    // ✅ date de la dernière relance envoyée (pour éviter les doublons)
+    @Column(name = "date_derniere_relance")
+    private LocalDateTime dateDerniereRelance;
+
     // ✅ technicien qui a décliné (pour garder l'historique lors de la réaffectation)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password"})
     @ManyToOne(fetch = FetchType.LAZY)

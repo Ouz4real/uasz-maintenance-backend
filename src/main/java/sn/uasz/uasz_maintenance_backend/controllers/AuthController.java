@@ -5,20 +5,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 import sn.uasz.uasz_maintenance_backend.dtos.AuthRequest;
 import sn.uasz.uasz_maintenance_backend.dtos.AuthResponse;
 import sn.uasz.uasz_maintenance_backend.dtos.ChangePasswordRequest;
+import sn.uasz.uasz_maintenance_backend.dtos.ForgotPasswordRequest;
 import sn.uasz.uasz_maintenance_backend.dtos.RegisterRequest;
+import sn.uasz.uasz_maintenance_backend.dtos.ResetPasswordRequest;
 import sn.uasz.uasz_maintenance_backend.entities.Notification;
+import sn.uasz.uasz_maintenance_backend.entities.PasswordResetToken;
 import sn.uasz.uasz_maintenance_backend.entities.RefreshToken;
 import sn.uasz.uasz_maintenance_backend.entities.Utilisateur;
 import sn.uasz.uasz_maintenance_backend.enums.Role;
+import sn.uasz.uasz_maintenance_backend.repositories.PasswordResetTokenRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
 import sn.uasz.uasz_maintenance_backend.security.JwtService;
 import sn.uasz.uasz_maintenance_backend.services.RefreshTokenService;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,6 +39,10 @@ public class AuthController {
     private final sn.uasz.uasz_maintenance_backend.services.NotificationService notificationService;
     private final sn.uasz.uasz_maintenance_backend.services.EmailService emailService;
     private final RefreshTokenService refreshTokenService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Value("${app.frontend.url:http://localhost:4200}")
+    private String frontendUrl;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
@@ -330,5 +341,79 @@ public class AuthController {
                     .ifPresent(rt -> refreshTokenService.deleteByUtilisateur(rt.getUtilisateur()));
         }
         return ResponseEntity.ok(Map.of("message", "Déconnexion réussie"));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            return ResponseEntity.badRequest().body("L'email est obligatoire");
+        }
+
+        Optional<Utilisateur> optUser = utilisateurRepository.findByEmail(request.getEmail());
+
+        // Toujours répondre OK pour ne pas révéler si l'email existe
+        if (optUser.isEmpty()) {
+            log.info("Demande reset password pour email inconnu: {}", request.getEmail());
+            return ResponseEntity.ok(Map.of("message", "Si cet email existe, un lien de réinitialisation a été envoyé."));
+        }
+
+        Utilisateur user = optUser.get();
+
+        // Supprimer les anciens tokens de cet utilisateur
+        passwordResetTokenRepository.deleteByUtilisateurId(user.getId());
+
+        // Créer un nouveau token (valide 30 min)
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .token(token)
+                .utilisateurId(user.getId())
+                .expiresAt(LocalDateTime.now().plusMinutes(30))
+                .build();
+        passwordResetTokenRepository.save(resetToken);
+
+        // Envoyer l'email
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
+        String prenomNom = (user.getPrenom() != null ? user.getPrenom() : "") + " " + (user.getNom() != null ? user.getNom() : "");
+        emailService.sendResetPasswordEmail(user.getEmail(), prenomNom.trim(), resetLink);
+
+        log.info("Reset password demandé pour: {}", user.getEmail());
+        return ResponseEntity.ok(Map.of("message", "Si cet email existe, un lien de réinitialisation a été envoyé."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        if (request.getToken() == null || request.getToken().isBlank()) {
+            return ResponseEntity.badRequest().body("Le token est obligatoire");
+        }
+        if (request.getNewPassword() == null || request.getNewPassword().length() < 6) {
+            return ResponseEntity.badRequest().body("Le mot de passe doit contenir au moins 6 caractères");
+        }
+
+        Optional<PasswordResetToken> optToken = passwordResetTokenRepository.findByToken(request.getToken());
+        if (optToken.isEmpty()) {
+            return ResponseEntity.status(400).body("Lien invalide ou déjà utilisé");
+        }
+
+        PasswordResetToken resetToken = optToken.get();
+        if (resetToken.isUsed() || resetToken.isExpired()) {
+            return ResponseEntity.status(400).body("Ce lien a expiré ou a déjà été utilisé");
+        }
+
+        Optional<Utilisateur> optUser = utilisateurRepository.findById(resetToken.getUtilisateurId());
+        if (optUser.isEmpty()) {
+            return ResponseEntity.status(404).body("Utilisateur non trouvé");
+        }
+
+        Utilisateur user = optUser.get();
+        user.setMotDePasse(passwordEncoder.encode(request.getNewPassword()));
+        user.setMustChangePassword(false);
+        utilisateurRepository.save(user);
+
+        // Invalider le token
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+
+        log.info("Mot de passe réinitialisé avec succès pour: {}", user.getEmail());
+        return ResponseEntity.ok(Map.of("message", "Mot de passe réinitialisé avec succès"));
     }
 }

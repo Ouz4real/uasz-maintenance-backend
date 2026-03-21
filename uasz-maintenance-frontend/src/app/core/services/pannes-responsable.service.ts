@@ -27,6 +27,7 @@ export interface PanneDto {
 
   imageUrl?: string | null;
   imagePath?: string | null;
+  imageResolutionPath?: string | null;
 
   demandeur?: { id: number; prenom?: string; nom?: string };
   signaleePar?: string | null;

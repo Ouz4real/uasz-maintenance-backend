@@ -32,6 +32,7 @@ interface Demande {
   description: string;
   imageFileName?: string;
   imageUrl?: string;
+  imageResolutionUrl?: string;
 
   // 🔥 Urgences
   urgenceDemandeur: UrgenceNiveau;
@@ -301,29 +302,54 @@ export class DashboardDemandeurComponent implements OnInit {
     });
   }
 
-  /* ----- DOCUMENTS : construit depuis les demandes ----- */
+  /* ----- DOCUMENTS : construit depuis les demandes résolues ----- */
   private syncDocumentsFromDemandes(): void {
-    const docs: DemandeDocument[] = (this.demandes ?? [])
-      .filter(d => !!d.imageUrl)
-      .map((d, idx) => {
-        const url = d.imageUrl as string;
+    const baseUrl = environment.backendUrl;
+    const docs: DemandeDocument[] = [];
+    let idCounter = 1;
 
-        const nom = d.titre
-          ? `Image - ${d.titre}`
-          : `Image demande #${d.id}`;
+    const resolues = (this.demandes ?? []).filter(d => d.statut === 'RESOLUE');
 
-        const dateDepot = new Date((d.dateCreation as any) ?? Date.now());
+    for (const d of resolues) {
+      const dateDepot = new Date((d.dateCreation as any) ?? Date.now());
 
-        return {
-          id: Number(`${d.id}${idx}`),
-          nom,
+      // Image de l'équipement en panne
+      if (d.imageUrl) {
+        docs.push({
+          id: idCounter++,
+          nom: `Image équipement - ${d.titre || 'Demande #' + d.id}`,
           type: 'IMAGE',
           demandeId: d.id,
           demandeTitre: d.titre || `Demande #${d.id}`,
           dateDepot,
-          url,
-        };
+          url: d.imageUrl,
+        });
+      }
+
+      // Image de résolution du technicien
+      if (d.imageResolutionUrl) {
+        docs.push({
+          id: idCounter++,
+          nom: `Image résolution - ${d.titre || 'Demande #' + d.id}`,
+          type: 'IMAGE',
+          demandeId: d.id,
+          demandeTitre: d.titre || `Demande #${d.id}`,
+          dateDepot,
+          url: d.imageResolutionUrl,
+        });
+      }
+
+      // Rapport PDF de la demande
+      docs.push({
+        id: idCounter++,
+        nom: `Rapport - ${d.titre || 'Demande #' + d.id}`,
+        type: 'RAPPORT',
+        demandeId: d.id,
+        demandeTitre: d.titre || `Demande #${d.id}`,
+        dateDepot,
+        url: `${baseUrl}/api/pannes/${d.id}/export-pdf`,
       });
+    }
 
     docs.sort((a, b) => b.dateDepot.getTime() - a.dateDepot.getTime());
     this.documents = docs;
@@ -489,7 +515,23 @@ export class DashboardDemandeurComponent implements OnInit {
 
   ouvrirDocument(doc: DemandeDocument): void {
     if (!doc.url) return;
-    window.open(doc.url, '_blank');
+
+    if (doc.type === 'RAPPORT') {
+      // Le PDF nécessite le token JWT → on passe par HttpClient
+      this.pannesApi.exportPdf(doc.demandeId).subscribe({
+        next: (blob) => {
+          const blobUrl = URL.createObjectURL(blob);
+          const a = window.open(blobUrl, '_blank');
+          // Libérer l'URL après ouverture
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        },
+        error: (err) => {
+          console.error('Erreur export PDF:', err);
+        }
+      });
+    } else {
+      window.open(doc.url, '_blank');
+    }
   }
 
   allerVersDemande(doc: DemandeDocument): void {
@@ -983,7 +1025,7 @@ export class DashboardDemandeurComponent implements OnInit {
 
   getUrgenceLabel(u?: UrgenceNiveau | null): string {
     if (!u) return 'Non définie';
-    return u === 'BASSE' ? 'Urgence basse' : u === 'MOYENNE' ? 'Urgence moyenne' : 'Urgence haute';
+    return u === 'BASSE' ? 'Basse' : u === 'MOYENNE' ? 'Moyenne' : 'Haute';
   }
 
   getUrgenceChipClass(u?: UrgenceNiveau | null): string {
@@ -996,10 +1038,10 @@ export class DashboardDemandeurComponent implements OnInit {
 
     const referenceDate = d.dateDerniereRelance ?? d.dateCreation;
     const now = new Date();
-    const diffMs = now.getTime() - referenceDate.getTime();
+    const diffMs = now.getTime() - new Date(referenceDate).getTime();
     const diffJours = diffMs / (1000 * 60 * 60 * 24);
 
-    return diffJours >= 5;
+    return diffJours >= 3;
   }
 
   relancerSelectedDemande(): void {
@@ -1014,18 +1056,22 @@ export class DashboardDemandeurComponent implements OnInit {
   }
 
   relancerDemande(d: Demande): void {
-    const maintenant = new Date();
+    this.pannesApi.relancerDemande(d.id).subscribe({
+      next: (updated) => {
+        d.dateDerniereRelance = updated.dateDerniereRelance ? new Date(updated.dateDerniereRelance) : new Date();
+        d.nbRelances = (d.nbRelances ?? 0) + 1;
 
-    d.nbRelances = (d.nbRelances ?? 0) + 1;
-    d.dateDerniereRelance = maintenant;
-
-    this.successMessage =
-      'Votre demande a bien été relancée. Le service maintenance sera à nouveau notifié.';
-    this.showSuccessToast = true;
-
-    setTimeout(() => {
-      this.showSuccessToast = false;
-    }, 4000);
+        this.successMessage = 'Votre demande a bien été relancée. Le responsable maintenance a été notifié.';
+        this.showSuccessToast = true;
+        setTimeout(() => (this.showSuccessToast = false), 4000);
+      },
+      error: (err) => {
+        console.error('Erreur relance demande:', err);
+        this.successMessage = 'Erreur lors de la relance. Veuillez réessayer.';
+        this.showSuccessToast = true;
+        setTimeout(() => (this.showSuccessToast = false), 4000);
+      }
+    });
   }
 
   /* ======================= LIGHTBOX IMAGE ================ */
@@ -1096,6 +1142,7 @@ export class DashboardDemandeurComponent implements OnInit {
 
     const baseUrl = environment.backendUrl;
     const imageUrl = p.imagePath ? `${baseUrl}${p.imagePath}` : undefined;
+    const imageResolutionUrl = p.imageResolutionPath ? `${baseUrl}${p.imageResolutionPath}` : undefined;
 
     return {
       id: p.id,
@@ -1110,13 +1157,14 @@ export class DashboardDemandeurComponent implements OnInit {
 
       description: p.description ?? '',
       imageUrl,
+      imageResolutionUrl,
 
       urgenceDemandeur: urgenceUi,
       urgenceResponsable: undefined,
       urgence: urgenceUi, // Urgence à afficher (pour l'instant = urgenceDemandeur)
 
       nbRelances: 0,
-      dateDerniereRelance: undefined,
+      dateDerniereRelance: p.dateDerniereRelance ? new Date(p.dateDerniereRelance) : undefined,
     };
   }
 

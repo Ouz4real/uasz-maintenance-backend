@@ -14,6 +14,7 @@ import sn.uasz.uasz_maintenance_backend.enums.StatutIntervention;
 import sn.uasz.uasz_maintenance_backend.enums.StatutPanne;
 import sn.uasz.uasz_maintenance_backend.exceptions.ResourceNotFoundException;
 import sn.uasz.uasz_maintenance_backend.repositories.InterventionRepository;
+import sn.uasz.uasz_maintenance_backend.repositories.MaintenancePreventiveRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.PanneRepository;
 import sn.uasz.uasz_maintenance_backend.repositories.UtilisateurRepository;
 
@@ -33,6 +34,7 @@ public class SuperviseurDashboardService {
     private final UtilisateurRepository utilisateurRepository;
     private final PanneRepository panneRepository;
     private final InterventionRepository interventionRepository;
+    private final MaintenancePreventiveRepository maintenancePreventiveRepository;
 
     /**
      * Méthode appelée par le controller /api/superviseurs/{id}/dashboard
@@ -131,8 +133,9 @@ public class SuperviseurDashboardService {
         Long nombreEquipementsImpactes = equipementsImpactesCount; // autoboxing
 
         long totalInterventions = interventions.size();
-        long interventionsPlanifiees = interventions.stream()
-                .filter(i -> i.getStatut() == StatutIntervention.PLANIFIEE)
+        // Compter les maintenances préventives planifiées (même source que le responsable)
+        long interventionsPlanifiees = maintenancePreventiveRepository.findAll().stream()
+                .filter(m -> "PLANIFIEE".equals(m.getStatut()))
                 .count();
         long interventionsEnCours = interventions.stream()
                 .filter(i -> i.getStatut() == StatutIntervention.EN_COURS)
@@ -270,8 +273,9 @@ public class SuperviseurDashboardService {
 
         // Statistiques interventions
         long totalInterventions = interventions.size();
-        long interventionsPlanifiees = interventions.stream()
-                .filter(i -> i.getStatut() == StatutIntervention.PLANIFIEE)
+        // Compter les maintenances préventives planifiées (même source que le responsable)
+        long interventionsPlanifiees = maintenancePreventiveRepository.findAll().stream()
+                .filter(m -> "PLANIFIEE".equals(m.getStatut()))
                 .count();
         long interventionsEnCours = interventions.stream()
                 .filter(i -> i.getStatut() == StatutIntervention.EN_COURS)

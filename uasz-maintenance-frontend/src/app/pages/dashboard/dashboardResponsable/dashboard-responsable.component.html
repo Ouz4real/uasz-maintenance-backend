@@ -952,7 +952,7 @@
             </div>
 
             <footer class="modal-footer">
-              <button type="button" class="secondary-btn small pagination-btn" (click)="closeMesDetailsModal()">
+              <button type="button" class="btn-fermer-modal" (click)="closeMesDetailsModal()">
                 Fermer
               </button>
             </footer>
@@ -1575,207 +1575,234 @@
       <!-- 🟦 PAGE : AIDE & SUPPORT -->
       <ng-container *ngIf="activeItem === 'help'">
         <section class="resp-help-page">
-          <div class="recent-requests">
-            <div class="recent-header">
-              <h2>Aide &amp; support</h2>
-              <p class="help-subtitle">
-                Bonnes pratiques pour traiter les demandes et utiliser le
-                tableau de bord Responsable.
-              </p>
+
+          <!-- En-tête -->
+          <div class="help-page-header">
+            <div class="help-header-icon">
+              <span class="material-icons">support_agent</span>
+            </div>
+            <div>
+              <h2 class="help-page-title">Aide &amp; Support</h2>
+              <p class="help-page-subtitle">Bonnes pratiques pour gérer les demandes, affecter les techniciens et piloter la maintenance.</p>
+            </div>
+          </div>
+
+          <!-- Grille 2 colonnes -->
+          <div class="help-grid">
+
+            <!-- Colonne gauche : FAQ -->
+            <div class="help-column">
+              <h3 class="help-section-title">
+                <span class="material-icons">quiz</span>
+                Questions fréquentes
+              </h3>
+
+              <div class="help-faq-list">
+
+                <!-- FAQ 1 -->
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#eff6ff; color:#2563eb">
+                    <span class="material-icons">low_priority</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment prioriser les demandes ?</h4>
+                    <p>Ouvrez la demande via <em>Voir détails</em>, analysez la description et l'image, puis définissez le niveau d'urgence (Basse, Moyenne, Haute). Traitez en priorité les demandes <strong>Haute</strong> liées aux salles de cours, examens ou services critiques.</p>
+                  </div>
+                </div>
+
+                <!-- FAQ 2 -->
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f0fdf4; color:#16a34a">
+                    <span class="material-icons">engineering</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment affecter un technicien efficacement ?</h4>
+                    <p>Dans <em>Voir détails</em>, choisissez un technicien disponible. Tenez compte de son domaine (bureautique, réseau…), de sa charge actuelle et de la localisation de l'équipement.</p>
+                  </div>
+                </div>
+
+                <!-- FAQ 3 -->
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f0fdf4; color:#15803d">
+                    <span class="material-icons">task_alt</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Quand une demande est-elle résolue ?</h4>
+                    <p>Une demande est <strong>Résolue</strong> quand l'intervention est terminée, le matériel fonctionnel, et que la case <em>Marquer comme résolue</em> est cochée. Le bouton <strong>Exporter en PDF</strong> devient alors disponible.</p>
+                  </div>
+                </div>
+
+                <!-- FAQ 4 -->
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fefce8; color:#ca8a04">
+                    <span class="material-icons">event_repeat</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Bonnes pratiques de maintenance préventive</h4>
+                    <p>Planifiez le nettoyage des PC, le remplacement des lampes vidéo-projecteurs et les vérifications réseau. Anticiper ces opérations réduit fortement les pannes critiques.</p>
+                  </div>
+                </div>
+
+                <!-- FAQ 5 -->
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f5f3ff; color:#7c3aed">
+                    <span class="material-icons">info</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Signification des statuts</h4>
+                    <ul class="help-inline-list">
+                      <li><span class="help-badge badge-attente">En attente</span> — non encore prise en charge</li>
+                      <li><span class="help-badge badge-cours">En cours</span> — technicien affecté et actif</li>
+                      <li><span class="help-badge badge-resolue">Résolue</span> — intervention terminée et validée</li>
+                      <li><span class="help-badge badge-annulee">Annulée</span> — fermée sans intervention</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- FAQ 6 -->
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fff7ed; color:#ea580c">
+                    <span class="material-icons">warning_amber</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Gérer une urgence critique</h4>
+                    <p>Pour les salles pédagogiques, serveurs ou infrastructures critiques : définissez l'urgence <strong>Haute</strong>, affectez immédiatement un technicien et suivez jusqu'à résolution complète.</p>
+                  </div>
+                </div>
+
+                <!-- FAQ 7 -->
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f0f9ff; color:#0284c7">
+                    <span class="material-icons">inventory_2</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Gestion du stock de pièces</h4>
+                    <p>Consultez la section <strong>Stock</strong> pour vérifier la disponibilité des pièces avant d'affecter une intervention. Un stock bas déclenche une alerte automatique.</p>
+                  </div>
+                </div>
+
+                <!-- FAQ 8 -->
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fdf2f8; color:#9d174d">
+                    <span class="material-icons">bar_chart</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comprendre les indicateurs du tableau de bord</h4>
+                    <ul class="help-inline-list">
+                      <li><strong>Demandes en attente</strong> — non affectées</li>
+                      <li><strong>Interventions en cours</strong> — actuellement traitées</li>
+                      <li><strong>Technicien disponible</strong> — aucune intervention active</li>
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
             </div>
 
-            <div class="requests-list">
+            <!-- Colonne droite : Contact + Actions rapides -->
+            <div class="help-column">
 
-              <!-- 🟦 VUE GLOBALE (AJOUT IMPORTANT) -->
-              <div class="request-item help-highlight">
-                <div>
-                  <h3 class="request-title">
-                    Vue générale du traitement d’une demande
-                  </h3>
-                  <p class="request-meta">
-                    Le traitement d’une demande de maintenance suit les étapes suivantes :
-                  </p>
-                  <ol class="help-list">
-                    <li>Création de la demande par l’utilisateur</li>
-                    <li>Analyse et priorisation par le Responsable</li>
-                    <li>Affectation à un technicien</li>
-                    <li>Prise en charge (<strong>En cours</strong>)</li>
-                    <li>Résolution et validation</li>
-                    <li>Archivage et génération du rapport</li>
-                  </ol>
+              <!-- Card contact -->
+              <div class="help-contact-card">
+                <div class="help-contact-header">
+                  <span class="material-icons">headset_mic</span>
+                  <h3>Support technique</h3>
+                </div>
+                <p class="help-contact-desc">Une anomalie ou un problème avec l'application ? Contactez l'équipe technique.</p>
+
+                <div class="help-contact-items">
+                  <div class="help-contact-item">
+                    <span class="material-icons">email</span>
+                    <div>
+                      <span class="help-contact-label">Email</span>
+                      <span class="help-contact-value">maintenance&#64;uasz.sn</span>
+                    </div>
+                  </div>
+                  <div class="help-contact-item">
+                    <span class="material-icons">phone</span>
+                    <div>
+                      <span class="help-contact-label">Téléphone</span>
+                      <span class="help-contact-value">+221 33 991 XX XX</span>
+                    </div>
+                  </div>
+                  <div class="help-contact-item">
+                    <span class="material-icons">schedule</span>
+                    <div>
+                      <span class="help-contact-label">Disponibilité</span>
+                      <span class="help-contact-value">Lun – Ven, 8h – 17h</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p class="help-contact-tip">
+                  <span class="material-icons">lightbulb</span>
+                  Précisez votre rôle, la page concernée et joignez une capture d'écran si possible.
+                </p>
+              </div>
+
+              <!-- Actions rapides -->
+              <div class="help-quick-actions">
+                <h3 class="help-section-title">
+                  <span class="material-icons">bolt</span>
+                  Actions rapides
+                </h3>
+                <div class="help-action-buttons">
+                  <button class="help-action-btn" (click)="setActive('dashboard')">
+                    <span class="material-icons">dashboard</span>
+                    Voir les demandes
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('techniciens')">
+                    <span class="material-icons">engineering</span>
+                    Voir les techniciens
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('preventives')">
+                    <span class="material-icons">event_repeat</span>
+                    Maintenance préventive
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('equipements')">
+                    <span class="material-icons">inventory_2</span>
+                    Gérer le stock
+                  </button>
                 </div>
               </div>
 
-              <!-- 1 -->
-              <div class="request-item">
-                <div>
-                  <h3 class="request-title">
-                    1. Comment prioriser les demandes ?
-                  </h3>
-                  <p class="request-meta">
-                    <strong>Étape 1 :</strong> ouvrez la demande via
-                    <em>Voir détails</em>.<br />
-                    <strong>Étape 2 :</strong> analysez la description, le lieu
-                    et l’image éventuelle.<br />
-                    <strong>Étape 3 :</strong> définissez le niveau
-                    <strong>Urgence</strong> (Basse, Moyenne, Haute).<br />
-                    <strong>Conseil :</strong> traitez en priorité les demandes
-                    <strong>Haute</strong> liées aux salles de cours, examens ou
-                    services critiques (scolarité, réseau, datacenter).
-                  </p>
-                </div>
-              </div>
-
-              <!-- 2 -->
-              <div class="request-item">
-                <div>
-                  <h3 class="request-title">
-                    2. Comment affecter un technicien efficacement ?
-                  </h3>
-                  <p class="request-meta">
-                    Dans la fenêtre <em>Voir détails</em>, choisissez un
-                    technicien dans la liste
-                    <strong>Technicien affecté</strong>.<br />
-                    Tenez compte de :
-                  </p>
-                  <ul class="help-list">
-                    <li>son domaine (bureautique, réseau, audiovisuel…)</li>
-                    <li>son niveau de charge (interventions en cours)</li>
-                    <li>la localisation de l’équipement</li>
-                  </ul>
-                  <p class="request-meta">
-                    Une fois validé, le statut peut passer à
-                    <strong>En cours</strong> après prise en charge.
-                  </p>
-                </div>
-              </div>
-
-              <!-- 3 -->
-              <div class="request-item">
-                <div>
-                  <h3 class="request-title">
-                    3. Quand une demande est-elle considérée comme résolue ?
-                  </h3>
-                  <p class="request-meta">
-                    Une demande est <strong>Résolue</strong> lorsque :
-                  </p>
-                  <ul class="help-list">
-                    <li>
-                      l’intervention est terminée ET validée avec l’utilisateur
-                      (demandeur) ;
-                    </li>
-                    <li>
-                      le matériel est à nouveau fonctionnel ou une solution
-                      alternative a été mise en place ;
-                    </li>
-                    <li>
-                      la case <em>Marquer comme résolue</em> est cochée dans la
-                      fenêtre de détails.
-                    </li>
-                  </ul>
-                  <p class="request-meta">
-                    Le bouton <strong>Exporter en PDF</strong> devient alors
-                    disponible pour archiver l’intervention.
-                  </p>
-                </div>
-              </div>
-
-              <!-- 4 -->
-              <div class="request-item">
-                <div>
-                  <h3 class="request-title">
-                    4. Bonnes pratiques de maintenance préventive
-                  </h3>
-                  <p class="request-meta">
-                    Utilisez l’onglet
-                    <strong>Maintenance préventive</strong> pour planifier :
-                  </p>
-                  <ul class="help-list">
-                    <li>le nettoyage et contrôle régulier des PC et imprimantes</li>
-                    <li>le remplacement planifié des lampes vidéo-projecteurs</li>
-                    <li>les vérifications réseau (switch, routeur, onduleurs)</li>
-                  </ul>
-                  <p class="request-meta">
-                    Anticiper ces opérations réduit fortement le nombre de
-                    pannes critiques et améliore la disponibilité du parc.
-                  </p>
-                </div>
-              </div>
-
-              <!-- 🟦 STATUTS (AJOUT CLÉ) -->
-              <div class="request-item">
-                <div>
-                  <h3 class="request-title">
-                    5. Signification des statuts d’une demande
-                  </h3>
-                  <ul class="help-list">
-                    <li><strong>En attente :</strong> demande créée, non encore prise en charge</li>
-                    <li><strong>En cours :</strong> technicien affecté et intervention active</li>
-                    <li><strong>Résolue :</strong> intervention terminée et validée</li>
-                    <li><strong>Annulée :</strong> demande fermée sans intervention</li>
-                  </ul>
-                  <p class="request-meta">
-                    Les statuts impactent directement les statistiques et la
-                    disponibilité des techniciens.
-                  </p>
-                </div>
-              </div>
-
-              <!-- 🟦 TABLEAU DE BORD -->
-              <div class="request-item">
-                <div>
-                  <h3 class="request-title">
-                    6. Comprendre les indicateurs du tableau de bord
-                  </h3>
-                  <ul class="help-list">
-                    <li><strong>Demandes en attente :</strong> non affectées</li>
-                    <li><strong>Interventions en cours :</strong> actuellement traitées</li>
-                    <li><strong>Technicien occupé :</strong> au moins une intervention active</li>
-                    <li><strong>Technicien disponible :</strong> aucune intervention en cours</li>
-                  </ul>
-                </div>
-              </div>
-
-              <!-- 🟦 URGENCES -->
-              <div class="request-item">
-                <div>
-                  <h3 class="request-title">
-                    7. Comment gérer une urgence critique ?
-                  </h3>
-                  <ul class="help-list">
-                    <li>examens et salles pédagogiques</li>
-                    <li>services réseau et serveurs</li>
-                    <li>infrastructures administratives critiques</li>
-                  </ul>
-                  <p class="request-meta">
-                    Procédure recommandée :
-                    <br />• priorité <strong>Haute</strong>
-                    <br />• affectation immédiate
-                    <br />• suivi jusqu’à résolution
-                  </p>
-                </div>
-              </div>
-
-              <!-- 🟦 SUPPORT -->
-              <div class="request-item">
-                <div>
-                  <h3 class="request-title">
-                    8. À qui s’adresser en cas de problème avec l’application ?
-                  </h3>
-                  <p class="request-meta">
-                    Pour toute anomalie (bug, affichage, connexion), contactez :
-                    <strong>maintenance@uasz.sn</strong>
-                  </p>
-                  <ul class="help-list">
-                    <li>votre profil (Responsable, Technicien…)</li>
-                    <li>la page concernée</li>
-                    <li>le message d’erreur ou une capture d’écran</li>
-                  </ul>
+              <!-- Flux de traitement -->
+              <div class="help-flow-card">
+                <h3 class="help-section-title">
+                  <span class="material-icons">account_tree</span>
+                  Flux de traitement
+                </h3>
+                <div class="help-flow-steps">
+                  <div class="help-flow-step">
+                    <div class="help-flow-num">1</div>
+                    <span>Demande créée par l'utilisateur</span>
+                  </div>
+                  <div class="help-flow-arrow"><span class="material-icons">arrow_downward</span></div>
+                  <div class="help-flow-step">
+                    <div class="help-flow-num">2</div>
+                    <span>Analyse &amp; priorisation (Responsable)</span>
+                  </div>
+                  <div class="help-flow-arrow"><span class="material-icons">arrow_downward</span></div>
+                  <div class="help-flow-step">
+                    <div class="help-flow-num">3</div>
+                    <span>Affectation à un technicien</span>
+                  </div>
+                  <div class="help-flow-arrow"><span class="material-icons">arrow_downward</span></div>
+                  <div class="help-flow-step">
+                    <div class="help-flow-num">4</div>
+                    <span>Prise en charge &amp; intervention</span>
+                  </div>
+                  <div class="help-flow-arrow"><span class="material-icons">arrow_downward</span></div>
+                  <div class="help-flow-step">
+                    <div class="help-flow-num">5</div>
+                    <span>Résolution &amp; export PDF</span>
+                  </div>
                 </div>
               </div>
 
             </div>
           </div>
+
         </section>
       </ng-container>
 
@@ -1992,7 +2019,7 @@
           </div>
 
           <div class="modal-footer">
-            <button class="secondary-btn" (click)="closeDetailsModal()">
+            <button class="btn-fermer-modal" (click)="closeDetailsModal()">
               Fermer
             </button>
 
@@ -2154,7 +2181,7 @@
           </div>
 
           <div class="modal-footer">
-            <button class="secondary-btn" type="button" (click)="closeStockDetailsModal()">
+            <button class="btn-fermer-modal" type="button" (click)="closeStockDetailsModal()">
               Fermer
             </button>
           </div>
@@ -2277,7 +2304,7 @@
           </div>
 
           <div class="modal-footer">
-            <button class="secondary-btn" (click)="closeTechnicienModal()">
+            <button class="btn-fermer-modal" (click)="closeTechnicienModal()">
               Fermer
             </button>
           </div>
@@ -2425,7 +2452,7 @@
               <span class="material-icons">cancel</span>
               Arrêter la maintenance
             </button>
-            <button class="secondary-btn" (click)="closePreventiveDetails()">
+            <button class="btn-fermer-modal" (click)="closePreventiveDetails()">
               Fermer
             </button>
           </div>
@@ -2489,7 +2516,7 @@
           </div>
 
           <div class="modal-footer">
-            <button class="secondary-btn" type="button" (click)="closeInterventionDetailsModal()">
+            <button class="btn-fermer-modal" type="button" (click)="closeInterventionDetailsModal()">
               Fermer
             </button>
           </div>
@@ -2662,7 +2689,7 @@
             <button class="secondary-btn" (click)="cancelAnnulerMaintenance()">
               Annuler
             </button>
-            <button class="danger-btn" (click)="confirmAnnulerMaintenance()">
+            <button class="danger-btn btn-fermer-modal" (click)="confirmAnnulerMaintenance()">
               <span class="material-icons">cancel</span>
               Arrêter la maintenance
             </button>

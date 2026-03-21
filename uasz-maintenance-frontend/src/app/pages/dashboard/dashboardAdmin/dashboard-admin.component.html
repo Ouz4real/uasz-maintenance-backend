@@ -749,226 +749,206 @@
 
       <!-- 🟦 PAGE : AIDE -->
       <ng-container *ngIf="activeItem === 'help'">
-        <section class="resp-help-page">
-          <div class="recent-requests">
-            <div class="recent-header">
-              <h2>Aide & Support</h2>
-              <p class="section-subtitle">
-                Guide complet pour la gestion des utilisateurs, des demandes et de l'administration de la plateforme.
-              </p>
+        <section class="admin-help-page">
+
+          <!-- En-tête -->
+          <div class="help-page-header">
+            <div class="help-header-icon">
+              <span class="material-icons">support_agent</span>
             </div>
-
-            <div class="help-grid">
-              <!-- Colonne gauche : FAQ Admin -->
-              <div class="help-column">
-                <div class="help-section-title">
-                  <span class="material-icons help-icon">admin_panel_settings</span>
-                  <div>
-                    <h3>Guide Administrateur</h3>
-                    <p>Gestion des utilisateurs, rôles et demandes de maintenance.</p>
-                  </div>
-                </div>
-
-                <div class="help-faq-list">
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment créer un nouvel utilisateur ?</h3>
-                      <p class="request-meta">
-                        Depuis l'onglet <strong>"Utilisateurs"</strong>, cliquez sur 
-                        <strong>"Nouvel utilisateur"</strong>. Renseignez le <strong>nom d'utilisateur</strong>, 
-                        <strong>email</strong>, <strong>mot de passe</strong>, <strong>prénom</strong>, 
-                        <strong>nom</strong> et sélectionnez le <strong>rôle</strong> approprié 
-                        (Demandeur, Technicien, Responsable, Superviseur ou Administrateur). 
-                        Le compte est activé par défaut.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment désactiver un compte utilisateur ?</h3>
-                      <p class="request-meta">
-                        Dans la liste des utilisateurs, cliquez sur <strong>"Voir détails"</strong> 
-                        puis utilisez le bouton <strong>"Désactiver le compte"</strong>. 
-                        L'utilisateur ne pourra plus se connecter mais ses données restent conservées. 
-                        Vous pouvez réactiver le compte à tout moment.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment réinitialiser le mot de passe d'un utilisateur ?</h3>
-                      <p class="request-meta">
-                        Ouvrez les détails de l'utilisateur et cliquez sur 
-                        <strong>"Réinitialiser le mot de passe"</strong>. 
-                        Entrez le nouveau mot de passe (minimum 6 caractères) et confirmez. 
-                        Informez l'utilisateur de son nouveau mot de passe de manière sécurisée.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Quels sont les différents rôles disponibles ?</h3>
-                      <p class="request-meta">
-                        <strong>DEMANDEUR</strong> : Crée et suit ses demandes de panne.<br>
-                        <strong>TECHNICIEN</strong> : Réalise les interventions assignées.<br>
-                        <strong>RESPONSABLE_MAINTENANCE</strong> : Affecte les pannes aux techniciens et définit les priorités.<br>
-                        <strong>SUPERVISEUR</strong> : Vue globale et statistiques (lecture seule).<br>
-                        <strong>ADMINISTRATEUR</strong> : Gestion complète des utilisateurs et accès à toutes les fonctionnalités.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment créer une demande de panne en tant qu'admin ?</h3>
-                      <p class="request-meta">
-                        Accédez à l'onglet <strong>"Mes demandes"</strong> et cliquez sur 
-                        <strong>"Nouvelle demande"</strong>. Remplissez le formulaire 
-                        (titre, lieu, type d'équipement, description, urgence) et ajoutez une 
-                        <strong>image obligatoire</strong>. Vos demandes suivent le même circuit 
-                        que celles des demandeurs.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment filtrer et rechercher des utilisateurs ?</h3>
-                      <p class="request-meta">
-                        Utilisez les <strong>filtres par rôle</strong> (Tous, Demandeur, Technicien, etc.) 
-                        et la <strong>barre de recherche</strong> pour trouver rapidement un utilisateur 
-                        par nom, prénom ou email. Les résultats sont paginés (5 par page).
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Que faire si un utilisateur ne peut pas se connecter ?</h3>
-                      <p class="request-meta">
-                        Vérifiez d'abord que le compte est <strong>activé</strong> (statut "Actif"). 
-                        Si le compte est désactivé, réactivez-le. Si l'utilisateur a oublié son mot de passe, 
-                        réinitialisez-le depuis les détails du compte. Vérifiez aussi que le 
-                        <strong>rôle</strong> est correctement assigné.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment supprimer un utilisateur ?</h3>
-                      <p class="request-meta">
-                        Ouvrez les détails de l'utilisateur et cliquez sur 
-                        <strong>"Supprimer l'utilisateur"</strong>. 
-                        <span style="color: #dc2626; font-weight: 500;">⚠️ Attention :</span> 
-                        Cette action est <strong>irréversible</strong> et supprime définitivement 
-                        toutes les données associées. Privilégiez la désactivation du compte 
-                        pour conserver l'historique.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Puis-je modifier mon propre compte ?</h3>
-                      <p class="request-meta">
-                        Oui, vous pouvez modifier vos informations personnelles (prénom, nom, email) 
-                        et changer votre mot de passe depuis le menu utilisateur en haut à droite. 
-                        Cependant, vous ne pouvez pas modifier votre propre rôle ou désactiver 
-                        votre propre compte pour des raisons de sécurité.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Colonne droite : Bonnes pratiques & Support -->
-              <div class="help-column help-column-right">
-                <div class="help-support-card">
-                  <h3>Bonnes pratiques</h3>
-                  <p class="request-meta">
-                    Recommandations pour une gestion efficace de la plateforme.
-                  </p>
-
-                  <div class="help-best-practices">
-                    <div class="practice-item">
-                      <span class="material-icons practice-icon">security</span>
-                      <div>
-                        <strong>Sécurité des mots de passe</strong>
-                        <p>Utilisez des mots de passe forts (8+ caractères, majuscules, chiffres, symboles). 
-                        Changez régulièrement les mots de passe des comptes sensibles.</p>
-                      </div>
-                    </div>
-
-                    <div class="practice-item">
-                      <span class="material-icons practice-icon">person_off</span>
-                      <div>
-                        <strong>Désactivation vs Suppression</strong>
-                        <p>Privilégiez la <strong>désactivation</strong> pour les départs temporaires 
-                        ou pour conserver l'historique. La <strong>suppression</strong> est définitive.</p>
-                      </div>
-                    </div>
-
-                    <div class="practice-item">
-                      <span class="material-icons practice-icon">verified_user</span>
-                      <div>
-                        <strong>Attribution des rôles</strong>
-                        <p>Attribuez le rôle le plus restrictif nécessaire. Ne donnez le rôle 
-                        <strong>Administrateur</strong> qu'aux personnes de confiance.</p>
-                      </div>
-                    </div>
-
-                    <div class="practice-item">
-                      <span class="material-icons practice-icon">update</span>
-                      <div>
-                        <strong>Maintenance régulière</strong>
-                        <p>Vérifiez régulièrement la liste des utilisateurs actifs. 
-                        Désactivez les comptes inutilisés pour maintenir la sécurité.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="help-support-card" style="margin-top: 1.5rem;">
-                  <h3>Besoin d'assistance ?</h3>
-                  <p class="request-meta">
-                    Pour toute question technique ou problème avec la plateforme, 
-                    contactez l'équipe support.
-                  </p>
-
-                  <div class="help-contact-block">
-                    <div class="help-contact-line">
-                      <span class="material-icons">email</span>
-                      <span>admin@uasz.sn</span>
-                    </div>
-                    <div class="help-contact-line">
-                      <span class="material-icons">phone</span>
-                      <span>+221 33 123 45 67</span>
-                    </div>
-                    <div class="help-contact-line">
-                      <span class="material-icons">schedule</span>
-                      <span>Lun-Ven : 8h-17h</span>
-                    </div>
-                  </div>
-
-                  <div class="help-emergency" style="margin-top: 1rem; padding: 0.75rem; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                      <span class="material-icons" style="color: #dc2626; font-size: 20px;">warning</span>
-                      <strong style="color: #dc2626;">Urgence technique</strong>
-                    </div>
-                    <p style="margin: 0; font-size: 0.85rem; color: #991b1b;">
-                      En cas de problème critique (panne serveur, accès bloqué), 
-                      contactez immédiatement le support technique au 
-                      <strong>+221 77 123 45 67</strong>
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div>
+              <h2 class="help-page-title">Aide &amp; Support</h2>
+              <p class="help-page-subtitle">Guide complet pour la gestion des utilisateurs, des rôles et de l'administration de la plateforme.</p>
             </div>
           </div>
+
+          <!-- Grille 2 colonnes -->
+          <div class="help-grid">
+
+            <!-- Colonne gauche : FAQ -->
+            <div class="help-column">
+              <h3 class="help-section-title">
+                <span class="material-icons">quiz</span>
+                Questions fréquentes
+              </h3>
+
+              <div class="help-faq-list">
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#eff6ff; color:#2563eb">
+                    <span class="material-icons">person_add</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment créer un nouvel utilisateur ?</h4>
+                    <p>Depuis l'onglet <strong>Utilisateurs</strong>, cliquez sur <strong>Nouvel utilisateur</strong>. Renseignez le nom d'utilisateur, email, mot de passe, prénom, nom et sélectionnez le rôle approprié. Le compte est activé par défaut.</p>
+                  </div>
+                </div>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fef2f2; color:#dc2626">
+                    <span class="material-icons">person_off</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment désactiver un compte utilisateur ?</h4>
+                    <p>Dans la liste des utilisateurs, cliquez sur <strong>Voir détails</strong> puis utilisez le bouton <strong>Désactiver le compte</strong>. L'utilisateur ne pourra plus se connecter mais ses données restent conservées.</p>
+                  </div>
+                </div>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fefce8; color:#ca8a04">
+                    <span class="material-icons">lock_reset</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment réinitialiser le mot de passe d'un utilisateur ?</h4>
+                    <p>Ouvrez les détails de l'utilisateur et cliquez sur <strong>Réinitialiser le mot de passe</strong>. Un mot de passe temporaire est généré et envoyé par email à l'utilisateur.</p>
+                  </div>
+                </div>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f5f3ff; color:#7c3aed">
+                    <span class="material-icons">admin_panel_settings</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Quels sont les différents rôles disponibles ?</h4>
+                    <ul class="help-inline-list">
+                      <li><span class="help-badge" style="background:#dbeafe;color:#1d4ed8">DEMANDEUR</span> — crée et suit ses demandes</li>
+                      <li><span class="help-badge" style="background:#d1fae5;color:#065f46">TECHNICIEN</span> — réalise les interventions</li>
+                      <li><span class="help-badge" style="background:#fef3c7;color:#92400e">RESPONSABLE</span> — affecte et priorise</li>
+                      <li><span class="help-badge" style="background:#f3e8ff;color:#6b21a8">SUPERVISEUR</span> — vue globale et stats</li>
+                      <li><span class="help-badge" style="background:#fee2e2;color:#991b1b">ADMIN</span> — gestion complète</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f0f9ff; color:#0284c7">
+                    <span class="material-icons">search</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment filtrer et rechercher des utilisateurs ?</h4>
+                    <p>Utilisez les filtres par rôle et la barre de recherche pour trouver rapidement un utilisateur par nom, prénom ou email. Les résultats sont paginés.</p>
+                  </div>
+                </div>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f0fdf4; color:#16a34a">
+                    <span class="material-icons">help_center</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Que faire si un utilisateur ne peut pas se connecter ?</h4>
+                    <p>Vérifiez que le compte est <strong>activé</strong>. Si désactivé, réactivez-le. Si l'utilisateur a oublié son mot de passe, réinitialisez-le depuis les détails du compte.</p>
+                  </div>
+                </div>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fff7ed; color:#ea580c">
+                    <span class="material-icons">delete_forever</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment supprimer un utilisateur ?</h4>
+                    <p>Ouvrez les détails et cliquez sur <strong>Supprimer l'utilisateur</strong>. Cette action est <strong>irréversible</strong>. Privilégiez la désactivation pour conserver l'historique.</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Colonne droite -->
+            <div class="help-column">
+
+              <!-- Card contact -->
+              <div class="help-contact-card">
+                <div class="help-contact-header">
+                  <span class="material-icons">headset_mic</span>
+                  <h3>Support technique</h3>
+                </div>
+                <p class="help-contact-desc">Un problème avec la plateforme ? Contactez l'équipe support.</p>
+
+                <div class="help-contact-items">
+                  <div class="help-contact-item">
+                    <span class="material-icons">email</span>
+                    <div>
+                      <span class="help-contact-label">Email</span>
+                      <span class="help-contact-value">admin&#64;uasz.sn</span>
+                    </div>
+                  </div>
+                  <div class="help-contact-item">
+                    <span class="material-icons">phone</span>
+                    <div>
+                      <span class="help-contact-label">Téléphone</span>
+                      <span class="help-contact-value">+221 33 123 45 67</span>
+                    </div>
+                  </div>
+                  <div class="help-contact-item">
+                    <span class="material-icons">schedule</span>
+                    <div>
+                      <span class="help-contact-label">Disponibilité</span>
+                      <span class="help-contact-value">Lun – Ven, 8h – 17h</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="help-emergency-tip">
+                  <span class="material-icons">warning</span>
+                  <p>Urgence critique (panne serveur, accès bloqué) : <strong>+221 77 123 45 67</strong></p>
+                </div>
+              </div>
+
+              <!-- Actions rapides -->
+              <div class="help-quick-actions">
+                <h3 class="help-section-title">
+                  <span class="material-icons">bolt</span>
+                  Actions rapides
+                </h3>
+                <div class="help-action-buttons">
+                  <button class="help-action-btn" (click)="setActive('utilisateurs')">
+                    <span class="material-icons">group</span>
+                    Utilisateurs
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('dashboard')">
+                    <span class="material-icons">dashboard</span>
+                    Tableau de bord
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('mes-demandes')">
+                    <span class="material-icons">list_alt</span>
+                    Mes demandes
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('journal')">
+                    <span class="material-icons">history</span>
+                    Journal
+                  </button>
+                </div>
+              </div>
+
+              <!-- Bonnes pratiques -->
+              <div class="help-tips-card">
+                <h3 class="help-section-title">
+                  <span class="material-icons">verified_user</span>
+                  Bonnes pratiques
+                </h3>
+                <ul class="help-tips-list">
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Utilisez des mots de passe forts (8+ caractères, majuscules, chiffres).
+                  </li>
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Privilégiez la désactivation à la suppression pour conserver l'historique.
+                  </li>
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Attribuez le rôle le plus restrictif nécessaire à chaque utilisateur.
+                  </li>
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Vérifiez régulièrement les comptes inactifs et désactivez-les.
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+
         </section>
       </ng-container>
 

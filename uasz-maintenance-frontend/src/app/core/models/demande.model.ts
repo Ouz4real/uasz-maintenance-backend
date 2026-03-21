@@ -25,5 +25,6 @@ export interface Demande {
   technicienDeclinantNom?: string | null;
 
   imageUrl?: string | null;
+  imageResolutionUrl?: string | null;
 }
 

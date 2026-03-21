@@ -148,6 +148,18 @@ public interface PanneRepository extends JpaRepository<Panne, Long> {
     @Query("SELECT COUNT(p) FROM Panne p WHERE CAST(p.dateSignalement AS LocalDate) BETWEEN :debut AND :fin")
     long countByDateSignalementBetween(@Param("debut") LocalDate debut, @Param("fin") LocalDate fin);
 
+    /**
+     * Pannes OUVERTES non prises en charge depuis plus de X jours
+     * (dateDerniereRelance IS NULL OU dateDerniereRelance < seuil)
+     */
+    @Query("""
+        SELECT p FROM Panne p
+        WHERE p.statut = sn.uasz.uasz_maintenance_backend.enums.StatutPanne.OUVERTE
+        AND p.dateSignalement < :seuil
+        AND (p.dateDerniereRelance IS NULL OR p.dateDerniereRelance < :seuil)
+    """)
+    List<Panne> findPannesARelancer(@Param("seuil") LocalDateTime seuil);
+
     @Modifying
     @Transactional
     @Query("UPDATE Panne p SET p.demandeur = null WHERE p.demandeur.id = :userId")

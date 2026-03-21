@@ -545,6 +545,8 @@ public class PanneService {
                 .commentaireInterne(panne.getCommentaireInterne())
                 .raisonRefus(panne.getRaisonRefus())
                 .dateRefus(panne.getDateRefus() != null ? panne.getDateRefus().toString() : null)
+                .dateSignalement(panne.getDateSignalement())
+                .dateDerniereRelance(panne.getDateDerniereRelance())
                 .build();
     }
 
@@ -1169,6 +1171,59 @@ public class PanneService {
             System.err.println("Erreur emails responsables (intervention déclinée): " + e.getMessage());
         }
         
+        return toResponse(saved);
+    }
+
+    /**
+     * Relancer une demande (demandeur) : notifie + email les responsables
+     */
+    @Transactional
+    public PanneResponse relancerDemande(Long panneId, Long demandeurId) {
+        Panne panne = panneRepository.findById(panneId)
+                .orElseThrow(() -> new ResourceNotFoundException("Panne introuvable"));
+
+        if (panne.getDemandeur() == null || !panne.getDemandeur().getId().equals(demandeurId)) {
+            throw new IllegalArgumentException("Cette panne n'appartient pas à ce demandeur");
+        }
+
+        if (panne.getStatut() != StatutPanne.OUVERTE) {
+            throw new IllegalArgumentException("Seules les demandes en attente peuvent être relancées");
+        }
+
+        panne.setDateDerniereRelance(LocalDateTime.now());
+        Panne saved = panneRepository.save(panne);
+
+        String demandeurNom = panne.getDemandeur().getPrenom() + " " + panne.getDemandeur().getNom();
+        String lieu = panne.getLieu() != null ? panne.getLieu() : "Non précisé";
+        String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm"));
+
+        // Notifier + emailer tous les responsables
+        List<Utilisateur> responsables = utilisateurRepository.findByRole(Role.RESPONSABLE_MAINTENANCE);
+        for (Utilisateur responsable : responsables) {
+            try {
+                notificationService.createNotification(
+                        responsable.getId(),
+                        "🔔 Relance demande — " + panne.getTitre(),
+                        "Le demandeur " + demandeurNom + " relance sa demande \"" + panne.getTitre() + "\" (lieu : " + lieu + ") toujours sans prise en charge.",
+                        "WARNING",
+                        "PANNE",
+                        saved.getId()
+                );
+                if (responsable.getEmail() != null) {
+                    emailService.sendRelanceResponsableEmail(
+                            responsable.getEmail(),
+                            responsable.getPrenom() + " " + responsable.getNom(),
+                            panne.getTitre(),
+                            demandeurNom,
+                            lieu,
+                            0L
+                    );
+                }
+            } catch (Exception e) {
+                System.err.println("Erreur relance responsable: " + e.getMessage());
+            }
+        }
+
         return toResponse(saved);
     }
 }

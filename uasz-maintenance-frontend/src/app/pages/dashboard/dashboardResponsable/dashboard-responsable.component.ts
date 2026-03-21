@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import jsPDF from 'jspdf';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import jsPDF from 'jspdf';
 import { AuthService } from '../../../core/services/auth';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, Subscription } from 'rxjs';
@@ -30,6 +30,7 @@ import {Panne} from '../../../core/services/panne';
 import { PannesService } from '../../../core/services/pannes.service';
 import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
 import { DemandesPollingService } from '../../../core/services/demandes-polling.service';
+import { PannesApiService } from '../../../core/services/pannes-api.service';
 
 
 
@@ -546,199 +547,17 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
   exporterInterventionPDF(): void {
     if (!this.selectedDemande) return;
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let yPos = 20;
-
-    // En-tête
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('RAPPORT D\'INTERVENTION', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 15;
-
-    // Informations générales
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Informations générales', 15, yPos);
-    yPos += 8;
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Titre: ${this.selectedDemande.titre}`, 15, yPos);
-    yPos += 6;
-    doc.text(`Date de création: ${new Date(this.selectedDemande.dateCreation).toLocaleDateString('fr-FR')}`, 15, yPos);
-    yPos += 6;
-    doc.text(`Lieu: ${this.selectedDemande.lieu}`, 15, yPos);
-    yPos += 6;
-    doc.text(`Type d'équipement: ${this.selectedDemande.typeEquipement}`, 15, yPos);
-    yPos += 6;
-    doc.text(`Signalée par: ${this.selectedDemande.demandeurNom}`, 15, yPos);
-    yPos += 10;
-
-    // Statuts et urgences
-    doc.setFont('helvetica', 'bold');
-    doc.text('Statuts et priorités', 15, yPos);
-    yPos += 8;
-
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Statut de la panne: ${this.selectedDemande.statut}`, 15, yPos);
-    yPos += 6;
-    doc.text(`Statut de l'intervention: ${this.selectedDemande.statutInterventions}`, 15, yPos);
-    yPos += 6;
-    
-    // Urgence du demandeur avec traduction
-    const urgenceDemandeur = this.selectedDemande.urgenceDemandeur === 'HAUTE' ? 'Haute' : 
-                             this.selectedDemande.urgenceDemandeur === 'MOYENNE' ? 'Moyenne' : 
-                             this.selectedDemande.urgenceDemandeur === 'BASSE' ? 'Basse' : 
-                             'Non définie';
-    doc.text(`Urgence du demandeur: ${urgenceDemandeur}`, 15, yPos);
-    yPos += 6;
-    
-    // Urgence du responsable avec traduction
-    const urgenceResponsable = this.selectedDemande.urgenceResponsable === 'HAUTE' ? 'Haute' : 
-                               this.selectedDemande.urgenceResponsable === 'MOYENNE' ? 'Moyenne' : 
-                               this.selectedDemande.urgenceResponsable === 'BASSE' ? 'Basse' : 
-                               'Non définie';
-    doc.text(`Urgence du responsable: ${urgenceResponsable}`, 15, yPos);
-    yPos += 10;
-
-    // Technicien affecté
-    doc.setFont('helvetica', 'bold');
-    doc.text('Technicien affecté', 15, yPos);
-    yPos += 8;
-
-    doc.setFont('helvetica', 'normal');
-    // Construire le nom complet du technicien depuis les techniciens chargés
-    let technicienNomComplet = 'Non affecté';
-    if (this.selectedDemande.technicienId) {
-      const technicien = this.techniciens.find(t => t.id === this.selectedDemande!.technicienId);
-      if (technicien) {
-        if (technicien.prenom && technicien.nom) {
-          technicienNomComplet = `${technicien.prenom} ${technicien.nom}`;
-        } else if (technicien.nom) {
-          technicienNomComplet = technicien.nom;
-        } else if (technicien.prenom) {
-          technicienNomComplet = technicien.prenom;
-        } else if (technicien.username) {
-          technicienNomComplet = technicien.username;
-        }
+    this.pannesApiService.exportPdf(this.selectedDemande.id).subscribe({
+      next: (blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        this.showSuccessToast('Rapport PDF généré avec succès');
+      },
+      error: (err) => {
+        console.error('Erreur export PDF:', err);
       }
-    }
-    doc.text(`Technicien: ${technicienNomComplet}`, 15, yPos);
-    yPos += 10;
-
-    // Responsable maintenance
-    doc.setFont('helvetica', 'bold');
-    doc.text('Responsable maintenance', 15, yPos);
-    yPos += 8;
-
-    doc.setFont('helvetica', 'normal');
-    // Récupérer les informations du responsable connecté
-    const responsableNom = this.username || 'Non défini';
-    doc.text(`Responsable: ${responsableNom}`, 15, yPos);
-    yPos += 10;
-
-    // Description
-    if (this.selectedDemande.description) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Description de la panne', 15, yPos);
-      yPos += 8;
-
-      doc.setFont('helvetica', 'normal');
-      const descLines = doc.splitTextToSize(this.selectedDemande.description, pageWidth - 30);
-      doc.text(descLines, 15, yPos);
-      yPos += descLines.length * 6 + 5;
-    }
-
-    // Commentaire du responsable
-    if (this.selectedDemande.commentaireInterne) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Commentaire du responsable', 15, yPos);
-      yPos += 8;
-
-      doc.setFont('helvetica', 'normal');
-      const commentLines = doc.splitTextToSize(this.selectedDemande.commentaireInterne, pageWidth - 30);
-      doc.text(commentLines, 15, yPos);
-      yPos += commentLines.length * 6 + 5;
-    }
-
-    // Note du technicien
-    if (this.selectedDemande.noteTechnicien) {
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Rapport du technicien', 15, yPos);
-      yPos += 8;
-
-      doc.setFont('helvetica', 'normal');
-      const noteLines = doc.splitTextToSize(this.selectedDemande.noteTechnicien, pageWidth - 30);
-      doc.text(noteLines, 15, yPos);
-      yPos += noteLines.length * 6 + 5;
-    }
-
-    // Pièces utilisées
-    if (this.selectedDemande.piecesUtilisees && this.selectedDemande.piecesUtilisees.length > 0) {
-      if (yPos > 240) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Pièces utilisées', 15, yPos);
-      yPos += 8;
-
-      doc.setFont('helvetica', 'normal');
-      this.selectedDemande.piecesUtilisees.forEach((piece: any) => {
-        doc.text(`- ${piece.nom} (Quantité: ${piece.quantite})`, 20, yPos);
-        yPos += 6;
-      });
-      yPos += 5;
-    }
-
-    // Dates d'intervention
-    if (this.selectedDemande.dateDebutIntervention || this.selectedDemande.dateFinIntervention) {
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Dates d\'intervention', 15, yPos);
-      yPos += 8;
-
-      doc.setFont('helvetica', 'normal');
-      if (this.selectedDemande.dateDebutIntervention) {
-        doc.text(`Début: ${new Date(this.selectedDemande.dateDebutIntervention).toLocaleDateString('fr-FR')}`, 15, yPos);
-        yPos += 6;
-      }
-      if (this.selectedDemande.dateFinIntervention) {
-        doc.text(`Fin: ${new Date(this.selectedDemande.dateFinIntervention).toLocaleDateString('fr-FR')}`, 15, yPos);
-        yPos += 6;
-      }
-    }
-
-    // Pied de page
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'italic');
-      doc.text(
-        `Page ${i} sur ${pageCount} - Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`,
-        pageWidth / 2,
-        doc.internal.pageSize.getHeight() - 10,
-        { align: 'center' }
-      );
-    }
-
-    // Télécharger le PDF
-    const fileName = `Intervention_${this.selectedDemande.id}_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(fileName);
-
-    this.showSuccessToast('Rapport PDF généré avec succès');
+    });
   }
 
   private onSucces(updated: any): void {
@@ -849,7 +668,7 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
         );
 
         this.techniciens = items;
-        this.techniciensAffectables = [...items];
+        this.techniciensAffectables = items.filter(t => t.enabled !== false);
         this.filteredTechniciens = [...items];
         this.synchroniserTechniciensAvecDemandes();
 
@@ -1353,7 +1172,8 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
     private pannesResponsableService: PannesResponsableService,
     private demandeService: DemandeService,
     private pannesService : PannesService,
-    private demandesPollingService: DemandesPollingService
+    private demandesPollingService: DemandesPollingService,
+    private pannesApiService: PannesApiService
   ) {}
 
   goToProfile(): void {
@@ -2531,10 +2351,10 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
   }
 
   libelleUrgence(p?: string): string {
-    if (!p) return 'Urgence moyenne';
+    if (!p) return 'Moyenne';
     const v = String(p).toUpperCase();
-    if (v === 'HAUTE') return 'Urgence haute';
-    if (v === 'BASSE') return 'Urgence basse';
+    if (v === 'HAUTE') return 'Haute';
+    if (v === 'BASSE') return 'Basse';
     return 'Urgence moyenne';
   }
 
@@ -2651,6 +2471,9 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
           technicienId: panneApi.technicien?.id ?? null,
           commentaireInterne: panneApi.commentaireInterne ?? null,
           imageUrl: panneApi.imagePath ?? null,
+          imageResolutionUrl: panneApi.imageResolutionPath
+            ? this.resolveImageUrl(panneApi.imageResolutionPath)
+            : null,
         };
 
         this.selectedDemande = demandeAJour;
@@ -2798,6 +2621,10 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
       // ✅ image UI
       imageUrl: p.imagePath
         ? this.resolveImageUrl(p.imagePath)
+        : null,
+
+      imageResolutionUrl: p.imageResolutionPath
+        ? this.resolveImageUrl(p.imageResolutionPath)
         : null,
     };
   }
@@ -3326,6 +3153,8 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
     }
 
     this.filteredMaintenancesPreventives = list;
+    this.preventiveCurrentPage = 1;
+    this.updatePreventivePagination();
   }
 
   get nbPreventivesPlanifiees(): number {

@@ -742,14 +742,6 @@
 
               <button
                 class="filter-chip"
-                [class.active]="docTypeFilter === 'PDF'"
-                (click)="setDocTypeFilter('PDF')"
-              >
-                PDF
-              </button>
-
-              <button
-                class="filter-chip"
                 [class.active]="docTypeFilter === 'RAPPORT'"
                 (click)="setDocTypeFilter('RAPPORT')"
               >
@@ -886,8 +878,9 @@
             <div class="docs-empty-state">
               <p class="docs-empty-title">Aucun document disponible pour le moment</p>
               <p class="docs-empty-text">
-                Les documents apparaîtront ici lorsque vous ajouterez des images
-                à vos demandes ou que l’équipe maintenance déposera des rapports.
+                Les documents apparaissent ici uniquement pour les demandes résolues.
+                Images de l’équipement, images de résolution et rapports PDF seront disponibles
+                une fois vos demandes traitées.
               </p>
             </div>
           </ng-template>
@@ -896,138 +889,205 @@
 
 
 
-      <!-- 🟦 PAGE : AIDE & SUPPORT (améliorée) -->
+      <!-- 🟦 PAGE : AIDE & SUPPORT -->
       <ng-container *ngIf="activeItem === 'aide'">
-        <div class="recent-requests">
-          <div class="recent-header">
-            <h2>Aide & support</h2>
-            <p class="section-subtitle">
-              Retrouvez ici des réponses rapides sur la création, le suivi, la relance et les
-              pièces jointes (images) de vos demandes.
-            </p>
+        <section class="dem-help-page">
+
+          <!-- En-tête -->
+          <div class="help-page-header">
+            <div class="help-header-icon">
+              <span class="material-icons">support_agent</span>
+            </div>
+            <div>
+              <h2 class="help-page-title">Aide &amp; Support</h2>
+              <p class="help-page-subtitle">Réponses rapides sur la création, le suivi et la relance de vos demandes de maintenance.</p>
+            </div>
           </div>
 
+          <!-- Grille 2 colonnes -->
           <div class="help-grid">
-            <!-- Colonne gauche : FAQ rapide -->
+
+            <!-- Colonne gauche : FAQ -->
             <div class="help-column">
-              <div class="help-section-title">
-                <span class="material-icons help-icon">help_outline</span>
-                <div>
-                  <h3>Questions fréquentes</h3>
-                  <p>Quelques réponses rapides avant de contacter le support.</p>
-                </div>
-              </div>
+              <h3 class="help-section-title">
+                <span class="material-icons">quiz</span>
+                Questions fréquentes
+              </h3>
 
               <div class="help-faq-list">
-                <div class="request-item help-item">
-                  <div>
-                    <h3 class="request-title">Comment créer une nouvelle demande ?</h3>
-                    <p class="request-meta">
-                      Depuis votre tableau de bord ou l’onglet <strong>“Mes demandes”</strong>,
-                      cliquez sur <strong>“Nouvelle demande”</strong>, renseignez les champs
-                      obligatoires (<strong>titre</strong>, <strong>lieu</strong>, <strong>type d’équipement</strong>,
-                      <strong>urgence</strong>) puis ajoutez une <strong>image de l’équipement</strong> (obligatoire).
-                      Le bouton <strong>“Enregistrer la demande”</strong> s’active uniquement si tout est valide.
-                    </p>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#eff6ff; color:#2563eb">
+                    <span class="material-icons">add_circle_outline</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment créer une nouvelle demande ?</h4>
+                    <p>Depuis le tableau de bord ou l'onglet <em>Mes demandes</em>, cliquez sur <strong>Nouvelle demande</strong>. Renseignez le titre, le lieu, le type d'équipement, l'urgence et ajoutez une image. Le bouton <strong>Enregistrer</strong> s'active quand tout est valide.</p>
                   </div>
                 </div>
 
-                <div class="request-item help-item">
-                  <div>
-                    <h3 class="request-title">Comment suivre l’avancement d’une demande ?</h3>
-                    <p class="request-meta">
-                      Le statut de chaque demande (<em>En attente</em>, <em>En cours</em>, <em>Résolue</em>)
-                      est visible dans vos listes. Cliquez sur une demande pour voir le détail (infos + image)
-                      et, si besoin, <strong>la relancer</strong> lorsqu’elle est bloquée trop longtemps.
-                    </p>
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f0fdf4; color:#16a34a">
+                    <span class="material-icons">track_changes</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment suivre l'avancement d'une demande ?</h4>
+                    <p>Le statut de chaque demande est visible dans vos listes. Cliquez sur une demande pour voir les détails complets (infos, image, technicien affecté) et suivre son évolution en temps réel.</p>
                   </div>
                 </div>
 
-                <!-- 🆕 FAQ spécifique sur la relance -->
-                <div class="request-item help-item">
-                  <div>
-                    <h3 class="request-title">Comment relancer une demande en attente ?</h3>
-                    <p class="request-meta">
-                      Ouvrez l’onglet <strong>“Mes demandes”</strong>, cliquez sur la demande concernée
-                      (statut <em>En attente</em>), puis utilisez le bouton
-                      <strong>“Relancer cette demande”</strong> dans la fenêtre de détails.
-                      (Le bouton devient actif après une certaine durée d’attente, par exemple 5 jours.)
-                    </p>
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fff7ed; color:#ea580c">
+                    <span class="material-icons">replay</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment relancer une demande en attente ?</h4>
+                    <p>Ouvrez l'onglet <em>Mes demandes</em>, cliquez sur la demande (statut <em>En attente</em>), puis utilisez le bouton <strong>Relancer cette demande</strong> dans la fenêtre de détails. Le bouton se réactive automatiquement si la demande reste bloquée après 3 jours.</p>
                   </div>
                 </div>
 
-                <div class="request-item help-item">
-                  <div>
-                    <h3 class="request-title">Quand utiliser l’urgence “Haute” ?</h3>
-                    <p class="request-meta">
-                      Utilisez l’urgence <strong>Haute</strong> uniquement si la panne bloque un cours,
-                      un examen ou une activité critique (salle de TP, serveur pédagogique, etc.).
-                      Sinon, privilégiez <strong>Basse</strong> ou <strong>Moyenne</strong>.
-                    </p>
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fef2f2; color:#dc2626">
+                    <span class="material-icons">priority_high</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Quand utiliser l'urgence "Haute" ?</h4>
+                    <p>Réservez l'urgence <strong>Haute</strong> aux pannes bloquant un cours, un examen ou un service critique (salle de TP, serveur pédagogique…). Sinon, privilégiez <strong>Basse</strong> ou <strong>Moyenne</strong>.</p>
                   </div>
                 </div>
 
-                <div class="request-item help-item">
-                  <div>
-                    <h3 class="request-title">Et si mon équipement n’est pas dans la liste ?</h3>
-                    <p class="request-meta">
-                      Sélectionnez <strong>“Autre”</strong> puis précisez le nom de l’équipement.
-                      Exemple : <em>“AUTRE: Robinet – Couloir C03”</em>. Votre demande reste valide.
-                    </p>
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f5f3ff; color:#7c3aed">
+                    <span class="material-icons">devices_other</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Mon équipement n'est pas dans la liste ?</h4>
+                    <p>Sélectionnez <strong>Autre</strong> puis précisez le nom dans le champ qui apparaît. Exemple : <em>Robinet – Couloir C03</em>. Votre demande reste parfaitement valide.</p>
                   </div>
                 </div>
 
-                <div class="request-item help-item">
-                  <div>
-                    <h3 class="request-title">Pourquoi mon image est refusée ?</h3>
-                    <p class="request-meta">
-                      Certaines images peuvent être trop volumineuses. Si un message en rouge s’affiche sous le champ
-                      “Image de l’équipement”, choisissez une image plus légère (ou compressez-la) puis réessayez.
-                    </p>
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fefce8; color:#ca8a04">
+                    <span class="material-icons">image_not_supported</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Pourquoi mon image est refusée ?</h4>
+                    <p>L'image doit être au format JPG ou PNG. Si un message rouge s'affiche, compressez l'image ou choisissez-en une plus légère, puis réessayez.</p>
                   </div>
                 </div>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f0f9ff; color:#0284c7">
+                    <span class="material-icons">info</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Signification des statuts</h4>
+                    <ul class="help-inline-list">
+                      <li><span class="help-badge badge-attente">En attente</span> — demande créée, non encore prise en charge</li>
+                      <li><span class="help-badge badge-cours">En cours</span> — technicien affecté et intervention active</li>
+                      <li><span class="help-badge badge-resolue">Résolue</span> — intervention terminée et validée</li>
+                    </ul>
+                  </div>
+                </div>
+
               </div>
             </div>
 
-            <!-- Colonne droite : contact / support -->
-            <div class="help-column help-column-right">
-              <div class="help-support-card">
-                <h3>Besoin d’un coup de main ?</h3>
-                <p class="request-meta">
-                  Si vous ne trouvez pas la réponse à votre question, vous pouvez contacter l’équipe maintenance
-                  ou créer directement une nouvelle demande.
-                </p>
+            <!-- Colonne droite : Contact + Actions rapides -->
+            <div class="help-column">
 
-                <div class="help-contact-block">
-                  <div class="help-contact-line">
+              <div class="help-contact-card">
+                <div class="help-contact-header">
+                  <span class="material-icons">headset_mic</span>
+                  <h3>Support technique</h3>
+                </div>
+                <p class="help-contact-desc">Vous ne trouvez pas la réponse ? Contactez directement l'équipe maintenance.</p>
+
+                <div class="help-contact-items">
+                  <div class="help-contact-item">
                     <span class="material-icons">email</span>
-                    <span>maintenance@uasz.sn</span>
+                    <div>
+                      <span class="help-contact-label">Email</span>
+                      <span class="help-contact-value">maintenance&#64;uasz.sn</span>
+                    </div>
                   </div>
-                  <div class="help-contact-line">
+                  <div class="help-contact-item">
                     <span class="material-icons">phone</span>
-                    <span>+221 77 123 45 67</span>
+                    <div>
+                      <span class="help-contact-label">Téléphone</span>
+                      <span class="help-contact-value">+221 77 123 45 67</span>
+                    </div>
                   </div>
-                  <div class="help-contact-line">
+                  <div class="help-contact-item">
                     <span class="material-icons">schedule</span>
-                    <span>Lundi – Vendredi, 8h00 – 17h00</span>
+                    <div>
+                      <span class="help-contact-label">Disponibilité</span>
+                      <span class="help-contact-value">Lun – Ven, 8h – 17h</span>
+                    </div>
                   </div>
                 </div>
 
-                <div class="help-actions">
-                  <button class="primary-btn" type="button" (click)="openNewDemandeModal()">
+                <p class="help-contact-tip">
+                  <span class="material-icons">lightbulb</span>
+                  Précisez la page concernée et joignez une capture d'écran si possible.
+                </p>
+              </div>
+
+              <div class="help-quick-actions">
+                <h3 class="help-section-title">
+                  <span class="material-icons">bolt</span>
+                  Actions rapides
+                </h3>
+                <div class="help-action-buttons">
+                  <button class="help-action-btn" (click)="openNewDemandeModal()">
+                    <span class="material-icons">add_circle_outline</span>
                     Nouvelle demande
                   </button>
-
-                  <button class="secondary-btn" type="button" (click)="setActive('mes-demandes')">
-                    Voir mes demandes
+                  <button class="help-action-btn" (click)="setActive('mes-demandes')">
+                    <span class="material-icons">list_alt</span>
+                    Mes demandes
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('documents')">
+                    <span class="material-icons">folder_open</span>
+                    Mes documents
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('dashboard')">
+                    <span class="material-icons">dashboard</span>
+                    Tableau de bord
                   </button>
                 </div>
               </div>
+
+              <div class="help-tips-card">
+                <h3 class="help-section-title">
+                  <span class="material-icons">tips_and_updates</span>
+                  Bons à savoir
+                </h3>
+                <ul class="help-tips-list">
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Une image claire de la panne accélère le traitement.
+                  </li>
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Précisez toujours le bâtiment et la salle dans le champ « Lieu ».
+                  </li>
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Vous recevrez un email à chaque changement de statut.
+                  </li>
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Le bouton « Relancer cette demande» se réactive après 3 jours sans réponse.
+                  </li>
+                </ul>
+              </div>
+
             </div>
           </div>
-        </div>
-      </ng-container>
 
+        </section>
+      </ng-container>
       <!-- ========== MODAL "NOUVELLE DEMANDE" ========== -->
       <div class="modal-backdrop" *ngIf="showNewDemandeModal">
         <div class="modal">
@@ -1256,7 +1316,7 @@
           </div>
 
           <footer class="modal-footer">
-            <button type="button" class="secondary-btn" (click)="closeDetailsModal()">
+            <button type="button" class="btn-fermer-details" (click)="closeDetailsModal()">
               Fermer
             </button>
             <button

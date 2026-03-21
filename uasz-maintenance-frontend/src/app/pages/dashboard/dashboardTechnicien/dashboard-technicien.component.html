@@ -1215,96 +1215,204 @@
 
 
       <ng-container *ngIf="activeItem === 'help'">
-        <section class="recent-requests">
-          <div class="recent-header">
-            <h2>Aide &amp; support</h2>
-            <p class="recent-subtitle">
-              Guides rapides, contacts et réponses aux questions fréquentes.
-            </p>
+        <section class="tech-help-page">
+
+          <!-- En-tête -->
+          <div class="help-page-header">
+            <div class="help-header-icon">
+              <span class="material-icons">support_agent</span>
+            </div>
+            <div>
+              <h2 class="help-page-title">Aide &amp; Support</h2>
+              <p class="help-page-subtitle">Guides rapides pour gérer vos interventions, signaler des pannes et utiliser le tableau de bord technicien.</p>
+            </div>
           </div>
 
-          <div class="help-shell">
-            <!-- ================= LEFT : FAQ ================= -->
-            <div class="help-left">
-              <div class="help-section-title">
-                <div class="help-badge material-icons">info</div>
-                <div>
-                  <h3>Questions fréquentes</h3>
-                  <p>Quelques réponses rapides avant de contacter le support.</p>
+          <!-- Grille 2 colonnes -->
+          <div class="help-grid">
+
+            <!-- Colonne gauche : FAQ -->
+            <div class="help-column">
+              <h3 class="help-section-title">
+                <span class="material-icons">quiz</span>
+                Questions fréquentes
+              </h3>
+
+              <div class="help-faq-list">
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#eff6ff; color:#2563eb">
+                    <span class="material-icons">assignment_turned_in</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment traiter une intervention « À faire » ?</h4>
+                    <p>Ouvrez <strong>Mes interventions</strong>, cliquez sur <strong>Voir détails</strong>, puis <strong>Accepter</strong> ou <strong>Décliner</strong> l'intervention.</p>
+                  </div>
                 </div>
-              </div>
 
-              <!-- FAQ item 1 -->
-              <div class="faq-card">
-                <h4>Comment traiter une intervention “À faire” ?</h4>
-                <p>
-                  Ouvrez <strong>Mes interventions</strong>, cliquez sur <strong>Voir détails</strong>,
-                  puis <strong>Accepter l’intervention</strong> ou <strong>Décliner</strong>.
-                </p>
-              </div>
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f0fdf4; color:#16a34a">
+                    <span class="material-icons">check_circle</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Pourquoi le bouton « Terminer » est désactivé ?</h4>
+                    <p>Il s'active uniquement si vous avez ajouté une <strong>image de résolution</strong> et une <strong>note technicien</strong>. Les pièces utilisées sont optionnelles.</p>
+                  </div>
+                </div>
 
-              <!-- FAQ item 2 -->
-              <div class="faq-card">
-                <h4>Pourquoi le bouton “Terminer l’intervention” est désactivé ?</h4>
-                <p>
-                  Il devient actif uniquement si vous avez ajouté une <strong>image</strong> et une
-                  <strong>note technicien</strong>. Les pièces utilisées sont <strong>optionnelles</strong>.
-                </p>
-              </div>
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fefce8; color:#ca8a04">
+                    <span class="material-icons">build</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment ajouter des pièces utilisées ?</h4>
+                    <p>Dans la modale « En cours », choisissez une pièce dans la liste, saisissez une quantité ≥ 1. Vous pouvez en ajouter plusieurs avant de terminer.</p>
+                  </div>
+                </div>
 
-              <!-- FAQ item 3 -->
-              <div class="faq-card">
-                <h4>Comment ajouter des pièces utilisées ?</h4>
-                <p>
-                  Dans la modale “En cours”, choisissez une <strong>pièce</strong> dans la liste,
-                  puis saisissez une <strong>quantité ≥ 1</strong>. Vous pouvez ajouter plusieurs pièces.
-                </p>
-              </div>
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fef2f2; color:#dc2626">
+                    <span class="material-icons">cancel</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Que se passe-t-il si je refuse une intervention ?</h4>
+                    <p>Un message de confirmation s'affiche, puis le Responsable Maintenance est automatiquement notifié pour réaffecter l'intervention.</p>
+                  </div>
+                </div>
 
-              <!-- FAQ item 4 -->
-              <div class="faq-card">
-                <h4>Que se passe-t-il si je refuse une intervention ?</h4>
-                <p>
-                  Un message de confirmation s’affiche, puis le Responsable Maintenance est informé.
-                </p>
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f5f3ff; color:#7c3aed">
+                    <span class="material-icons">event_repeat</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment réaliser une maintenance préventive ?</h4>
+                    <p>Allez dans <strong>Maintenances préventives</strong>, cliquez sur la maintenance planifiée, renseignez vos observations et validez la réalisation.</p>
+                  </div>
+                </div>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#f0f9ff; color:#0284c7">
+                    <span class="material-icons">info</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Signification des statuts d'intervention</h4>
+                    <ul class="help-inline-list">
+                      <li><span class="help-badge badge-attente">À faire</span> — affectée, non encore acceptée</li>
+                      <li><span class="help-badge badge-cours">En cours</span> — acceptée et en traitement</li>
+                      <li><span class="help-badge badge-resolue">Terminée</span> — intervention clôturée</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="help-faq-item">
+                  <div class="help-faq-icon" style="background:#fff7ed; color:#ea580c">
+                    <span class="material-icons">add_alert</span>
+                  </div>
+                  <div class="help-faq-content">
+                    <h4>Comment signaler une nouvelle panne ?</h4>
+                    <p>Utilisez le bouton <strong>Nouvelle demande</strong> dans la section <strong>Mes demandes</strong> pour signaler une panne que vous constatez sur le terrain.</p>
+                  </div>
+                </div>
+
               </div>
             </div>
 
-            <!-- ================= RIGHT : CONTACT BOX ================= -->
-            <div class="help-right">
-              <div class="contact-card">
-                <h3>Besoin d’un coup de main ?</h3>
-                <p>
-                  Si vous ne trouvez pas la réponse à votre question, vous pouvez contacter
-                  l’équipe maintenance.
-                </p>
+            <!-- Colonne droite -->
+            <div class="help-column">
 
-                <div class="contact-lines">
-                  <div class="contact-line">
-                    <span class="material-icons">mail</span>
-                    <span>maintenance@uasz.sn</span>
+              <!-- Card contact -->
+              <div class="help-contact-card">
+                <div class="help-contact-header">
+                  <span class="material-icons">headset_mic</span>
+                  <h3>Support technique</h3>
+                </div>
+                <p class="help-contact-desc">Un problème avec l'application ? Contactez l'équipe technique.</p>
+
+                <div class="help-contact-items">
+                  <div class="help-contact-item">
+                    <span class="material-icons">email</span>
+                    <div>
+                      <span class="help-contact-label">Email</span>
+                      <span class="help-contact-value">maintenance&#64;uasz.sn</span>
+                    </div>
                   </div>
-                  <div class="contact-line">
-                    <span class="material-icons">call</span>
-                    <span>+221 77 123 45 67</span>
+                  <div class="help-contact-item">
+                    <span class="material-icons">phone</span>
+                    <div>
+                      <span class="help-contact-label">Téléphone</span>
+                      <span class="help-contact-value">+221 77 123 45 67</span>
+                    </div>
                   </div>
-                  <div class="contact-line">
+                  <div class="help-contact-item">
                     <span class="material-icons">schedule</span>
-                    <span>Lundi – Vendredi, 8h00 – 17h00</span>
+                    <div>
+                      <span class="help-contact-label">Disponibilité</span>
+                      <span class="help-contact-value">Lun – Ven, 8h – 17h</span>
+                    </div>
                   </div>
                 </div>
 
-                <div class="contact-actions">
-                  <button type="button" class="primary-btn" (click)="setActive('interventions')">
-                    Voir mes interventions
+                <p class="help-contact-tip">
+                  <span class="material-icons">lightbulb</span>
+                  Précisez la page concernée et joignez une capture d'écran si possible.
+                </p>
+              </div>
+
+              <!-- Actions rapides -->
+              <div class="help-quick-actions">
+                <h3 class="help-section-title">
+                  <span class="material-icons">bolt</span>
+                  Actions rapides
+                </h3>
+                <div class="help-action-buttons">
+                  <button class="help-action-btn" (click)="setActive('interventions')">
+                    <span class="material-icons">assignment</span>
+                    Mes interventions
                   </button>
-                  <button type="button" class="secondary-btn" (click)="setActive('dashboard')">
-                    Retour au dashboard
+                  <button class="help-action-btn" (click)="setActive('dashboard')">
+                    <span class="material-icons">dashboard</span>
+                    Tableau de bord
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('maintenances-preventives')">
+                    <span class="material-icons">event_repeat</span>
+                    Maintenances préventives
+                  </button>
+                  <button class="help-action-btn" (click)="setActive('historique')">
+                    <span class="material-icons">history</span>
+                    Historique
                   </button>
                 </div>
               </div>
+
+              <!-- Bons à savoir -->
+              <div class="help-tips-card">
+                <h3 class="help-section-title">
+                  <span class="material-icons">tips_and_updates</span>
+                  Bons à savoir
+                </h3>
+                <ul class="help-tips-list">
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Ajoutez toujours une image claire de la résolution.
+                  </li>
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    La note technicien aide le responsable à valider rapidement.
+                  </li>
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Vous recevrez une notification à chaque nouvelle affectation.
+                  </li>
+                  <li>
+                    <span class="material-icons">check_circle</span>
+                    Déclinez rapidement si vous ne pouvez pas traiter une intervention.
+                  </li>
+                </ul>
+              </div>
+
             </div>
           </div>
+
         </section>
       </ng-container>
 

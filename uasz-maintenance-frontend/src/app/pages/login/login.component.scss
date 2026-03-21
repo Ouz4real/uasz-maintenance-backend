@@ -152,6 +152,57 @@
   text-align: center;
 }
 
+.form-extras {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -0.25rem;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  user-select: none;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #1565c0;
+    cursor: pointer;
+  }
+}
+
+.forgot-link {
+  font-size: 0.875rem;
+  color: #1565c0;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.forgot-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: slideUp 0.3s ease-out;
+}
+
+.forgot-icon {
+  background: linear-gradient(135deg, #1565c0, #42a5f5) !important;
+}
+
 // ===== PANNEAU DROIT - ILLUSTRATION =====
 .illustration-panel {
   background: linear-gradient(135deg, #1e3a8a 0%, #1565c0 50%, #42a5f5 100%);
@@ -614,4 +665,53 @@
   .login-subtitle {
     font-size: 0.875rem;
   }
+}
+
+// ===== FORGOT PASSWORD MODAL =====
+.forgot-submit-btn {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.forgot-cancel-btn {
+  width: 100%;
+  color: #6b7280;
+}
+
+.forgot-error {
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #dc2626;
+  font-size: 0.875rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.forgot-success {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+
+  .forgot-success-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #10b981;
+  }
+
+  p {
+    margin: 0;
+    color: #374151;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+}
+
+.forgot-success-note {
+  color: #6b7280 !important;
+  font-size: 0.85rem !important;
 }
