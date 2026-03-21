@@ -1,8 +1,11 @@
 <!-- src/app/pages/dashboard/dashboardResponsable/dashboard-responsable.component.html -->
 
 <div class="dashboard-layout" [class.blur-background]="showLogoutModal">
+  <!-- Overlay sidebar mobile -->
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
+
   <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-header">
       <div class="avatar-circle">{{ usernameInitial }}</div>
       <div class="sidebar-title">
@@ -94,6 +97,10 @@
       </div>
 
       <div class="topbar-right">
+        <!-- Bouton hamburger sidebar (mobile) -->
+        <button class="sidebar-toggle-btn" (click)="sidebarOpen = !sidebarOpen" aria-label="Ouvrir le menu">
+          <span class="material-icons">menu</span>
+        </button>
         <!-- Notification Bell -->
         <app-notification-bell
           [themeColor]="'#ea580c'"

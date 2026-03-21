@@ -291,6 +291,7 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
   username: string = 'Responsable';
   usernameInitial: string = 'R';
   userMenuOpen = false;
+  sidebarOpen = false;
 
   // 🔥 Toast notifications
   showToast = false;
@@ -321,6 +322,7 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
       | 'help'
   ) {
     this.activeItem = item;
+    this.sidebarOpen = false;
     if (item === 'techniciens') {
       this.chargerTechniciensDepuisApi();
     }

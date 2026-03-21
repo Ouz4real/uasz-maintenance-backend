@@ -36,3 +36,6 @@ body.modal-open {
 
 /* Import des styles pour les champs de mot de passe */
 @import './styles-password-toggle.scss';
+
+/* Import des styles responsive globaux */
+@import './styles-responsive.scss';

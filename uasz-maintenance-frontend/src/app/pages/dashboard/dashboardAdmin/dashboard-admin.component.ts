@@ -75,6 +75,7 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
   private mesDemandessPollingSubscription?: Subscription;
   usernameInitial = 'A';
   userMenuOpen = false;
+  sidebarOpen = false;
 
   activeItem: 'dashboard' | 'utilisateurs' | 'mes-demandes' | 'roles' | 'importExport' | 'journal' | 'help' | 'profil' = 'dashboard';
 
@@ -343,6 +344,7 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
   setActive(item: typeof this.activeItem): void {
     this.activeItem = item;
     this.userMenuOpen = false;
+    this.sidebarOpen = false;
   }
 
   toggleUserMenu(event?: Event): void {

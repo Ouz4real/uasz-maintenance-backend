@@ -5132,3 +5132,71 @@ select.form-control{
     transform: translateY(-1px);
   }
 }
+
+/* ============================================================
+   RESPONSIVE — Dashboard Responsable
+   ============================================================ */
+@media (max-width: 768px) {
+  .stats-row,
+  .kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem;
+  }
+
+  .content {
+    padding: 1rem !important;
+  }
+
+  .topbar {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .topbar-left p { display: none; }
+
+  /* Tableaux scrollables */
+  .demandes-table-wrapper,
+  .techniciens-table-wrapper,
+  .table-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .demandes-header,
+  .demandes-row,
+  .techniciens-header,
+  .techniciens-row {
+    min-width: 620px;
+  }
+
+  .filters-shell {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .modal-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 1rem !important;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Grille rapports */
+  .rapports-grid,
+  .charts-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-row,
+  .kpi-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .content {
+    padding: 0.75rem !important;
+  }
+}

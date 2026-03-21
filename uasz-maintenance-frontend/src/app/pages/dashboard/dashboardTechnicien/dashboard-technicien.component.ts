@@ -125,6 +125,7 @@ export class DashboardTechnicienComponent implements OnInit, OnDestroy {
 
   // Menu utilisateur
   userMenuOpen = false;
+  sidebarOpen = false;
   // ===== HISTORIQUE (TERMINEE) =====
   historiqueSearch = '';
   historiqueUrgence: 'TOUTES' | 'BASSE' | 'MOYENNE' | 'HAUTE' = 'TOUTES';
@@ -590,6 +591,7 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
   ) {
     this.activeItem = item;
     this.closeUserMenu();
+    this.sidebarOpen = false;
 
     // Petit confort UX : quand on entre dans équipements, on construit la vue
     if (item === 'equipements') {

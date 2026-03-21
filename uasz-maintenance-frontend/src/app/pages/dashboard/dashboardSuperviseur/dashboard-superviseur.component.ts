@@ -67,6 +67,7 @@ export class DashboardSuperviseurComponent implements OnInit, OnDestroy {
 
   // Menu utilisateur
   userMenuOpen = false;
+  sidebarOpen = false;
   showLogoutModal = false;
 
   // Onglet actif de la sidebar
@@ -437,6 +438,7 @@ export class DashboardSuperviseurComponent implements OnInit, OnDestroy {
   ): void {
     this.activeItem = item;
     this.userMenuOpen = false;
+    this.sidebarOpen = false;
     
     // Charger les stats équipements si on accède à cet onglet
     if (item === 'equipements') {

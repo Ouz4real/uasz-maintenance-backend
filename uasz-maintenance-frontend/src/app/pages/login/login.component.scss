@@ -715,3 +715,44 @@
   color: #6b7280 !important;
   font-size: 0.85rem !important;
 }
+
+/* ============================================================
+   RESPONSIVE — Login
+   ============================================================ */
+@media (max-width: 768px) {
+  .login-container {
+    grid-template-columns: 1fr !important;
+  }
+
+  .illustration-panel {
+    display: none !important;
+  }
+
+  .login-panel {
+    padding: 2rem 1.25rem !important;
+  }
+
+  .login-content {
+    max-width: 100% !important;
+  }
+
+  .forgot-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 1.25rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-panel {
+    padding: 1.5rem 1rem !important;
+  }
+
+  .brand-text h1 {
+    font-size: 1.1rem !important;
+  }
+
+  .login-title {
+    font-size: 1.3rem !important;
+  }
+}

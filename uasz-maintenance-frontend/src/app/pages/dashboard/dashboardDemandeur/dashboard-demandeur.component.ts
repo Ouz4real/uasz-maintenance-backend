@@ -97,6 +97,7 @@ export class DashboardDemandeurComponent implements OnInit {
   usernameInitial = 'D';
 
   userMenuOpen = false;
+  sidebarOpen = false;
 
   activeItem: PageKey = 'dashboard';
 
@@ -573,6 +574,7 @@ export class DashboardDemandeurComponent implements OnInit {
 
   setActive(item: PageKey): void {
     this.activeItem = item;
+    this.sidebarOpen = false;
   }
 
   toggleUserMenu(): void {

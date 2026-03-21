@@ -1,0 +1,224 @@
+/* ============================================================
+   RESPONSIVE GLOBAL — UASZ Maintenance
+   Breakpoints : 768px (tablette), 480px (mobile)
+   ============================================================ */
+
+/* ── Sidebar overlay (mobile) ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 199;
+}
+
+/* ── Hamburger button (visible uniquement mobile) ── */
+.sidebar-toggle-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 8px;
+  color: #374151;
+  transition: background 0.15s;
+
+  .material-icons { font-size: 26px; }
+
+  &:hover { background: #f3f4f6; }
+}
+
+/* ============================================================
+   BREAKPOINT 768px — Tablette / Mobile
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* ── Layout ── */
+  .dashboard-layout {
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 260px !important;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-overlay.visible {
+    display: block;
+  }
+
+  /* ── Hamburger visible ── */
+  .sidebar-toggle-btn {
+    display: flex;
+  }
+
+  /* ── Main prend toute la largeur ── */
+  .main {
+    width: 100% !important;
+    height: 100vh;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    padding: 0.75rem 1rem !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .topbar-left h2 {
+    font-size: 1rem !important;
+    margin: 0;
+  }
+
+  .topbar-left p {
+    display: none;
+  }
+
+  .topbar-right {
+    gap: 0.5rem !important;
+  }
+
+  /* ── Content padding ── */
+  .content {
+    padding: 1rem !important;
+  }
+
+  /* ── Stats cards : 2 colonnes sur tablette ── */
+  .stats-row,
+  .kpi-row,
+  .cards-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+
+  /* ── Tableaux : scroll horizontal ── */
+  .table-wrapper,
+  .signals-table-wrapper,
+  .interventions-table-wrapper,
+  .users-table-wrapper,
+  .demandes-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Filtres ── */
+  .filters-shell,
+  .filters-row {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+
+  .filter-chip,
+  .status-chip {
+    font-size: 0.78rem !important;
+    padding: 0.3rem 0.7rem !important;
+  }
+
+  /* ── Modales ── */
+  .modal-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    padding: 1rem !important;
+  }
+
+  .modal-body {
+    padding: 0 !important;
+  }
+
+  /* ── Grilles formulaires → 1 colonne ── */
+  .form-grid,
+  .form-row,
+  [class*="grid-2"],
+  [class*="two-col"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Pagination ── */
+  .pagination-bar,
+  .resp-pagination {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
+  }
+
+  .resp-page-btn {
+    min-height: 36px;
+    padding: 0.4rem 0.9rem !important;
+  }
+
+  /* ── User chip : masquer texte ── */
+  .chip-text {
+    display: none !important;
+  }
+
+  /* ── Section titles ── */
+  .section-title {
+    font-size: 1rem !important;
+  }
+}
+
+/* ============================================================
+   BREAKPOINT 480px — Mobile compact
+   ============================================================ */
+@media (max-width: 480px) {
+
+  /* ── Stats cards : 1 colonne ── */
+  .stats-row,
+  .kpi-row,
+  .cards-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Topbar ── */
+  .topbar-left h2 {
+    font-size: 0.9rem !important;
+  }
+
+  /* ── Content padding ── */
+  .content {
+    padding: 0.75rem !important;
+  }
+
+  /* ── Modales ── */
+  .modal-card {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    border-radius: 12px 12px 0 0 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    top: auto !important;
+    left: 0 !important;
+    transform: none !important;
+    max-height: 85vh !important;
+  }
+
+  /* ── Boutons d'action ── */
+  .action-btn,
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── Filtres chips ── */
+  .filter-chip,
+  .status-chip {
+    font-size: 0.75rem !important;
+  }
+}
