@@ -312,6 +312,15 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
     | 'rapports'
     | 'help' = 'dashboard';
 
+  // FAQ Aide & Support
+  activeFaqIndex: number | null = null;
+  toggleFaq(index: number): void {
+    this.activeFaqIndex = this.activeFaqIndex === index ? null : index;
+  }
+  openDocumentation(): void {
+    window.open('https://uasz.sn', '_blank');
+  }
+
   setActive(
     item:
       | 'dashboard'

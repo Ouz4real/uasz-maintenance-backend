@@ -1558,232 +1558,210 @@
       <ng-container *ngIf="activeItem === 'help'">
         <section class="resp-help-page">
 
-          <!-- En-tête -->
-          <div class="help-page-header">
-            <div class="help-header-icon">
-              <span class="material-icons">support_agent</span>
-            </div>
-            <div>
-              <h2 class="help-page-title">Aide &amp; Support</h2>
-              <p class="help-page-subtitle">Bonnes pratiques pour gérer les demandes, affecter les techniciens et piloter la maintenance.</p>
-            </div>
-          </div>
+          <h2 class="section-title" style="margin-bottom: 2rem;">
+            <span class="material-icons">help</span>
+            Aide &amp; Support
+          </h2>
 
-          <!-- Grille 2 colonnes -->
-          <div class="help-grid">
-
-            <!-- Colonne gauche : FAQ -->
-            <div class="help-column">
-              <h3 class="help-section-title">
-                <span class="material-icons">quiz</span>
-                Questions fréquentes
-              </h3>
-
-              <div class="help-faq-list">
-
-                <!-- FAQ 1 -->
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#eff6ff; color:#2563eb">
-                    <span class="material-icons">low_priority</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Comment prioriser les demandes ?</h4>
-                    <p>Ouvrez la demande via <em>Voir détails</em>, analysez la description et l'image, puis définissez le niveau d'urgence (Basse, Moyenne, Haute). Traitez en priorité les demandes <strong>Haute</strong> liées aux salles de cours, examens ou services critiques.</p>
-                  </div>
-                </div>
-
-                <!-- FAQ 2 -->
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#f0fdf4; color:#16a34a">
-                    <span class="material-icons">engineering</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Comment affecter un technicien efficacement ?</h4>
-                    <p>Dans <em>Voir détails</em>, choisissez un technicien disponible. Tenez compte de son domaine (bureautique, réseau…), de sa charge actuelle et de la localisation de l'équipement.</p>
-                  </div>
-                </div>
-
-                <!-- FAQ 3 -->
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#f0fdf4; color:#15803d">
-                    <span class="material-icons">task_alt</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Quand une demande est-elle résolue ?</h4>
-                    <p>Une demande est <strong>Résolue</strong> quand l'intervention est terminée, le matériel fonctionnel, et que la case <em>Marquer comme résolue</em> est cochée. Le bouton <strong>Exporter en PDF</strong> devient alors disponible.</p>
-                  </div>
-                </div>
-
-                <!-- FAQ 4 -->
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#fefce8; color:#ca8a04">
-                    <span class="material-icons">event_repeat</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Bonnes pratiques de maintenance préventive</h4>
-                    <p>Planifiez le nettoyage des PC, le remplacement des lampes vidéo-projecteurs et les vérifications réseau. Anticiper ces opérations réduit fortement les pannes critiques.</p>
-                  </div>
-                </div>
-
-                <!-- FAQ 5 -->
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#f5f3ff; color:#7c3aed">
-                    <span class="material-icons">info</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Signification des statuts</h4>
-                    <ul class="help-inline-list">
-                      <li><span class="help-badge badge-attente">En attente</span> — non encore prise en charge</li>
-                      <li><span class="help-badge badge-cours">En cours</span> — technicien affecté et actif</li>
-                      <li><span class="help-badge badge-resolue">Résolue</span> — intervention terminée et validée</li>
-                      <li><span class="help-badge badge-annulee">Annulée</span> — fermée sans intervention</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <!-- FAQ 6 -->
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#fff7ed; color:#ea580c">
-                    <span class="material-icons">warning_amber</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Gérer une urgence critique</h4>
-                    <p>Pour les salles pédagogiques, serveurs ou infrastructures critiques : définissez l'urgence <strong>Haute</strong>, affectez immédiatement un technicien et suivez jusqu'à résolution complète.</p>
-                  </div>
-                </div>
-
-                <!-- FAQ 7 -->
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#f0f9ff; color:#0284c7">
-                    <span class="material-icons">inventory_2</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Gestion du stock de pièces</h4>
-                    <p>Consultez la section <strong>Stock</strong> pour vérifier la disponibilité des pièces avant d'affecter une intervention. Un stock bas déclenche une alerte automatique.</p>
-                  </div>
-                </div>
-
-                <!-- FAQ 8 -->
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#fdf2f8; color:#9d174d">
-                    <span class="material-icons">bar_chart</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Comprendre les indicateurs du tableau de bord</h4>
-                    <ul class="help-inline-list">
-                      <li><strong>Demandes en attente</strong> — non affectées</li>
-                      <li><strong>Interventions en cours</strong> — actuellement traitées</li>
-                      <li><strong>Technicien disponible</strong> — aucune intervention active</li>
-                    </ul>
-                  </div>
-                </div>
-
+          <!-- Guide de démarrage rapide -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">rocket_launch</span>
+              Guide de démarrage rapide
+            </h3>
+            <div class="help-cards-grid">
+              <div class="help-card">
+                <div class="help-card-icon dashboard-icon"><span class="material-icons">dashboard</span></div>
+                <h4>Tableau de bord</h4>
+                <p>Consultez les demandes en attente, les interventions en cours et les techniciens disponibles pour une vue d'ensemble complète.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon signalements-icon"><span class="material-icons">warning</span></div>
+                <h4>Signalements</h4>
+                <p>Analysez les pannes par statut et priorité. Affectez les techniciens et priorisez les interventions urgentes.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon interventions-icon"><span class="material-icons">build</span></div>
+                <h4>Interventions</h4>
+                <p>Suivez les maintenances planifiées et les interventions en cours. Surveillez les temps de réalisation et la performance.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon equipements-icon"><span class="material-icons">inventory_2</span></div>
+                <h4>Stock & Équipements</h4>
+                <p>Gérez le stock de pièces et les équipements. Un stock bas déclenche une alerte automatique.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon stats-icon"><span class="material-icons">event_repeat</span></div>
+                <h4>Maintenance préventive</h4>
+                <p>Planifiez les maintenances préventives pour anticiper les pannes et réduire les interruptions de service.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon stats-icon"><span class="material-icons">bar_chart</span></div>
+                <h4>Rapports & Stats</h4>
+                <p>Exportez vos données en Excel, CSV ou PDF. Générez des rapports détaillés pour l'analyse et la prise de décision.</p>
               </div>
             </div>
+          </section>
 
-            <!-- Colonne droite : Contact + Actions rapides -->
-            <div class="help-column">
-
-              <!-- Card contact -->
-              <div class="help-contact-card">
-                <div class="help-contact-header">
-                  <span class="material-icons">headset_mic</span>
-                  <h3>Support technique</h3>
-                </div>
-                <p class="help-contact-desc">Une anomalie ou un problème avec l'application ? Contactez l'équipe technique.</p>
-
-                <div class="help-contact-items">
-                  <div class="help-contact-item">
-                    <span class="material-icons">email</span>
-                    <div>
-                      <span class="help-contact-label">Email</span>
-                      <span class="help-contact-value">maintenance&#64;uasz.sn</span>
-                    </div>
-                  </div>
-                  <div class="help-contact-item">
-                    <span class="material-icons">phone</span>
-                    <div>
-                      <span class="help-contact-label">Téléphone</span>
-                      <span class="help-contact-value">+221 33 991 XX XX</span>
-                    </div>
-                  </div>
-                  <div class="help-contact-item">
-                    <span class="material-icons">schedule</span>
-                    <div>
-                      <span class="help-contact-label">Disponibilité</span>
-                      <span class="help-contact-value">Lun – Ven, 8h – 17h</span>
-                    </div>
-                  </div>
-                </div>
-
-                <p class="help-contact-tip">
-                  <span class="material-icons">lightbulb</span>
-                  Précisez votre rôle, la page concernée et joignez une capture d'écran si possible.
-                </p>
-              </div>
-
-              <!-- Actions rapides -->
-              <div class="help-quick-actions">
-                <h3 class="help-section-title">
-                  <span class="material-icons">bolt</span>
-                  Actions rapides
-                </h3>
-                <div class="help-action-buttons">
-                  <button class="help-action-btn" (click)="setActive('dashboard')">
-                    <span class="material-icons">dashboard</span>
-                    Voir les demandes
-                  </button>
-                  <button class="help-action-btn" (click)="setActive('techniciens')">
-                    <span class="material-icons">engineering</span>
-                    Voir les techniciens
-                  </button>
-                  <button class="help-action-btn" (click)="setActive('preventives')">
-                    <span class="material-icons">event_repeat</span>
-                    Maintenance préventive
-                  </button>
-                  <button class="help-action-btn" (click)="setActive('equipements')">
-                    <span class="material-icons">inventory_2</span>
-                    Gérer le stock
-                  </button>
+          <!-- Bonnes pratiques -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">verified</span>
+              Bonnes pratiques de gestion
+            </h3>
+            <div class="best-practices-grid">
+              <div class="practice-card">
+                <div class="practice-icon monitoring-icon"><span class="material-icons">visibility</span></div>
+                <div class="practice-content">
+                  <h4>Surveillance proactive</h4>
+                  <p>Consultez régulièrement le tableau de bord pour identifier rapidement les anomalies et les tendances préoccupantes.</p>
                 </div>
               </div>
-
-              <!-- Flux de traitement -->
-              <div class="help-flow-card">
-                <h3 class="help-section-title">
-                  <span class="material-icons">account_tree</span>
-                  Flux de traitement
-                </h3>
-                <div class="help-flow-steps">
-                  <div class="help-flow-step">
-                    <div class="help-flow-num">1</div>
-                    <span>Demande créée par l'utilisateur</span>
-                  </div>
-                  <div class="help-flow-arrow"><span class="material-icons">arrow_downward</span></div>
-                  <div class="help-flow-step">
-                    <div class="help-flow-num">2</div>
-                    <span>Analyse &amp; priorisation (Responsable)</span>
-                  </div>
-                  <div class="help-flow-arrow"><span class="material-icons">arrow_downward</span></div>
-                  <div class="help-flow-step">
-                    <div class="help-flow-num">3</div>
-                    <span>Affectation à un technicien</span>
-                  </div>
-                  <div class="help-flow-arrow"><span class="material-icons">arrow_downward</span></div>
-                  <div class="help-flow-step">
-                    <div class="help-flow-num">4</div>
-                    <span>Prise en charge &amp; intervention</span>
-                  </div>
-                  <div class="help-flow-arrow"><span class="material-icons">arrow_downward</span></div>
-                  <div class="help-flow-step">
-                    <div class="help-flow-num">5</div>
-                    <span>Résolution &amp; export PDF</span>
-                  </div>
+              <div class="practice-card">
+                <div class="practice-icon analysis-icon"><span class="material-icons">analytics</span></div>
+                <div class="practice-content">
+                  <h4>Analyse des tendances</h4>
+                  <p>Utilisez les filtres de période pour comparer les performances sur différentes périodes et identifier les améliorations ou dégradations.</p>
                 </div>
               </div>
-
+              <div class="practice-card">
+                <div class="practice-icon priority-icon"><span class="material-icons">priority_high</span></div>
+                <div class="practice-content">
+                  <h4>Gestion des priorités</h4>
+                  <p>Surveillez les pannes haute priorité et assurez-vous qu'elles sont traitées rapidement par les équipes de maintenance.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon report-icon"><span class="material-icons">assessment</span></div>
+                <div class="practice-content">
+                  <h4>Rapports réguliers</h4>
+                  <p>Générez des rapports hebdomadaires ou mensuels pour suivre l'évolution des indicateurs clés de performance (KPI).</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon equipment-icon"><span class="material-icons">devices_other</span></div>
+                <div class="practice-content">
+                  <h4>Équipements critiques</h4>
+                  <p>Identifiez les équipements les plus problématiques et planifiez des maintenances préventives pour réduire les pannes.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon team-icon"><span class="material-icons">groups</span></div>
+                <div class="practice-content">
+                  <h4>Coordination d'équipe</h4>
+                  <p>Assurez une communication efficace entre les techniciens, responsables et demandeurs pour optimiser les interventions.</p>
+                </div>
+              </div>
             </div>
-          </div>
+          </section>
+
+          <!-- FAQ -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">quiz</span>
+              Questions fréquentes (FAQ)
+            </h3>
+            <div class="faq-container">
+              <div class="faq-item" [class.active]="activeFaqIndex === 0" (click)="toggleFaq(0)">
+                <div class="faq-question">
+                  <span>Comment prioriser les demandes ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 0 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 0">
+                  <p>Ouvrez la demande via <em>Voir détails</em>, analysez la description et l'image, puis définissez le niveau d'urgence (Basse, Moyenne, Haute). Traitez en priorité les demandes <strong>Haute</strong> liées aux salles de cours, examens ou services critiques.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 1" (click)="toggleFaq(1)">
+                <div class="faq-question">
+                  <span>Comment affecter un technicien efficacement ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 1 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 1">
+                  <p>Dans <em>Voir détails</em>, choisissez un technicien disponible. Tenez compte de son domaine (bureautique, réseau…), de sa charge actuelle et de la localisation de l'équipement.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 2" (click)="toggleFaq(2)">
+                <div class="faq-question">
+                  <span>Que signifient les différents statuts de pannes ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 2 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 2">
+                  <ul>
+                    <li><strong>En attente :</strong> non encore prise en charge</li>
+                    <li><strong>En cours :</strong> technicien affecté et actif</li>
+                    <li><strong>Résolue :</strong> intervention terminée et validée</li>
+                    <li><strong>Annulée :</strong> fermée sans intervention</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 3" (click)="toggleFaq(3)">
+                <div class="faq-question">
+                  <span>Comment gérer une urgence critique ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 3 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 3">
+                  <p>Pour les salles pédagogiques, serveurs ou infrastructures critiques : définissez l'urgence <strong>Haute</strong>, affectez immédiatement un technicien et suivez jusqu'à résolution complète.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 4" (click)="toggleFaq(4)">
+                <div class="faq-question">
+                  <span>Comment exporter les données ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 4 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 4">
+                  <p>Allez dans la section "Rapports & Stats". Vous pouvez exporter les Interventions, Signalements ou Équipements en format Excel ou CSV. Sélectionnez une période si nécessaire, puis cliquez sur le bouton d'export souhaité.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 5" (click)="toggleFaq(5)">
+                <div class="faq-question">
+                  <span>Comment gérer le stock de pièces ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 5 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 5">
+                  <p>Consultez la section <strong>Stock</strong> pour vérifier la disponibilité des pièces avant d'affecter une intervention. Un stock bas déclenche une alerte automatique.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Contact et support -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">contact_support</span>
+              Besoin d'aide supplémentaire ?
+            </h3>
+            <div class="contact-cards-grid">
+              <div class="contact-card">
+                <div class="contact-icon email-icon"><span class="material-icons">email</span></div>
+                <h4>Support technique</h4>
+                <p>support@uasz-maintenance.sn</p>
+                <a href="mailto:support@uasz-maintenance.sn" class="contact-link">Envoyer un email</a>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon phone-icon"><span class="material-icons">phone</span></div>
+                <h4>Assistance téléphonique</h4>
+                <p>+221 33 123 45 67</p>
+                <p class="contact-hours">Lun-Ven: 8h-18h</p>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon docs-icon"><span class="material-icons">description</span></div>
+                <h4>Documentation complète</h4>
+                <p>Guides détaillés et tutoriels</p>
+                <button class="secondary-btn" style="margin-top: 0.5rem;" (click)="openDocumentation()">
+                  <span class="material-icons">open_in_new</span>
+                  Consulter
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Version et informations -->
+          <section class="stats-section" style="text-align: center; padding: 2rem;">
+            <div style="color: #6b7280; font-size: 0.875rem;">
+              <p style="margin-bottom: 0.5rem;"><strong>UASZ Maintenance System</strong> - Version 1.0.0</p>
+              <p style="margin: 0;">© 2026 Université Assane Seck de Ziguinchor. Tous droits réservés.</p>
+            </div>
+          </section>
 
         </section>
       </ng-container>

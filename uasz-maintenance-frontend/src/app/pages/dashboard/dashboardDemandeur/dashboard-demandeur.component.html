@@ -907,198 +907,209 @@
       <ng-container *ngIf="activeItem === 'aide'">
         <section class="dem-help-page">
 
-          <!-- En-tête -->
-          <div class="help-page-header">
-            <div class="help-header-icon">
-              <span class="material-icons">support_agent</span>
-            </div>
-            <div>
-              <h2 class="help-page-title">Aide &amp; Support</h2>
-              <p class="help-page-subtitle">Réponses rapides sur la création, le suivi et la relance de vos demandes de maintenance.</p>
-            </div>
-          </div>
+          <h2 class="section-title" style="margin-bottom: 2rem;">
+            <span class="material-icons">help</span>
+            Aide &amp; Support
+          </h2>
 
-          <!-- Grille 2 colonnes -->
-          <div class="help-grid">
-
-            <!-- Colonne gauche : FAQ -->
-            <div class="help-column">
-              <h3 class="help-section-title">
-                <span class="material-icons">quiz</span>
-                Questions fréquentes
-              </h3>
-
-              <div class="help-faq-list">
-
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#eff6ff; color:#2563eb">
-                    <span class="material-icons">add_circle_outline</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Comment créer une nouvelle demande ?</h4>
-                    <p>Depuis le tableau de bord ou l'onglet <em>Mes demandes</em>, cliquez sur <strong>Nouvelle demande</strong>. Renseignez le titre, le lieu, le type d'équipement, l'urgence et ajoutez une image. Le bouton <strong>Enregistrer</strong> s'active quand tout est valide.</p>
-                  </div>
-                </div>
-
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#f0fdf4; color:#16a34a">
-                    <span class="material-icons">track_changes</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Comment suivre l'avancement d'une demande ?</h4>
-                    <p>Le statut de chaque demande est visible dans vos listes. Cliquez sur une demande pour voir les détails complets (infos, image, technicien affecté) et suivre son évolution en temps réel.</p>
-                  </div>
-                </div>
-
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#fff7ed; color:#ea580c">
-                    <span class="material-icons">replay</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Comment relancer une demande en attente ?</h4>
-                    <p>Ouvrez l'onglet <em>Mes demandes</em>, cliquez sur la demande (statut <em>En attente</em>), puis utilisez le bouton <strong>Relancer cette demande</strong> dans la fenêtre de détails. Le bouton se réactive automatiquement si la demande reste bloquée après 3 jours.</p>
-                  </div>
-                </div>
-
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#fef2f2; color:#dc2626">
-                    <span class="material-icons">priority_high</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Quand utiliser l'urgence "Haute" ?</h4>
-                    <p>Réservez l'urgence <strong>Haute</strong> aux pannes bloquant un cours, un examen ou un service critique (salle de TP, serveur pédagogique…). Sinon, privilégiez <strong>Basse</strong> ou <strong>Moyenne</strong>.</p>
-                  </div>
-                </div>
-
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#f5f3ff; color:#7c3aed">
-                    <span class="material-icons">devices_other</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Mon équipement n'est pas dans la liste ?</h4>
-                    <p>Sélectionnez <strong>Autre</strong> puis précisez le nom dans le champ qui apparaît. Exemple : <em>Robinet – Couloir C03</em>. Votre demande reste parfaitement valide.</p>
-                  </div>
-                </div>
-
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#fefce8; color:#ca8a04">
-                    <span class="material-icons">image_not_supported</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Pourquoi mon image est refusée ?</h4>
-                    <p>L'image doit être au format JPG ou PNG. Si un message rouge s'affiche, compressez l'image ou choisissez-en une plus légère, puis réessayez.</p>
-                  </div>
-                </div>
-
-                <div class="help-faq-item">
-                  <div class="help-faq-icon" style="background:#f0f9ff; color:#0284c7">
-                    <span class="material-icons">info</span>
-                  </div>
-                  <div class="help-faq-content">
-                    <h4>Signification des statuts</h4>
-                    <ul class="help-inline-list">
-                      <li><span class="help-badge badge-attente">En attente</span> — demande créée, non encore prise en charge</li>
-                      <li><span class="help-badge badge-cours">En cours</span> — technicien affecté et intervention active</li>
-                      <li><span class="help-badge badge-resolue">Résolue</span> — intervention terminée et validée</li>
-                    </ul>
-                  </div>
-                </div>
-
+          <!-- Guide de démarrage rapide -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">rocket_launch</span>
+              Guide de démarrage rapide
+            </h3>
+            <div class="help-cards-grid">
+              <div class="help-card">
+                <div class="help-card-icon dashboard-icon"><span class="material-icons">dashboard</span></div>
+                <h4>Tableau de bord</h4>
+                <p>Consultez vos demandes récentes, leur statut et les statistiques de vos signalements en un coup d'œil.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon signalements-icon"><span class="material-icons">add_circle_outline</span></div>
+                <h4>Nouvelle demande</h4>
+                <p>Créez une demande de maintenance en renseignant le titre, le lieu, le type d'équipement, l'urgence et une image.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon interventions-icon"><span class="material-icons">list_alt</span></div>
+                <h4>Mes demandes</h4>
+                <p>Suivez l'avancement de toutes vos demandes. Filtrez par statut et relancez les demandes bloquées.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon equipements-icon"><span class="material-icons">folder_open</span></div>
+                <h4>Mes documents</h4>
+                <p>Consultez les rapports PDF générés pour vos demandes résolues et téléchargez-les si nécessaire.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon stats-icon"><span class="material-icons">replay</span></div>
+                <h4>Relancer une demande</h4>
+                <p>Si votre demande reste en attente plus de 3 jours, le bouton de relance se réactive automatiquement.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon stats-icon"><span class="material-icons">notifications</span></div>
+                <h4>Notifications</h4>
+                <p>Recevez des alertes en temps réel à chaque changement de statut de vos demandes.</p>
               </div>
             </div>
+          </section>
 
-            <!-- Colonne droite : Contact + Actions rapides -->
-            <div class="help-column">
-
-              <div class="help-contact-card">
-                <div class="help-contact-header">
-                  <span class="material-icons">headset_mic</span>
-                  <h3>Support technique</h3>
-                </div>
-                <p class="help-contact-desc">Vous ne trouvez pas la réponse ? Contactez directement l'équipe maintenance.</p>
-
-                <div class="help-contact-items">
-                  <div class="help-contact-item">
-                    <span class="material-icons">email</span>
-                    <div>
-                      <span class="help-contact-label">Email</span>
-                      <span class="help-contact-value">maintenance&#64;uasz.sn</span>
-                    </div>
-                  </div>
-                  <div class="help-contact-item">
-                    <span class="material-icons">phone</span>
-                    <div>
-                      <span class="help-contact-label">Téléphone</span>
-                      <span class="help-contact-value">+221 77 123 45 67</span>
-                    </div>
-                  </div>
-                  <div class="help-contact-item">
-                    <span class="material-icons">schedule</span>
-                    <div>
-                      <span class="help-contact-label">Disponibilité</span>
-                      <span class="help-contact-value">Lun – Ven, 8h – 17h</span>
-                    </div>
-                  </div>
-                </div>
-
-                <p class="help-contact-tip">
-                  <span class="material-icons">lightbulb</span>
-                  Précisez la page concernée et joignez une capture d'écran si possible.
-                </p>
-              </div>
-
-              <div class="help-quick-actions">
-                <h3 class="help-section-title">
-                  <span class="material-icons">bolt</span>
-                  Actions rapides
-                </h3>
-                <div class="help-action-buttons">
-                  <button class="help-action-btn" (click)="openNewDemandeModal()">
-                    <span class="material-icons">add_circle_outline</span>
-                    Nouvelle demande
-                  </button>
-                  <button class="help-action-btn" (click)="setActive('mes-demandes')">
-                    <span class="material-icons">list_alt</span>
-                    Mes demandes
-                  </button>
-                  <button class="help-action-btn" (click)="setActive('documents')">
-                    <span class="material-icons">folder_open</span>
-                    Mes documents
-                  </button>
-                  <button class="help-action-btn" (click)="setActive('dashboard')">
-                    <span class="material-icons">dashboard</span>
-                    Tableau de bord
-                  </button>
+          <!-- Bonnes pratiques -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">verified</span>
+              Bonnes pratiques
+            </h3>
+            <div class="best-practices-grid">
+              <div class="practice-card">
+                <div class="practice-icon monitoring-icon"><span class="material-icons">photo_camera</span></div>
+                <div class="practice-content">
+                  <h4>Image claire</h4>
+                  <p>Une image claire de la panne accélère le traitement. Prenez la photo en bonne lumière et de près.</p>
                 </div>
               </div>
-
-              <div class="help-tips-card">
-                <h3 class="help-section-title">
-                  <span class="material-icons">tips_and_updates</span>
-                  Bons à savoir
-                </h3>
-                <ul class="help-tips-list">
-                  <li>
-                    <span class="material-icons">check_circle</span>
-                    Une image claire de la panne accélère le traitement.
-                  </li>
-                  <li>
-                    <span class="material-icons">check_circle</span>
-                    Précisez toujours le bâtiment et la salle dans le champ « Lieu ».
-                  </li>
-                  <li>
-                    <span class="material-icons">check_circle</span>
-                    Vous recevrez un email à chaque changement de statut.
-                  </li>
-                  <li>
-                    <span class="material-icons">check_circle</span>
-                    Le bouton « Relancer cette demande» se réactive après 3 jours sans réponse.
-                  </li>
-                </ul>
+              <div class="practice-card">
+                <div class="practice-icon analysis-icon"><span class="material-icons">place</span></div>
+                <div class="practice-content">
+                  <h4>Précisez le lieu</h4>
+                  <p>Indiquez toujours le bâtiment et la salle dans le champ « Lieu » pour faciliter l'intervention.</p>
+                </div>
               </div>
-
+              <div class="practice-card">
+                <div class="practice-icon priority-icon"><span class="material-icons">priority_high</span></div>
+                <div class="practice-content">
+                  <h4>Urgence appropriée</h4>
+                  <p>Réservez l'urgence Haute aux pannes bloquant un cours ou un service critique. Sinon, utilisez Basse ou Moyenne.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon report-icon"><span class="material-icons">track_changes</span></div>
+                <div class="practice-content">
+                  <h4>Suivi régulier</h4>
+                  <p>Consultez régulièrement le statut de vos demandes. Vous recevrez un email à chaque changement de statut.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon equipment-icon"><span class="material-icons">devices_other</span></div>
+                <div class="practice-content">
+                  <h4>Équipement non listé</h4>
+                  <p>Sélectionnez « Autre » puis précisez le nom dans le champ qui apparaît. Votre demande reste parfaitement valide.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon team-icon"><span class="material-icons">description</span></div>
+                <div class="practice-content">
+                  <h4>Description détaillée</h4>
+                  <p>Plus votre description est précise, plus le technicien pourra préparer son intervention efficacement.</p>
+                </div>
+              </div>
             </div>
-          </div>
+          </section>
+
+          <!-- FAQ -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">quiz</span>
+              Questions fréquentes (FAQ)
+            </h3>
+            <div class="faq-container">
+              <div class="faq-item" [class.active]="activeFaqIndex === 0" (click)="toggleFaq(0)">
+                <div class="faq-question">
+                  <span>Comment créer une nouvelle demande ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 0 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 0">
+                  <p>Depuis le tableau de bord ou l'onglet <em>Mes demandes</em>, cliquez sur <strong>Nouvelle demande</strong>. Renseignez le titre, le lieu, le type d'équipement, l'urgence et ajoutez une image. Le bouton <strong>Enregistrer</strong> s'active quand tout est valide.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 1" (click)="toggleFaq(1)">
+                <div class="faq-question">
+                  <span>Comment suivre l'avancement d'une demande ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 1 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 1">
+                  <p>Le statut de chaque demande est visible dans vos listes. Cliquez sur une demande pour voir les détails complets (infos, image, technicien affecté) et suivre son évolution en temps réel.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 2" (click)="toggleFaq(2)">
+                <div class="faq-question">
+                  <span>Comment relancer une demande en attente ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 2 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 2">
+                  <p>Ouvrez l'onglet <em>Mes demandes</em>, cliquez sur la demande (statut <em>En attente</em>), puis utilisez le bouton <strong>Relancer cette demande</strong> dans la fenêtre de détails. Le bouton se réactive automatiquement si la demande reste bloquée après 3 jours.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 3" (click)="toggleFaq(3)">
+                <div class="faq-question">
+                  <span>Que signifient les différents statuts ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 3 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 3">
+                  <ul>
+                    <li><strong>En attente :</strong> demande créée, non encore prise en charge</li>
+                    <li><strong>En cours :</strong> technicien affecté et intervention active</li>
+                    <li><strong>Résolue :</strong> intervention terminée et validée</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 4" (click)="toggleFaq(4)">
+                <div class="faq-question">
+                  <span>Pourquoi mon image est refusée ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 4 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 4">
+                  <p>L'image doit être au format JPG ou PNG. Si un message rouge s'affiche, compressez l'image ou choisissez-en une plus légère, puis réessayez.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 5" (click)="toggleFaq(5)">
+                <div class="faq-question">
+                  <span>Quand utiliser l'urgence "Haute" ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 5 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 5">
+                  <p>Réservez l'urgence <strong>Haute</strong> aux pannes bloquant un cours, un examen ou un service critique (salle de TP, serveur pédagogique…). Sinon, privilégiez <strong>Basse</strong> ou <strong>Moyenne</strong>.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Contact et support -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">contact_support</span>
+              Besoin d'aide supplémentaire ?
+            </h3>
+            <div class="contact-cards-grid">
+              <div class="contact-card">
+                <div class="contact-icon email-icon"><span class="material-icons">email</span></div>
+                <h4>Support technique</h4>
+                <p>support@uasz-maintenance.sn</p>
+                <a href="mailto:support@uasz-maintenance.sn" class="contact-link">Envoyer un email</a>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon phone-icon"><span class="material-icons">phone</span></div>
+                <h4>Assistance téléphonique</h4>
+                <p>+221 33 123 45 67</p>
+                <p class="contact-hours">Lun-Ven: 8h-18h</p>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon docs-icon"><span class="material-icons">description</span></div>
+                <h4>Documentation complète</h4>
+                <p>Guides détaillés et tutoriels</p>
+                <button class="secondary-btn" style="margin-top: 0.5rem;" (click)="openDocumentation()">
+                  <span class="material-icons">open_in_new</span>
+                  Consulter
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Version et informations -->
+          <section class="stats-section" style="text-align: center; padding: 2rem;">
+            <div style="color: #6b7280; font-size: 0.875rem;">
+              <p style="margin-bottom: 0.5rem;"><strong>UASZ Maintenance System</strong> - Version 1.0.0</p>
+              <p style="margin: 0;">© 2026 Université Assane Seck de Ziguinchor. Tous droits réservés.</p>
+            </div>
+          </section>
 
         </section>
       </ng-container>

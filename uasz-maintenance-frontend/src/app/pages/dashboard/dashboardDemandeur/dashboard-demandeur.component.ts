@@ -578,6 +578,15 @@ export class DashboardDemandeurComponent implements OnInit {
     this.sidebarOpen = false;
   }
 
+  // FAQ Aide & Support
+  activeFaqIndex: number | null = null;
+  toggleFaq(index: number): void {
+    this.activeFaqIndex = this.activeFaqIndex === index ? null : index;
+  }
+  openDocumentation(): void {
+    window.open('https://uasz.sn', '_blank');
+  }
+
   toggleUserMenu(): void {
     this.userMenuOpen = !this.userMenuOpen;
   }

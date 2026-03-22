@@ -2308,3 +2308,118 @@
     padding: 0.75rem !important;
   }
 }
+
+
+/* ========== AIDE & SUPPORT — STYLE SUPERVISEUR ========== */
+
+.stats-section { margin-bottom: 2rem; }
+
+.subsection-title {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 1.1rem; font-weight: 600; color: #1f2937; margin-bottom: 1.5rem;
+  .material-icons { color: #3b82f6; font-size: 22px; }
+}
+
+.help-cards-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem; margin-bottom: 2rem;
+}
+
+.help-card {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem;
+  text-align: center; transition: all 0.3s ease;
+  &:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .help-card-icon {
+    width: 60px; height: 60px; margin: 0 auto 1rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    .material-icons { font-size: 32px; color: white; }
+    &.dashboard-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    &.signalements-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    &.interventions-icon { background: linear-gradient(135deg, #10b981, #059669); }
+    &.equipements-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    &.stats-icon { background: linear-gradient(135deg, #ec4899, #db2777); }
+  }
+  h4 { font-size: 1.1rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; }
+  p { color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin: 0; }
+}
+
+.best-practices-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem; margin-bottom: 2rem;
+}
+
+.practice-card {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem;
+  transition: all 0.3s ease;
+  &:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .practice-icon {
+    width: 60px; height: 60px; margin: 0 auto 1rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    .material-icons { font-size: 32px; color: white; }
+    &.monitoring-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    &.analysis-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    &.priority-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    &.report-icon { background: linear-gradient(135deg, #10b981, #059669); }
+    &.equipment-icon { background: linear-gradient(135deg, #ec4899, #db2777); }
+    &.team-icon { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+  }
+  h4 { font-size: 1.05rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; text-align: center; }
+  p { color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin: 0; text-align: center; }
+}
+
+.faq-container { display: flex; flex-direction: column; gap: 1rem; }
+
+.faq-item {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;
+  transition: all 0.3s ease;
+  &:hover { border-color: #3b82f6; }
+  &.active { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.1); }
+  .faq-question {
+    padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; user-select: none;
+    span:first-child { font-weight: 600; color: #1f2937; font-size: 1rem; }
+    .material-icons { color: #3b82f6; }
+  }
+  .faq-answer {
+    padding: 0 1.25rem 1.25rem; color: #4b5563; line-height: 1.6;
+    p { margin: 0; }
+    ul { margin: 0.5rem 0 0 1.5rem; padding: 0; li { margin-bottom: 0.5rem; } }
+  }
+}
+
+.contact-cards-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;
+}
+
+.contact-card {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 2rem;
+  text-align: center; transition: all 0.3s ease;
+  &:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .contact-icon {
+    width: 60px; height: 60px; margin: 0 auto 1rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    .material-icons { font-size: 32px; color: white; }
+    &.email-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    &.phone-icon { background: linear-gradient(135deg, #10b981, #059669); }
+    &.docs-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+  }
+  h4 { font-size: 1.1rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; }
+  p { color: #6b7280; font-size: 0.95rem; margin: 0.25rem 0; }
+  .contact-hours { font-size: 0.85rem; color: #9ca3af; font-style: italic; }
+  .contact-link {
+    display: inline-block; margin-top: 0.75rem; color: #3b82f6; text-decoration: none; font-weight: 500;
+    &:hover { color: #2563eb; text-decoration: underline; }
+  }
+}
+
+.secondary-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #d1d5db;
+  background: white; color: #374151; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;
+  &:hover { background: #f9fafb; border-color: #9ca3af; }
+  .material-icons { font-size: 16px; }
+}
+
+@media (max-width: 768px) {
+  .help-cards-grid, .best-practices-grid, .contact-cards-grid { grid-template-columns: 1fr; }
+}

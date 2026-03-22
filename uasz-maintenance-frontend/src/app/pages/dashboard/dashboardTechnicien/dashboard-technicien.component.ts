@@ -121,6 +121,13 @@ export class DashboardTechnicienComponent implements OnInit, OnDestroy {
 
   // ===== HELP / FAQ =====
   faqOpen: boolean[] = [true, false, false];
+  activeFaqIndex: number | null = null;
+  toggleFaq(index: number): void {
+    this.activeFaqIndex = this.activeFaqIndex === index ? null : index;
+  }
+  openDocumentation(): void {
+    window.open('https://uasz.sn', '_blank');
+  }
 
 
   // Menu utilisateur

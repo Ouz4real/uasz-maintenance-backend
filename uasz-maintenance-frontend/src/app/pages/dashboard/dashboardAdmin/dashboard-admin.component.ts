@@ -79,6 +79,16 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
   sidebarCollapsed = false;
 
   activeItem: 'dashboard' | 'utilisateurs' | 'mes-demandes' | 'roles' | 'importExport' | 'journal' | 'help' | 'profil' = 'dashboard';
+
+  // FAQ Aide & Support
+  activeFaqIndex: number | null = null;
+  toggleFaq(index: number): void {
+    this.activeFaqIndex = this.activeFaqIndex === index ? null : index;
+  }
+  openDocumentation(): void {
+    window.open('https://uasz.sn', '_blank');
+  }
+
   utilisateurs: UtilisateurDto[] = [];
   filteredUtilisateurs: UtilisateurDto[] = [];
   stats: AdminStats = {
