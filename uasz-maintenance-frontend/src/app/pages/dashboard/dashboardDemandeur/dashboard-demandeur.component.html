@@ -6,7 +6,7 @@
   <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
 
   <!-- ========== SIDEBAR ========== -->
-  <aside class="sidebar" [class.open]="sidebarOpen">
+  <aside class="sidebar" [class.open]="sidebarOpen" [class.collapsed]="sidebarCollapsed">
 
     <!-- Header -->
     <div class="sidebar-header">
@@ -15,6 +15,9 @@
         <h1>Maintenance UASZ</h1>
         <p>Parc & interventions</p>
       </div>
+      <button class="sidebar-collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed" [title]="sidebarCollapsed ? 'Ouvrir la sidebar' : 'Réduire la sidebar'">
+        <span class="material-icons">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</span>
+      </button>
     </div>
 
     <!-- Navigation -->
@@ -23,6 +26,7 @@
       <!-- Tableau de bord -->
       <button
         class="nav-item"
+        title="Tableau de bord"
         [class.active]="activeItem === 'dashboard'"
         (click)="setActive('dashboard')"
       >
@@ -33,6 +37,7 @@
       <!-- Mes demandes -->
       <button
         class="nav-item"
+        title="Mes demandes"
         [class.active]="activeItem === 'mes-demandes'"
         (click)="setActive('mes-demandes')"
       >
@@ -43,6 +48,7 @@
       <!-- Documents -->
       <button
         class="nav-item"
+        title="Documents"
         [class.active]="activeItem === 'documents'"
         (click)="setActive('documents')"
       >
@@ -53,6 +59,7 @@
       <!-- Aide & support -->
       <button
         class="nav-item"
+        title="Aide & support"
         [class.active]="activeItem === 'aide'"
         (click)="setActive('aide')"
       >

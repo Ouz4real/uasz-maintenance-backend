@@ -6,47 +6,50 @@
   <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
 
   <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar" [class.open]="sidebarOpen" [class.hidden]="activeItem === 'profile'">
+  <aside class="sidebar" [class.open]="sidebarOpen" [class.collapsed]="sidebarCollapsed" [class.hidden]="activeItem === 'profile'">
     <div class="sidebar-header">
       <div class="avatar-circle">{{ usernameInitial }}</div>
       <div class="sidebar-title">
         <h1>Maintenance UASZ</h1>
         <p>Parc &amp; interventions</p>
       </div>
+      <button class="sidebar-collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed" [title]="sidebarCollapsed ? 'Ouvrir' : 'Réduire'">
+        <span class="material-icons">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</span>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item" [class.active]="activeItem === 'dashboard'" (click)="setActive('dashboard')">
+      <button class="nav-item" title="Tableau de bord" [class.active]="activeItem === 'dashboard'" (click)="setActive('dashboard')">
         <span class="nav-icon material-icons">dashboard</span>
         <span class="nav-label">Tableau de bord</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'interventions'" (click)="setActive('interventions')">
+      <button class="nav-item" title="Mes interventions" [class.active]="activeItem === 'interventions'" (click)="setActive('interventions')">
         <span class="nav-icon material-icons">build</span>
         <span class="nav-label">Mes interventions</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'mes-demandes'" (click)="setActive('mes-demandes')">
+      <button class="nav-item" title="Mes demandes" [class.active]="activeItem === 'mes-demandes'" (click)="setActive('mes-demandes')">
         <span class="nav-icon material-icons">assignment</span>
         <span class="nav-label">Mes demandes</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'maintenances-preventives'" (click)="setActive('maintenances-preventives')">
+      <button class="nav-item" title="Maintenances préventives" [class.active]="activeItem === 'maintenances-preventives'" (click)="setActive('maintenances-preventives')">
         <span class="nav-icon material-icons">event_repeat</span>
         <span class="nav-label">Maintenances préventives</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'equipements'" (click)="setActive('equipements')">
+      <button class="nav-item" title="Équipements" [class.active]="activeItem === 'equipements'" (click)="setActive('equipements')">
         <span class="nav-icon material-icons">devices</span>
         <span class="nav-label">Équipements</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'historique'" (click)="setActive('historique')">
+      <button class="nav-item" title="Historique" [class.active]="activeItem === 'historique'" (click)="setActive('historique')">
         <span class="nav-icon material-icons">history</span>
         <span class="nav-label">Historique</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'help'" (click)="setActive('help')">
+      <button class="nav-item" title="Aide & Support" [class.active]="activeItem === 'help'" (click)="setActive('help')">
         <span class="nav-icon material-icons">help_outline</span>
         <span class="nav-label">Aide &amp; Support</span>
       </button>

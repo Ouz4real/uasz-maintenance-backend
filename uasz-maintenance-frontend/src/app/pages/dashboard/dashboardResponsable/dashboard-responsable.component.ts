@@ -292,6 +292,7 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
   usernameInitial: string = 'R';
   userMenuOpen = false;
   sidebarOpen = false;
+  sidebarCollapsed = false;
 
   // 🔥 Toast notifications
   showToast = false;

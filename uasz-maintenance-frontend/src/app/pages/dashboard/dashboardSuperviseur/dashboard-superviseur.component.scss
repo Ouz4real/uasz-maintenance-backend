@@ -19,12 +19,11 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  position: fixed;
-  top: 0;
-  align-self: flex-start;
   height: 100vh;
   overflow-y: auto;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
 }
 
 .sidebar-header {
@@ -105,7 +104,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 290px;
+  min-width: 0;
 }
 
 /* Topbar */
@@ -3553,6 +3552,24 @@
    RESPONSIVE — Dashboard Superviseur
    ============================================================ */
 @media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 260px !important;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+
+  .sidebar.open { left: 0; }
+
+  .main {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
   .stats-row,
   .kpi-row,
   .cards-row {
@@ -3576,13 +3593,6 @@
   .table-scroll-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .signals-header,
-  .signals-row,
-  .interventions-header,
-  .interventions-row {
-    min-width: 620px;
   }
 
   .filters-shell {

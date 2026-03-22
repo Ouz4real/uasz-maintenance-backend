@@ -3441,6 +3441,24 @@ section.maintenances-preventives-section .signals-table .signals-row {
    RESPONSIVE — Dashboard Technicien
    ============================================================ */
 @media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 260px !important;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+
+  .sidebar.open { left: 0; }
+
+  .main {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
   .stats-row,
   .kpi-row {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -3464,13 +3482,6 @@ section.maintenances-preventives-section .signals-table .signals-row {
   .table-scroll-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .signals-header,
-  .signals-row,
-  .interventions-header,
-  .interventions-row {
-    min-width: 620px;
   }
 
   .filters-shell {

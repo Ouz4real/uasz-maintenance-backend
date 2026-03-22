@@ -76,10 +76,9 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
   usernameInitial = 'A';
   userMenuOpen = false;
   sidebarOpen = false;
+  sidebarCollapsed = false;
 
   activeItem: 'dashboard' | 'utilisateurs' | 'mes-demandes' | 'roles' | 'importExport' | 'journal' | 'help' | 'profil' = 'dashboard';
-
-  // Données
   utilisateurs: UtilisateurDto[] = [];
   filteredUtilisateurs: UtilisateurDto[] = [];
   stats: AdminStats = {

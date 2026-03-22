@@ -68,6 +68,7 @@ export class DashboardSuperviseurComponent implements OnInit, OnDestroy {
   // Menu utilisateur
   userMenuOpen = false;
   sidebarOpen = false;
+  sidebarCollapsed = false;
   showLogoutModal = false;
 
   // Onglet actif de la sidebar

@@ -5,82 +5,57 @@
   <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
 
   <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar" [class.open]="sidebarOpen">
+  <aside class="sidebar" [class.open]="sidebarOpen" [class.collapsed]="sidebarCollapsed">
     <div class="sidebar-header">
       <div class="avatar-circle">{{ usernameInitial }}</div>
       <div class="sidebar-title">
         <h1>Maintenance UASZ</h1>
         <p>Parc &amp; interventions</p>
       </div>
+      <button class="sidebar-collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed" [title]="sidebarCollapsed ? 'Ouvrir' : 'Réduire'">
+        <span class="material-icons">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</span>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
       <!-- Tableau de bord (demandes) -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'dashboard'"
-        (click)="setActive('dashboard')"
-      >
+      <button class="nav-item" title="Tableau de bord" [class.active]="activeItem === 'dashboard'" (click)="setActive('dashboard')">
         <span class="nav-icon material-icons">dashboard</span>
         <span class="nav-label">Tableau de bord</span>
       </button>
 
       <!-- Techniciens -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'techniciens'"
-        (click)="setActive('techniciens')"
-      >
+      <button class="nav-item" title="Techniciens" [class.active]="activeItem === 'techniciens'" (click)="setActive('techniciens')">
         <span class="nav-icon material-icons">group</span>
         <span class="nav-label">Techniciens</span>
       </button>
 
-      <!-- 🔹 Mes demandes (ajouté ici) -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'mes-demandes'"
-        (click)="setActive('mes-demandes')"
-      >
+      <!-- Mes demandes -->
+      <button class="nav-item" title="Mes demandes" [class.active]="activeItem === 'mes-demandes'" (click)="setActive('mes-demandes')">
         <span class="nav-icon material-icons">assignment</span>
         <span class="nav-label">Mes demandes</span>
       </button>
 
       <!-- Gestion stock -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'equipements'"
-        (click)="setActive('equipements')"
-      >
+      <button class="nav-item" title="Gestion stock" [class.active]="activeItem === 'equipements'" (click)="setActive('equipements')">
         <span class="nav-icon material-icons">inventory_2</span>
         <span class="nav-label">Gestion stock</span>
       </button>
 
       <!-- Maintenance préventive -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'preventives'"
-        (click)="setActive('preventives')"
-      >
+      <button class="nav-item" title="Maintenance préventive" [class.active]="activeItem === 'preventives'" (click)="setActive('preventives')">
         <span class="nav-icon material-icons">event</span>
         <span class="nav-label">Maintenance préventive</span>
       </button>
 
       <!-- Rapports & stats -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'rapports'"
-        (click)="setActive('rapports')"
-      >
+      <button class="nav-item" title="Rapports & stats" [class.active]="activeItem === 'rapports'" (click)="setActive('rapports')">
         <span class="nav-icon material-icons">bar_chart</span>
         <span class="nav-label">Rapports &amp; stats</span>
       </button>
 
       <!-- Aide & support -->
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'help'"
-        (click)="setActive('help')"
-      >
+      <button class="nav-item" title="Aide & support" [class.active]="activeItem === 'help'" (click)="setActive('help')">
         <span class="nav-icon material-icons">help_outline</span>
         <span class="nav-label">Aide &amp; support</span>
       </button>

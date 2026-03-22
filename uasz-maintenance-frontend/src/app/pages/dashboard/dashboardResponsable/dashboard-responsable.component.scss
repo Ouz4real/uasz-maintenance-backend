@@ -12,19 +12,18 @@
 /* ========== SIDEBAR ========== */
 
 .sidebar {
-  width: 300px; /* élargi pour éviter que le contenu passe dessous */
+  width: 300px;
   background: #020617;
   color: #e5e7eb;
   padding: 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  position: fixed;
-  top: 0;
-  align-self: flex-start;
   height: 100vh;
   overflow-y: auto;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
 }
 
 
@@ -100,18 +99,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 330px;
-}
-
-/* Topbar */
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 2rem;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  min-width: 0;
 }
 
 .topbar-left h2 {
@@ -5137,6 +5125,24 @@ select.form-control{
    RESPONSIVE — Dashboard Responsable
    ============================================================ */
 @media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 260px !important;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+
+  .sidebar.open { left: 0; }
+
+  .main {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
   .stats-row,
   .kpi-row {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -5159,13 +5165,6 @@ select.form-control{
   .table-scroll-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .demandes-header,
-  .demandes-row,
-  .techniciens-header,
-  .techniciens-row {
-    min-width: 620px;
   }
 
   .filters-shell {

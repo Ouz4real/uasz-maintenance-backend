@@ -18,12 +18,11 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  position: fixed;
-  top: 0;
-  align-self: flex-start;
   height: 100vh;
   overflow-y: auto;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
 }
 
 .sidebar-header {
@@ -104,7 +103,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 330px;
+  min-width: 0;
 }
 
 .topbar {
@@ -2984,6 +2983,24 @@
    RESPONSIVE — Dashboard Admin
    ============================================================ */
 @media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 260px !important;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+
+  .sidebar.open { left: 0; }
+
+  .main {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
   .stats-row,
   .kpi-row {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -3005,13 +3022,6 @@
   .table-scroll-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .users-header,
-  .users-row,
-  .table-header,
-  .table-row {
-    min-width: 600px;
   }
 
   .filters-shell {

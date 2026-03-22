@@ -2243,6 +2243,24 @@
    RESPONSIVE — Dashboard Demandeur
    ============================================================ */
 @media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 260px !important;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+
+  .sidebar.open { left: 0; }
+
+  .main {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
   .stats-row {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 0.75rem;
@@ -2263,13 +2281,6 @@
   .table-scroll-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .signals-header,
-  .signals-row,
-  .demandes-header,
-  .demandes-row {
-    min-width: 600px;
   }
 
   .filters-shell {

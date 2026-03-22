@@ -1,0 +1,3 @@
+0000000000000000000000000000000000000000 75e40bcbdae877aaab83b7c7d0e5e012870276fc Ousmane Mané <maneouz185@gmail.com> 1774052721 +0000	branch: Created from HEAD
+75e40bcbdae877aaab83b7c7d0e5e012870276fc 954db0a377a99ce46bf9f15460736322fe9328b6 Ousmane Mané <maneouz185@gmail.com> 1774052742 +0000	commit: feat: version complete - notifications, reset password, dashboards, emails
+954db0a377a99ce46bf9f15460736322fe9328b6 ea0b0f94149fc8c2810a23f708e89437f985a5b4 Ousmane Mané <maneouz185@gmail.com> 1774055237 +0000	commit: feat: responsive design - sidebar hamburger mobile + media queries tous dashboards

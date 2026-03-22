@@ -126,6 +126,7 @@ export class DashboardTechnicienComponent implements OnInit, OnDestroy {
   // Menu utilisateur
   userMenuOpen = false;
   sidebarOpen = false;
+  sidebarCollapsed = false;
   // ===== HISTORIQUE (TERMINEE) =====
   historiqueSearch = '';
   historiqueUrgence: 'TOUTES' | 'BASSE' | 'MOYENNE' | 'HAUTE' = 'TOUTES';

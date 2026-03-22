@@ -98,6 +98,7 @@ export class DashboardDemandeurComponent implements OnInit {
 
   userMenuOpen = false;
   sidebarOpen = false;
+  sidebarCollapsed = false;
 
   activeItem: PageKey = 'dashboard';
 
