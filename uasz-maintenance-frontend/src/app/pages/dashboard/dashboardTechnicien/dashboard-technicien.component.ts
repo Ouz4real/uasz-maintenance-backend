@@ -1238,12 +1238,6 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
     return this.interventions.filter(i => i.statut === 'TERMINEE').length;
   }
 
-  toggleFaq(index: number) {
-    this.faqOpen[index] = !this.faqOpen[index];
-  }
-
-
-
   /* ======================= TOAST ========================= */
 
   private showToast(message: string, type: 'success' | 'danger' | 'info' = 'info') {
