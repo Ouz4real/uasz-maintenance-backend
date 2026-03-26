@@ -31,6 +31,9 @@ export interface PanneDto {
 
   demandeur?: { id: number; prenom?: string; nom?: string };
   signaleePar?: string | null;
+
+  dateDerniereRelance?: string | null;
+  nbRelances?: number;
 }
 
 

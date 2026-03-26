@@ -11,6 +11,8 @@ import { PannesApiService } from '../../../core/services/pannes-api.service';
 import { EquipementsApiService } from '../../../core/services/equipements-api.service';
 import { UtilisateursService } from '../../../core/services/utilisateurs.service';
 import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
+import { LieuAutocompleteComponent } from '../../../shared/components/lieu-autocomplete/lieu-autocomplete.component';
+import { EquipementAutocompleteComponent } from '../../../shared/components/equipement-autocomplete/equipement-autocomplete.component';
 
 import { PanneApi, PanneRequest } from '../../../core/models/panne.model';
 import { EquipementApi } from '../../../core/models/equipement.model';
@@ -88,7 +90,7 @@ interface DemandeDocument {
 @Component({
   selector: 'app-dashboard-demandeur',
   standalone: true,
-  imports: [CommonModule, FormsModule, NotificationBellComponent],
+  imports: [CommonModule, FormsModule, NotificationBellComponent, LieuAutocompleteComponent, EquipementAutocompleteComponent],
   templateUrl: './dashboard-demandeur.component.html',
   styleUrls: ['./dashboard-demandeur.component.scss'],
 })
@@ -908,9 +910,7 @@ export class DashboardDemandeurComponent implements OnInit {
     const lieuOk = !!this.newDemande.lieu?.trim();
     const urgenceOk = !!this.newDemande.urgenceDemandeur;
 
-    const equipementOk =
-      !!this.selectedEquipementPreset &&
-      (this.selectedEquipementPreset !== 'AUTRE' || !!this.equipementAutre?.trim());
+    const equipementOk = !!this.selectedEquipementPreset?.trim();
 
     const imageOk = !!this.newDemande.imageFile;
 
@@ -927,22 +927,8 @@ export class DashboardDemandeurComponent implements OnInit {
 
     if (!this.isNewDemandeValid()) return;
 
-    const selected = (this.selectedEquipementPreset ?? '').trim();
-    const isAutre = selected === 'AUTRE' || this.newDemande.typeEquipement === 'AUTRE';
-
-    const autreValue = (this.equipementAutre ?? this.newDemande.typeEquipementAutre ?? '').trim();
-
-    const typeEquipementFinal = isAutre
-      ? `AUTRE: ${autreValue || 'Non précisé'}`
-      : (selected || (this.newDemande.typeEquipement ?? '').trim() || 'Non spécifié');
-
-    let descriptionFinale = this.newDemande.description;
-
-    if (isAutre) {
-      descriptionFinale =
-        `[Équipement non référencé] ${autreValue || 'Non précisé'}\n\n` +
-        this.newDemande.description;
-    }
+    const typeEquipementFinal = (this.selectedEquipementPreset ?? '').trim() || 'Non spécifié';
+    const descriptionFinale = this.newDemande.description;
 
     const fd = new FormData();
     fd.append('titre', this.newDemande.titre);
@@ -959,9 +945,9 @@ export class DashboardDemandeurComponent implements OnInit {
 
     fd.append('signaleePar', this.username);
 
-    // ✅ IMPORTANT : on envoie equipementId UNIQUEMENT si l’utilisateur l’a choisi explicitement
+    // on envoie equipementId UNIQUEMENT si l'utilisateur l'a choisi explicitement
     // (et seulement si tu utilises réellement ce mode)
-    if (!isAutre && this.newDemande.equipementId != null && !this.selectedEquipementPreset) {
+    if (this.newDemande.equipementId != null && !this.selectedEquipementPreset) {
       fd.append('equipementId', String(this.newDemande.equipementId));
     }
 
@@ -991,9 +977,11 @@ export class DashboardDemandeurComponent implements OnInit {
         setTimeout(() => (this.showSuccessToast = false), 4000);
       },
       error: (err) => {
-        if (err.status === 413) {
+        if (err.status === 409) {
+          this.imageErrorMessage = err.error || 'Une demande identique est déjà en cours de traitement.';
+        } else if (err.status === 413) {
           this.imageErrorMessage =
-            'L’image sélectionnée est trop volumineuse. Veuillez choisir une image de moins de 2 Mo.';
+            'L\u2019image sélectionnée est trop volumineuse. Veuillez choisir une image de moins de 2 Mo.';
         } else {
           console.error('Erreur création panne', err);
         }
@@ -1053,7 +1041,7 @@ export class DashboardDemandeurComponent implements OnInit {
     const diffMs = now.getTime() - new Date(referenceDate).getTime();
     const diffJours = diffMs / (1000 * 60 * 60 * 24);
 
-    return diffJours >= 3;
+    return diffJours >= 2;
   }
 
   relancerSelectedDemande(): void {

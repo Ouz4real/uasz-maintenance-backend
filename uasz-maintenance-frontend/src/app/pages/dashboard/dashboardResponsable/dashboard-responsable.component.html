@@ -734,47 +734,28 @@
                 <!-- Lieu (obligatoire) -->
                 <div class="form-field">
                   <label for="lieu-resp">Lieu <span class="req">*</span></label>
-                  <input
-                    id="lieu-resp"
-                    type="text"
-                    name="lieu-resp"
+                  <app-lieu-autocomplete
+                    inputId="lieu-resp"
+                    inputName="lieu-resp"
+                    [required]="true"
                     [(ngModel)]="newMesDemande.lieu"
+                    name="lieu-resp"
                     (ngModelChange)="onMesFormChange()"
-                    placeholder="Ex : PGF-SUP salle 10"
-                  />
+                  ></app-lieu-autocomplete>
                 </div>
 
                 <!-- Type d’équipement (obligatoire) : SELECT + AUTRE -->
+                <!-- Type d'équipement (autocomplete) -->
                 <div class="form-field">
-                  <label for="typeEquipement-resp">Type d’équipement <span class="req">*</span></label>
-
-                  <select
-                    id="typeEquipement-resp"
-                    name="typeEquipement-resp"
-                    class="form-control"
+                  <label for="typeEquipement-resp">Type d'équipement <span class="req">*</span></label>
+                  <app-equipement-autocomplete
+                    inputId="typeEquipement-resp"
+                    inputName="typeEquipement-resp"
+                    [required]="true"
                     [(ngModel)]="newMesDemande.typeEquipement"
-                    (ngModelChange)="onMesEquipementChange($event)"
-                  >
-                    <option value="" disabled>Choisissez un équipement...</option>
-
-                    <option *ngFor="let e of equipementTypesUniversite" [value]="e">
-                      {{ e }}
-                    </option>
-
-                    <option value="Autre">Autre</option>
-                  </select>
-                </div>
-
-                <!-- Champ texte si Autre -->
-                <div class="form-field" *ngIf="newMesDemande.typeEquipement === 'Autre'">
-                  <label for="typeEquipementAutre-resp">Précisez l’équipement <span class="req">*</span></label>
-                  <input
-                    id="typeEquipementAutre-resp"
-                    type="text"
-                    name="typeEquipementAutre-resp"
-                    class="form-control"
-                    [(ngModel)]="newMesDemande.typeEquipementAutre"
-                  />
+                    name="typeEquipement-resp"
+                    (ngModelChange)="onMesFormChange()"
+                  ></app-equipement-autocomplete>
                 </div>
 
 
@@ -936,6 +917,14 @@
             <footer class="modal-footer">
               <button type="button" class="btn-fermer-modal" (click)="closeMesDetailsModal()">
                 Fermer
+              </button>
+              <button
+                type="button"
+                class="primary-btn relance-modal-btn"
+                (click)="relancerMesDemande(selectedMesDemande!)"
+                [disabled]="!selectedMesDemande || !peutRelancerMesDemande(selectedMesDemande)"
+              >
+                Relancer cette demande
               </button>
             </footer>
           </section>

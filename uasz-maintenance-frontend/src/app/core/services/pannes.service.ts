@@ -88,4 +88,9 @@ export class PannesService {
       { raisonRefus }
     );
   }
+
+  /** 🔁 Relancer une demande en attente */
+  relancerDemande(panneId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${panneId}/relancer`, {});
+  }
 }

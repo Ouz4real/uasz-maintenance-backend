@@ -143,6 +143,16 @@ public class PanneController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleConflict(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
     @PatchMapping("/{id}/technicien")
     @PreAuthorize("hasAnyRole('RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
     public ResponseEntity<Void> affecterTechnicien(
@@ -329,11 +339,12 @@ public class PanneController {
     }
 
     /**
-     * Relancer une demande (demandeur)
+     * Relancer une demande
      * POST /api/pannes/{id}/relancer
+     * Accessible à tous les utilisateurs authentifiés (ils relancent leurs propres demandes)
      */
     @PostMapping("/{id}/relancer")
-    @PreAuthorize("hasRole('DEMANDEUR')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PanneResponse> relancerDemande(
             @PathVariable Long id,
             Authentication authentication

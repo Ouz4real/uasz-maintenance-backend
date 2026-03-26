@@ -92,6 +92,23 @@ public class PanneService {
             throw new IllegalArgumentException("Le type d’équipement est obligatoire.");
         }
 
+
+        // ===============================
+        // 2b. Vérification doublon
+        // ===============================
+        boolean doublon = panneRepository
+                .existsByDemandeurIdAndTitreIgnoreCaseAndLieuIgnoreCaseAndTypeEquipementIgnoreCaseAndStatutIn(
+                        request.getDemandeurId(),
+                        request.getTitre().trim(),
+                        request.getLieu().trim(),
+                        request.getTypeEquipement().trim(),
+                        java.util.List.of(StatutPanne.OUVERTE, StatutPanne.EN_COURS)
+                );
+        if (doublon) {
+            throw new IllegalStateException(
+                    "Une demande identique (même titre, lieu et équipement) est déjà en cours de traitement."
+            );
+        }
         // ===============================
         // 2. Chargement du demandeur
         // ===============================
@@ -1175,27 +1192,34 @@ public class PanneService {
     }
 
     /**
-     * Relancer une demande (demandeur) : notifie + email les responsables
+    /**
+     * Relancer une demande : notifie + email les responsables.
+     * Accessible par tous les rôles (le demandeur peut être admin, technicien, etc.)
      */
     @Transactional
     public PanneResponse relancerDemande(Long panneId, Long demandeurId) {
         Panne panne = panneRepository.findById(panneId)
                 .orElseThrow(() -> new ResourceNotFoundException("Panne introuvable"));
 
+        // Vérifier que c'est bien la demande de cet utilisateur
         if (panne.getDemandeur() == null || !panne.getDemandeur().getId().equals(demandeurId)) {
-            throw new IllegalArgumentException("Cette panne n'appartient pas à ce demandeur");
+            throw new IllegalArgumentException("Cette panne n'appartient pas à cet utilisateur");
         }
 
         if (panne.getStatut() != StatutPanne.OUVERTE) {
             throw new IllegalArgumentException("Seules les demandes en attente peuvent être relancées");
         }
 
+        // Calcul du vrai nombre de jours d'attente
+        long joursAttente = java.time.temporal.ChronoUnit.DAYS.between(
+                panne.getDateSignalement(), LocalDateTime.now()
+        );
+
         panne.setDateDerniereRelance(LocalDateTime.now());
         Panne saved = panneRepository.save(panne);
 
         String demandeurNom = panne.getDemandeur().getPrenom() + " " + panne.getDemandeur().getNom();
         String lieu = panne.getLieu() != null ? panne.getLieu() : "Non précisé";
-        String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm"));
 
         // Notifier + emailer tous les responsables
         List<Utilisateur> responsables = utilisateurRepository.findByRole(Role.RESPONSABLE_MAINTENANCE);
@@ -1204,7 +1228,7 @@ public class PanneService {
                 notificationService.createNotification(
                         responsable.getId(),
                         "🔔 Relance demande — " + panne.getTitre(),
-                        "Le demandeur " + demandeurNom + " relance sa demande \"" + panne.getTitre() + "\" (lieu : " + lieu + ") toujours sans prise en charge.",
+                        demandeurNom + " relance sa demande \"" + panne.getTitre() + "\" (lieu : " + lieu + ") sans prise en charge depuis " + joursAttente + " jour(s).",
                         "WARNING",
                         "PANNE",
                         saved.getId()
@@ -1216,7 +1240,7 @@ public class PanneService {
                             panne.getTitre(),
                             demandeurNom,
                             lieu,
-                            0L
+                            joursAttente
                     );
                 }
             } catch (Exception e) {
