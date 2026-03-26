@@ -875,7 +875,7 @@
                   <span class="material-icons">{{ activeFaqIndex === 0 ? 'expand_less' : 'expand_more' }}</span>
                 </div>
                 <div class="faq-answer" *ngIf="activeFaqIndex === 0">
-                  <p>Depuis l'onglet <strong>Utilisateurs</strong>, cliquez sur <strong>Nouvel utilisateur</strong>. Renseignez le nom d'utilisateur, email, mot de passe, prénom, nom et sélectionnez le rôle approprié. Le compte est activé par défaut.</p>
+                  <p>Depuis l'onglet <strong>Utilisateurs</strong>, cliquez sur <strong>Nouvel utilisateur</strong>. Renseignez le nom d'utilisateur, l'email, le prénom, le nom et sélectionnez le rôle approprié. Un mot de passe temporaire est automatiquement généré et envoyé par email à l'utilisateur. Le compte est activé par défaut.</p>
                 </div>
               </div>
               <div class="faq-item" [class.active]="activeFaqIndex === 1" (click)="toggleFaq(1)">
@@ -1628,43 +1628,26 @@
 
         <div class="form-field">
           <label for="lieu">Lieu<span class="required">*</span></label>
-          <input
-            id="lieu"
-            type="text"
+          <app-lieu-autocomplete
+            inputId="lieu"
+            inputName="lieu"
+            [required]="true"
             [(ngModel)]="newDemande.lieu"
-            placeholder="Ex : PGF-SUP salle 10"
-          />
+            name="lieu"
+          ></app-lieu-autocomplete>
         </div>
 
         <!-- Type d'équipement (preset) -->
+        <!-- Type d'équipement (autocomplete) -->
         <div class="form-field">
           <label for="equipementPreset">Type d'équipement<span class="required">*</span></label>
-
-          <select
-            id="equipementPreset"
-            name="equipementPreset"
+          <app-equipement-autocomplete
+            inputId="equipementPreset"
+            inputName="equipementPreset"
+            [required]="true"
             [(ngModel)]="selectedEquipementPreset"
-            (ngModelChange)="selectedEquipementPreset = $event; equipementAutre = ($event === 'AUTRE') ? equipementAutre : ''"
-          >
-
-          <option value="" disabled>Choisissez un équipement…</option>
-
-            <option *ngFor="let name of equipementsPreset" [value]="name">
-              {{ name === 'AUTRE' ? 'Autre (équipement non listé)' : name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Champ "Autre" si nécessaire -->
-        <div class="form-field" *ngIf="isAutreEquipement()">
-          <label for="equipementAutre">Précisez l'équipement<span class="required">*</span></label>
-          <input
-            id="equipementAutre"
-            type="text"
-            name="equipementAutre"
-            [(ngModel)]="equipementAutre"
-            placeholder="Ex : Lampe"
-          />
+            name="equipementPreset"
+          ></app-equipement-autocomplete>
         </div>
 
         <div class="form-field">
@@ -1833,6 +1816,14 @@
     <footer class="modal-footer">
       <button type="button" class="secondary-btn" (click)="closeDemandeDetails()">
         Fermer
+      </button>
+      <button
+        type="button"
+        class="primary-btn relance-modal-btn"
+        (click)="relancerDemande(selectedDemande!)"
+        [disabled]="!selectedDemande || !peutRelancerDemande(selectedDemande)"
+      >
+        Relancer cette demande
       </button>
     </footer>
   </section>

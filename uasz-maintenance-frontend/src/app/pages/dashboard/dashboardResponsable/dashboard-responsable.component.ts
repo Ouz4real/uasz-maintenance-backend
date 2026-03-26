@@ -29,6 +29,8 @@ import { DemandeService } from '../../../core/services/demande.service';
 import {Panne} from '../../../core/services/panne';
 import { PannesService } from '../../../core/services/pannes.service';
 import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
+import { LieuAutocompleteComponent } from '../../../shared/components/lieu-autocomplete/lieu-autocomplete.component';
+import { EquipementAutocompleteComponent } from '../../../shared/components/equipement-autocomplete/equipement-autocomplete.component';
 import { DemandesPollingService } from '../../../core/services/demandes-polling.service';
 import { PannesApiService } from '../../../core/services/pannes-api.service';
 
@@ -65,12 +67,12 @@ export interface MesDemandeResponsable {
   dateCreation: Date;
   lieu: string;
   statut: MesDemandeStatut;
-
   typeEquipement: string;
   description: string;
   imageUrl?: string;
   urgence?: 'BASSE' | 'MOYENNE' | 'HAUTE' | string;
-
+  dateDerniereRelance?: Date;
+  nbRelances?: number;
 }
 
 type TechnicienDetails = TechnicienUI & {
@@ -182,7 +184,7 @@ interface DemandesParMois {
   standalone: true,
   templateUrl: './dashboard-responsable.component.html',
   styleUrls: ['./dashboard-responsable.component.scss'],
-  imports: [CommonModule, FormsModule, DatePipe, NotificationBellComponent],
+  imports: [CommonModule, FormsModule, DatePipe, NotificationBellComponent, LieuAutocompleteComponent, EquipementAutocompleteComponent],
 })
 export class DashboardResponsableComponent implements OnInit, OnDestroy {
   
@@ -1797,6 +1799,8 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
         imageUrl: this.resolveImageUrl(raw),
 
         urgence: (p.priorite ?? undefined) as any,
+        dateDerniereRelance: p.dateDerniereRelance ? new Date(p.dateDerniereRelance) : undefined,
+        nbRelances: (p as any).nbRelances ?? 0,
       };
     });
   }
@@ -2250,7 +2254,6 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
 
 // ==============================
 // Validation : tous obligatoires sauf description
-// + si typeEquipement=AUTRE alors typeEquipementAutre obligatoire
 // ==============================
   isMesNewDemandeValid(): boolean {
     const titre = (this.newMesDemande.titre || '').trim();
@@ -2258,12 +2261,7 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
     const typeEquipement = (this.newMesDemande.typeEquipement || '').trim();
     const urgence = (this.newMesDemande.urgence || '').trim();
 
-    const autre = (this.newMesDemande as any).typeEquipementAutre
-      ? String((this.newMesDemande as any).typeEquipementAutre).trim()
-      : '';
-
     if (!titre || !lieu || !typeEquipement || !urgence) return false;
-    if (typeEquipement === 'Autre' && !autre) return false;
     if (!this.newMesDemande.imageFile) return false;
     if (this.mesImageError) return false;
 
@@ -2286,22 +2284,12 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
     const typeEquipement = (this.newMesDemande.typeEquipement || '').trim();
     const description = (this.newMesDemande.description || '').trim();
 
-    // 🔥 Si tu as bien ajouté ce champ dans le form (typeEquipementAutre)
-    const typeEquipementAutre = (this.newMesDemande as any).typeEquipementAutre
-      ? String((this.newMesDemande as any).typeEquipementAutre).trim()
-      : '';
-
     // ⚠️ Champs obligatoires: titre, lieu, typeEquipement + image
-    // + si typeEquipement = "Autre" => typeEquipementAutre devient obligatoire
     if (!titre || !lieu || !typeEquipement) return;
-    if (typeEquipement === 'Autre' && !typeEquipementAutre) return;
     if (!this.newMesDemande.imageFile) return;
 
-    // ✅ valeur finale à envoyer à la BD (comme Demandeur)
-    const typeEquipementFinal =
-      typeEquipement === 'Autre'
-        ? `AUTRE: ${typeEquipementAutre}` // ou juste typeEquipementAutre si tu préfères
-        : typeEquipement;
+    // ✅ valeur finale à envoyer à la BD
+    const typeEquipementFinal = typeEquipement;
 
     const fd = new FormData();
     fd.append('titre', titre);
@@ -2332,7 +2320,15 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
 
         this.closeMesNewDemandeModal();
       },
-      error: (err) => console.error('Erreur création panne:', err),
+      error: (err) => {
+        if (err.status === 409) {
+          this.mesImageError = err.error || 'Une demande identique est déjà en cours de traitement.';
+        } else if (err.status === 413) {
+          this.mesImageError = 'L\'image sélectionnée est trop volumineuse. Veuillez choisir une image de moins de 2 Mo.';
+        } else {
+          console.error('Erreur création panne:', err);
+        }
+      },
     });
   }
 
@@ -2356,6 +2352,24 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
     this.showMesDetailsModal = false;
     this.selectedMesDemande = null;
     this.showMesImageInDetails = false;
+  }
+
+  peutRelancerMesDemande(d: MesDemandeResponsable): boolean {
+    if (d.statut !== 'EN_ATTENTE') return false;
+    const ref = d.dateDerniereRelance ?? d.dateCreation;
+    const diffJours = (Date.now() - new Date(ref).getTime()) / (1000 * 60 * 60 * 24);
+    return diffJours >= 2;
+  }
+
+  relancerMesDemande(d: MesDemandeResponsable): void {
+    this.pannesApiService.relancerDemande(d.id).subscribe({
+      next: (updated: any) => {
+        d.dateDerniereRelance = updated.dateDerniereRelance ? new Date(updated.dateDerniereRelance) : new Date();
+        d.nbRelances = (d.nbRelances ?? 0) + 1;
+        this.showSuccessToast('Demande relancée avec succès.');
+      },
+      error: () => this.showErrorToast('Erreur lors de la relance.'),
+    });
   }
 
   toggleMesImageDetails(): void {
