@@ -137,6 +137,13 @@ public class AuthController {
                 return ResponseEntity.status(409).body("Cet email existe déjà");
             }
 
+            // Vérifier que l'email appartient à un domaine UASZ autorisé
+            if (!sn.uasz.uasz_maintenance_backend.services.UtilisateurService.isEmailDomainAutorise(request.getEmail())) {
+                return ResponseEntity.status(400).body(
+                    "L'email doit appartenir à un domaine de l'UASZ (@zig.univ.sn ou @univ-zig.sn)."
+                );
+            }
+
             // Créer le nouvel utilisateur
             Utilisateur utilisateur = Utilisateur.builder()
                     .username(request.getUsername())

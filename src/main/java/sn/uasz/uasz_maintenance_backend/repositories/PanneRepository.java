@@ -36,6 +36,11 @@ public interface PanneRepository extends JpaRepository<Panne, Long> {
     // 🔥 POUR OCCUPATION (basé sur statut_interventions)
     boolean existsByTechnicienIdAndStatutInterventions(Long technicienId, StatutInterventions statutInterventions);
 
+    // 🔹 Vérifier doublon : même demandeur, même titre+lieu+typeEquipement, statut actif
+    boolean existsByDemandeurIdAndTitreIgnoreCaseAndLieuIgnoreCaseAndTypeEquipementIgnoreCaseAndStatutIn(
+            Long demandeurId, String titre, String lieu, String typeEquipement, List<StatutPanne> statuts
+    );
+
 
     // 🔹 Pannes EN COURS d’un technicien
     List<Panne> findByTechnicienIdAndStatutInterventionsOrderByDateDebutInterventionDesc(

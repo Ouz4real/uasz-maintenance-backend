@@ -17,6 +17,8 @@ import { DemandesPollingService } from '../../../core/services/demandes-polling.
 import { MaintenancePreventive, StatutPreventive } from '../../../core/models/maintenance-preventive.model';
 import { TechnicienUI } from '../../../core/models/technicien-ui.model';
 import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
+import { LieuAutocompleteComponent } from '../../../shared/components/lieu-autocomplete/lieu-autocomplete.component';
+import { EquipementAutocompleteComponent } from '../../../shared/components/equipement-autocomplete/equipement-autocomplete.component';
 import { Subscription, interval } from 'rxjs';
 
 interface PieceStock {
@@ -89,6 +91,8 @@ interface Demande {
   description: string;
   imageUrl?: string;
   urgence: 'BASSE' | 'MOYENNE' | 'HAUTE';
+  dateDerniereRelance?: Date;
+  nbRelances?: number;
 }
 
 interface NouvelleDemandeForm {
@@ -105,7 +109,7 @@ interface NouvelleDemandeForm {
 @Component({
   selector: 'app-dashboard-technicien',
   standalone: true,
-  imports: [CommonModule, FormsModule, NotificationBellComponent],
+  imports: [CommonModule, FormsModule, NotificationBellComponent, LieuAutocompleteComponent, EquipementAutocompleteComponent],
   templateUrl: './dashboard-technicien.component.html',
   styleUrls: ['./dashboard-technicien.component.scss'],
 })
@@ -1465,6 +1469,8 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
       description: p.description || '',
       imageUrl,
       urgence: urgenceUi,
+      dateDerniereRelance: p.dateDerniereRelance ? new Date(p.dateDerniereRelance) : undefined,
+      nbRelances: p.nbRelances ?? 0,
     };
   }
 
@@ -1641,9 +1647,7 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
     const lieuOk = !!this.nouvelleDemande.lieu?.trim();
     const urgenceOk = !!this.nouvelleDemande.urgenceDemandeur;
 
-    const equipementOk =
-      !!this.selectedEquipementPreset &&
-      (this.selectedEquipementPreset !== 'AUTRE' || !!this.equipementAutre?.trim());
+    const equipementOk = !!this.selectedEquipementPreset?.trim();
 
     const imageOk = !!this.nouvelleDemande.imageFile;
 
@@ -1653,18 +1657,8 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
   submitNouvelleDemande(): void {
     if (!this.isNouvelleDemandeValid()) return;
 
-    const selected = this.selectedEquipementPreset.trim();
-    const isAutre = selected === 'AUTRE';
-    const autreValue = this.equipementAutre.trim();
-
-    const typeEquipementFinal = isAutre
-      ? `AUTRE: ${autreValue || 'Non précisé'}`
-      : selected;
-
-    let descriptionFinale = this.nouvelleDemande.description;
-    if (isAutre) {
-      descriptionFinale = `[Équipement non référencé] ${autreValue || 'Non précisé'}\n\n${this.nouvelleDemande.description}`;
-    }
+    const typeEquipementFinal = this.selectedEquipementPreset.trim() || 'Non spécifié';
+    const descriptionFinale = this.nouvelleDemande.description;
 
     const fd = new FormData();
     fd.append('titre', this.nouvelleDemande.titre);
@@ -1690,7 +1684,9 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
       },
       error: (err) => {
         console.error('Erreur création demande:', err);
-        if (err.status === 413) {
+        if (err.status === 409) {
+          this.demandeImageError = err.error || 'Une demande identique est déjà en cours de traitement.';
+        } else if (err.status === 413) {
           this.demandeImageError = 'L\'image sélectionnée est trop volumineuse. Veuillez choisir une image de moins de 2 Mo.';
         } else {
           this.showToast('Erreur lors de la création de la demande', 'danger');
@@ -1704,6 +1700,24 @@ private mapPrioriteToUrgence(priorite: string): 'BASSE' | 'MOYENNE' | 'HAUTE' {
     this.showDemandeDetailsModal = true;
     this.lockBodyScroll();
     this.showDemandeImageInDetails = false;
+  }
+
+  peutRelancerDemande(d: Demande): boolean {
+    if (d.statut !== 'EN_ATTENTE') return false;
+    const ref = d.dateDerniereRelance ?? d.dateCreation;
+    const diffJours = (Date.now() - new Date(ref).getTime()) / (1000 * 60 * 60 * 24);
+    return diffJours >= 2;
+  }
+
+  relancerDemande(d: Demande): void {
+    this.pannesService.relancerDemande(d.id).subscribe({
+      next: (updated: any) => {
+        d.dateDerniereRelance = updated.dateDerniereRelance ? new Date(updated.dateDerniereRelance) : new Date();
+        d.nbRelances = (d.nbRelances ?? 0) + 1;
+        this.showToast('Demande relancée avec succès.', 'success');
+      },
+      error: () => this.showToast('Erreur lors de la relance.', 'danger'),
+    });
   }
 
   /* ======================= MAINTENANCES PRÉVENTIVES =================== */

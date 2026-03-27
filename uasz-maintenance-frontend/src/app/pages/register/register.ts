@@ -38,9 +38,21 @@ export class RegisterComponent {
     this.showPassword = !this.showPassword;
   }
 
+  isEmailUaszValide(email: string): boolean {
+    if (!email) return true;
+    const lower = email.toLowerCase().trim();
+    return lower.endsWith('@zig.univ.sn') || lower.endsWith('@univ-zig.sn');
+  }
+
   onSubmit(): void {
     this.errorMessage = '';
     this.successMessage = '';
+
+    if (!this.isEmailUaszValide(this.formData.email)) {
+      this.errorMessage = 'L\'email doit appartenir à un domaine UASZ (@zig.univ.sn ou @univ-zig.sn).';
+      return;
+    }
+
     this.isLoading = true;
 
     // Préparer les données pour l'API

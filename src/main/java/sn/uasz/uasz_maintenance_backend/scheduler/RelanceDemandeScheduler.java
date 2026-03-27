@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 public class RelanceDemandeScheduler {
 
-    private static final int JOURS_SEUIL = 3;
+    private static final int JOURS_SEUIL = 2;
 
     private final PanneRepository panneRepository;
     private final UtilisateurRepository utilisateurRepository;
@@ -30,9 +30,13 @@ public class RelanceDemandeScheduler {
     private final NotificationService notificationService;
 
     /**
-     * Tous les jours à 8h00 : relance les demandes ouvertes non prises en charge depuis 3+ jours.
+     * Scheduler automatique DÉSACTIVÉ.
+     * Les relances sont désormais déclenchées uniquement par l'action
+     * explicite de l'utilisateur via le bouton "Relancer cette demande".
+     *
+     * Pour réactiver : décommenter @Scheduled(cron = "0 0 8 * * *")
      */
-    @Scheduled(cron = "0 0 8 * * *")
+    // @Scheduled(cron = "0 0 8 * * *")
     @Transactional
     public void relancerDemandesNonTraitees() {
         LocalDateTime seuil = LocalDateTime.now().minusDays(JOURS_SEUIL);
