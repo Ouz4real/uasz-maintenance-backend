@@ -1235,8 +1235,11 @@
           <input
             type="email"
             [(ngModel)]="newUser.email"
-            placeholder="email@example.com"
+            placeholder="prenom.nom@zig.univ.sn ou prenom.nom@univ-zig.sn"
           />
+          <p class="error-text" *ngIf="newUser.email && !isEmailUaszValide(newUser.email)">
+            L'email doit être un email UASZ (@zig.univ.sn ou @univ-zig.sn).
+          </p>
         </div>
 
         <div class="form-field">
@@ -1347,8 +1350,11 @@
           <input
             type="email"
             [(ngModel)]="editUser.email"
-            placeholder="email@example.com"
+            placeholder="prenom.nom@zig.univ.sn ou prenom.nom@univ-zig.sn"
           />
+          <p class="error-text" *ngIf="editUser.email && !isEmailUaszValide(editUser.email)">
+            L'email doit être un email UASZ (@zig.univ.sn ou @univ-zig.sn).
+          </p>
         </div>
 
         <div class="form-field">

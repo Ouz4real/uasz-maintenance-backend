@@ -61,9 +61,12 @@
               [(ngModel)]="formData.email"
               required
               email
-              placeholder="votre.email@uasz.sn"
+              placeholder="prenom.nom@zig.univ.sn ou prenom.nom@univ-zig.sn"
             />
           </div>
+          <p class="field-error" *ngIf="formData.email && !isEmailUaszValide(formData.email)">
+            L'email doit être un email UASZ (@zig.univ.sn ou @univ-zig.sn).
+          </p>
         </div>
 
         <!-- Téléphone et Département sur la même ligne -->

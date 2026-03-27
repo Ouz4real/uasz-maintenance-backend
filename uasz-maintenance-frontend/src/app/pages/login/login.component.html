@@ -18,7 +18,7 @@
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email ou Nom d'utilisateur</mat-label>
-          <input matInput formControlName="username" placeholder="ex: jdoe ou votre.email@uasz.sn" />
+          <input matInput formControlName="username" placeholder="ex: username ou prenom.nom@zig.univ.sn" />
           <mat-icon matSuffix>person</mat-icon>
         </mat-form-field>
 
@@ -154,7 +154,7 @@
       </p>
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Adresse email</mat-label>
-        <input matInput type="email" [(ngModel)]="forgotEmail" placeholder="votre.email@uasz.sn" />
+        <input matInput type="email" [(ngModel)]="forgotEmail" placeholder="prenom.nom@zig.univ.sn" />
         <mat-icon matSuffix>email</mat-icon>
       </mat-form-field>
       <div *ngIf="forgotError" class="forgot-error">{{ forgotError }}</div>

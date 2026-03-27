@@ -34,7 +34,7 @@ export const LIEUX_UASZ: string[] = [
   // Infrastructures
   'Pavillon A', 'Pavillon B', 'Pavillon C', 'Pavillon D', 'Pavillon E', 'Pavillon F',
   'Restaurant Universitaire', 'Infirmerie',
- 'Entrée Principale', 'Rectorat', 'Vice-rectorat'
+ 'Entrée Principale', 'Rectorat', 'Vice-rectorat','Orange Digital Center (ODC)','Campus Numérique'
 ];
 
 @Component({

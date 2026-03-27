@@ -692,6 +692,11 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.newUser.email && !this.isEmailUaszValide(this.newUser.email)) {
+      this.formError = 'L\'email doit appartenir à un domaine UASZ (@zig.univ.sn ou @univ-zig.sn).';
+      return;
+    }
+
     this.isSubmitting = true;
     const request: CreateUtilisateurRequest = {
       username: this.newUser.username,
@@ -938,6 +943,12 @@ export class DashboardAdminComponent implements OnInit, OnDestroy {
       return user.prenom;
     }
     return user.username;
+  }
+
+  isEmailUaszValide(email: string): boolean {
+    if (!email) return true; // pas d'erreur si vide (géré par required)
+    const lower = email.toLowerCase().trim();
+    return lower.endsWith('@zig.univ.sn') || lower.endsWith('@univ-zig.sn');
   }
 
   showToast(message: string, type: 'success' | 'error' | 'info'): void {
