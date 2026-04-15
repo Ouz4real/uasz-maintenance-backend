@@ -1758,6 +1758,12 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
         commentaireInterne:
           (p as any).commentaireInterne ?? null,
 
+        noteTechnicien:
+          (p as any).noteTechnicien ?? null,
+
+        piecesUtilisees:
+          (p as any).piecesUtilisees ?? null,
+
         imageUrl:
           (p as any).imageUrl ??
           (p as any).imagePath ??
@@ -2496,6 +2502,8 @@ export class DashboardResponsableComponent implements OnInit, OnDestroy {
           urgenceResponsable: panneApi.prioriteResponsable ?? null,
           technicienId: panneApi.technicien?.id ?? null,
           commentaireInterne: panneApi.commentaireInterne ?? null,
+          noteTechnicien: panneApi.noteTechnicien ?? null,
+          piecesUtilisees: panneApi.piecesUtilisees ?? null,
           imageUrl: panneApi.imagePath ?? null,
           imageResolutionUrl: panneApi.imageResolutionPath
             ? this.resolveImageUrl(panneApi.imageResolutionPath)

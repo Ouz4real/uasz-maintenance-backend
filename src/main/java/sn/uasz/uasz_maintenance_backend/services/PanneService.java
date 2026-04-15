@@ -560,6 +560,8 @@ public class PanneService {
                 .imagePath(panne.getImagePath())
                 .imageResolutionPath(panne.getImageResolutionPath())
                 .commentaireInterne(panne.getCommentaireInterne())
+                .noteTechnicien(panne.getNoteTechnicien())
+                .piecesUtilisees(panne.getPiecesUtilisees())
                 .raisonRefus(panne.getRaisonRefus())
                 .dateRefus(panne.getDateRefus() != null ? panne.getDateRefus().toString() : null)
                 .dateSignalement(panne.getDateSignalement())
@@ -1251,3 +1253,4 @@ public class PanneService {
         return toResponse(saved);
     }
 }
+

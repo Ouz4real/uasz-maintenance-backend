@@ -1919,6 +1919,27 @@
                 </ng-template>
               </div>
 
+              <!-- Note du technicien (visible uniquement si intervention terminée) -->
+              <div class="details-item details-full" *ngIf="selectedDemande?.statutInterventions === 'TERMINEE' && selectedDemande?.noteTechnicien">
+                <span class="details-label">Note du technicien</span>
+                <p class="details-description">{{ selectedDemande?.noteTechnicien }}</p>
+              </div>
+
+              <!-- Pièces utilisées (visible uniquement si intervention terminée) -->
+              <div class="details-item details-full" *ngIf="selectedDemande?.statutInterventions === 'TERMINEE' && selectedDemande?.piecesUtilisees">
+                <span class="details-label">Pièces utilisées</span>
+                <div class="pieces-list" style="margin-top: 0.5rem;">
+                  <div class="pieces-row pieces-header">
+                    <span>Nom de la pièce</span>
+                    <span>Quantité</span>
+                  </div>
+                  <div class="pieces-row" *ngFor="let piece of parsePiecesUtilisees(selectedDemande?.piecesUtilisees)">
+                    <span class="piece-name">{{ piece.nom }}</span>
+                    <span class="piece-quantity">{{ piece.quantite }}</span>
+                  </div>
+                </div>
+              </div>
+
               <!-- Image de résolution (jointe par le technicien) -->
               <div class="details-item details-full" *ngIf="selectedDemande?.statutInterventions === 'TERMINEE' || selectedDemande?.imageResolutionUrl">
                 <span class="details-label">Image après résolution (technicien)</span>
