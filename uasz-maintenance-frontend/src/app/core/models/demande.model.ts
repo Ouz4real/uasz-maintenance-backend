@@ -17,6 +17,8 @@ export interface Demande {
   technicienId?: number | null;
   technicienNom?: string | null;
   commentaireInterne?: string | null;
+  noteTechnicien?: string | null;
+  piecesUtilisees?: string | null;
 
   // Champs pour le déclin
   raisonRefus?: string | null;

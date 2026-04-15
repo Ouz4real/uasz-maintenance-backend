@@ -35,6 +35,8 @@ public class PanneResponse {
     private String imagePath;
     private String imageResolutionPath;
     private String commentaireInterne;
+    private String noteTechnicien;
+    private String piecesUtilisees;
     private String raisonRefus;
     private String dateRefus;  // Format ISO 8601
 

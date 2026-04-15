@@ -1983,43 +1983,26 @@
 
               <div class="form-field">
                 <label for="lieu">Lieu<span class="required">*</span></label>
-                <input
-                  id="lieu"
-                  type="text"
-                  name="lieu"
+                <app-lieu-autocomplete
+                  inputId="lieu"
+                  inputName="lieu"
+                  [required]="true"
                   [(ngModel)]="nouvelleDemande.lieu"
-                  placeholder="Ex : PGF-SUP salle 10"
-                />
+                  name="lieu"
+                ></app-lieu-autocomplete>
               </div>
 
               <!-- Type d'équipement (preset) -->
+              <!-- Type d'équipement (autocomplete) -->
               <div class="form-field">
                 <label for="equipementPreset">Type d'équipement<span class="required">*</span></label>
-
-                <select
-                  id="equipementPreset"
-                  name="equipementPreset"
+                <app-equipement-autocomplete
+                  inputId="equipementPreset"
+                  inputName="equipementPreset"
+                  [required]="true"
                   [(ngModel)]="selectedEquipementPreset"
-                  (ngModelChange)="onEquipementPresetChange()"
-                >
-                  <option value="" disabled>Choisissez un équipement…</option>
-
-                  <option *ngFor="let name of equipementsPreset" [value]="name">
-                    {{ name === 'AUTRE' ? 'Autre (équipement non listé)' : name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Champ "Autre" si nécessaire -->
-              <div class="form-field" *ngIf="selectedEquipementPreset === 'AUTRE'">
-                <label for="equipementAutre">Précisez l'équipement<span class="required">*</span></label>
-                <input
-                  id="equipementAutre"
-                  type="text"
-                  name="equipementAutre"
-                  [(ngModel)]="equipementAutre"
-                  placeholder="Ex : Lampe"
-                />
+                  name="equipementPreset"
+                ></app-equipement-autocomplete>
               </div>
 
               <!-- Urgence du demandeur -->
@@ -2185,6 +2168,14 @@
 
         <footer class="modal-footer">
           <button type="button" class="secondary-btn" (click)="closeModals()">Fermer</button>
+          <button
+            type="button"
+            class="primary-btn relance-modal-btn"
+            (click)="relancerDemande(selectedDemande!)"
+            [disabled]="!selectedDemande || !peutRelancerDemande(selectedDemande)"
+          >
+            Relancer cette demande
+          </button>
         </footer>
       </section>
 

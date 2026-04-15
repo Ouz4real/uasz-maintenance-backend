@@ -1,16 +1,16 @@
 import { TestBed } from '@angular/core/testing';
+import { PannesApiService } from './pannes-api.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
-import { Panne } from './panne';
-
-describe('Panne', () => {
-  let service: Panne;
+describe('PannesApiService', () => {
+  let service: PannesApiService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Panne);
+    TestBed.configureTestingModule({ imports: [HttpClientTestingModule] });
+    service = TestBed.inject(PannesApiService);
   });
 
-  it('should be created', () => {
+  it('doit être créé', () => {
     expect(service).toBeTruthy();
   });
 });

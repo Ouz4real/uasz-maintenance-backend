@@ -4886,6 +4886,27 @@ select.form-control{
   font-weight: 600;
 }
 
+.pieces-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  gap: 1rem;
+}
+
+.pieces-header {
+  background: #f1f5f9;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-color: #e2e8f0;
+}
+
 /* Fix pour aligner la cloche de notification */
 .topbar-right {
   display: flex !important;

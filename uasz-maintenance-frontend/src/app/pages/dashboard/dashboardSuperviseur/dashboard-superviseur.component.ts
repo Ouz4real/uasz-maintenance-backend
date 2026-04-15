@@ -13,6 +13,8 @@ import { EquipementApi } from '../../../core/models/equipement.model';
 import { AuthService } from '../../../core/services/auth';
 import { environment } from '../../../../environments/environment';
 import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
+import { LieuAutocompleteComponent } from '../../../shared/components/lieu-autocomplete/lieu-autocomplete.component';
+import { EquipementAutocompleteComponent } from '../../../shared/components/equipement-autocomplete/equipement-autocomplete.component';
 import { Subscription, interval, fromEvent } from 'rxjs';
 import { switchMap, filter } from 'rxjs/operators';
 import * as jsPDF from 'jspdf';
@@ -54,7 +56,7 @@ interface NouvelleDemandeForm {
 @Component({
   selector: 'app-dashboard-superviseur',
   standalone: true,
-  imports: [CommonModule, FormsModule, NotificationBellComponent],
+  imports: [CommonModule, FormsModule, NotificationBellComponent, LieuAutocompleteComponent, EquipementAutocompleteComponent],
   templateUrl: './dashboard-superviseur.component.html',
   styleUrls: ['./dashboard-superviseur.component.scss'],
 })
@@ -2120,8 +2122,8 @@ export class DashboardSuperviseurComponent implements OnInit, OnDestroy {
       urgenceDemandeur: urgenceDem,
       urgenceResponsable: urgenceResp,
       urgence: urgenceResp || urgenceDem,
-      nbRelances: 0,
-      dateDerniereRelance: undefined,
+      nbRelances: p.nbRelances ?? 0,
+      dateDerniereRelance: p.dateDerniereRelance ? new Date(p.dateDerniereRelance) : undefined,
     };
   }
 
@@ -2322,8 +2324,7 @@ export class DashboardSuperviseurComponent implements OnInit, OnDestroy {
     if (!this.newDemande.titre.trim()) return true;
     if (!this.newDemande.lieu.trim()) return true;
     if (!this.selectedEquipementPreset) return true;
-    if (this.selectedEquipementPreset === 'AUTRE' && !this.equipementAutre.trim()) return true;
-    if (!this.newDemande.urgenceDemandeur) return true;
+    if (this.selectedEquipementPreset === 'AUTRE' && !this.equipementAutre.trim()) return true;    if (!this.newDemande.urgenceDemandeur) return true;
     if (!this.newDemande.imageFile) return true;
     return false;
   }
@@ -2339,21 +2340,8 @@ export class DashboardSuperviseurComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const selected = (this.selectedEquipementPreset ?? '').trim();
-    const isAutre = selected === 'AUTRE';
-    const autreValue = (this.equipementAutre ?? '').trim();
-
-    const typeEquipementFinal = isAutre
-      ? `AUTRE: ${autreValue || 'Non précisé'}`
-      : (selected || 'Non spécifié');
-
-    let descriptionFinale = this.newDemande.description;
-
-    if (isAutre) {
-      descriptionFinale =
-        `[Équipement non référencé] ${autreValue || 'Non précisé'}\n\n` +
-        this.newDemande.description;
-    }
+    const typeEquipementFinal = (this.selectedEquipementPreset ?? '').trim() || 'Non spécifié';
+    const descriptionFinale = this.newDemande.description;
 
     const fd = new FormData();
     fd.append('titre', this.newDemande.titre);
@@ -2384,7 +2372,9 @@ export class DashboardSuperviseurComponent implements OnInit, OnDestroy {
         this.loadMesDemandes();
       },
       error: (err) => {
-        if (err.status === 413) {
+        if (err.status === 409) {
+          this.imageErrorMessage = err.error || 'Une demande identique est déjà en cours de traitement.';
+        } else if (err.status === 413) {
           this.imageErrorMessage =
             'L\'image sélectionnée est trop volumineuse. Veuillez choisir une image de moins de 2 Mo.';
         } else {
@@ -2406,6 +2396,24 @@ export class DashboardSuperviseurComponent implements OnInit, OnDestroy {
     this.selectedDemande = null;
     this.showImageInDetails = false;
     this.unlockBodyScroll();
+  }
+
+  peutRelancerDemande(d: Demande): boolean {
+    if (d.statut !== 'EN_ATTENTE') return false;
+    const ref = d.dateDerniereRelance ?? d.dateCreation;
+    const diffJours = (Date.now() - new Date(ref).getTime()) / (1000 * 60 * 60 * 24);
+    return diffJours >= 2;
+  }
+
+  relancerDemande(d: Demande): void {
+    this.pannesApi.relancerDemande(d.id).subscribe({
+      next: (updated: any) => {
+        d.dateDerniereRelance = updated.dateDerniereRelance ? new Date(updated.dateDerniereRelance) : new Date();
+        d.nbRelances = (d.nbRelances ?? 0) + 1;
+        this.showToast('Demande relancée avec succès.', 'success');
+      },
+      error: () => this.showToast('Erreur lors de la relance.', 'error'),
+    });
   }
 
   toggleImageInDetails(): void {

@@ -46,6 +46,9 @@ export interface PanneApi {
   /** ✅ Date de la dernière relance */
   dateDerniereRelance?: string | null;
 
+  /** ✅ Nombre de relances */
+  nbRelances?: number;
+
   equipement?: {
     libelle?: string;
     localisation?: string;
