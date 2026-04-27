@@ -187,6 +187,24 @@
   }
 }
 
+.info-message {
+  padding: 0.85rem 1rem;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  color: #1d4ed8;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+
+  .material-icons {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
 .submit-btn {
   margin-top: 0.5rem;
   padding: 0.85rem 2rem;

@@ -20,11 +20,9 @@ export class RegisterComponent {
     telephone: '',
     departement: '',
     serviceUnite: '',
-    username: '',
-    motDePasse: ''
+    username: ''
   };
 
-  showPassword = false;
   isLoading = false;
   errorMessage = '';
   successMessage = '';
@@ -33,10 +31,6 @@ export class RegisterComponent {
     private router: Router,
     private http: HttpClient
   ) {}
-
-  togglePasswordVisibility(): void {
-    this.showPassword = !this.showPassword;
-  }
 
   isEmailUaszValide(email: string): boolean {
     if (!email) return true;
@@ -66,7 +60,7 @@ export class RegisterComponent {
       .subscribe({
         next: (response) => {
           this.isLoading = false;
-          this.successMessage = 'Compte créé avec succès! Redirection vers la page de connexion...';
+          this.successMessage = 'Compte créé avec succès ! Un mot de passe temporaire vous a été envoyé par email.';
           
           // Rediriger vers la page de connexion après 2 secondes
           setTimeout(() => {

@@ -131,28 +131,10 @@
           </div>
         </div>
 
-        <!-- Mot de passe -->
-        <div class="form-group">
-          <label for="password">Mot de passe *</label>
-          <div class="input-wrapper">
-            <span class="material-icons input-icon">lock</span>
-            <input
-              [type]="showPassword ? 'text' : 'password'"
-              id="password"
-              name="password"
-              [(ngModel)]="formData.motDePasse"
-              required
-              minlength="6"
-              placeholder="Minimum 6 caractères"
-            />
-            <button
-              type="button"
-              class="toggle-password"
-              (click)="togglePasswordVisibility()"
-            >
-              <span class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
-            </button>
-          </div>
+        <!-- Info mot de passe temporaire -->
+        <div class="info-message">
+          <span class="material-icons">info</span>
+          Un mot de passe temporaire vous sera envoyé par email. Vous devrez le changer lors de votre première connexion.
         </div>
 
         <!-- Message d'erreur -->
@@ -166,7 +148,6 @@
           <span class="material-icons">check_circle</span>
           {{ successMessage }}
         </div>
-
         <!-- Bouton de soumission -->
         <button
           type="submit"

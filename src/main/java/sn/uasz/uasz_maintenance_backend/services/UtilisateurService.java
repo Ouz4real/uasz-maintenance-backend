@@ -37,6 +37,10 @@ public class UtilisateurService {
     private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    public String generateTemporaryPassword() {
+        return generatePassword();
+    }
+
     private String generatePassword() {
         StringBuilder sb = new StringBuilder(12);
         // Garantir au moins 1 majuscule, 1 minuscule, 1 chiffre, 1 spécial
