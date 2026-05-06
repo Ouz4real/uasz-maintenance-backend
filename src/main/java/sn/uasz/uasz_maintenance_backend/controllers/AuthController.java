@@ -40,9 +40,15 @@ public class AuthController {
     private final sn.uasz.uasz_maintenance_backend.services.EmailService emailService;
     private final RefreshTokenService refreshTokenService;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final sn.uasz.uasz_maintenance_backend.services.UtilisateurService utilisateurService;
 
     @Value("${app.frontend.url:http://localhost:4200}")
     private String frontendUrl;
+
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("OK");
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
@@ -117,9 +123,6 @@ public class AuthController {
             if (request.getEmail() == null || request.getEmail().isBlank()) {
                 return ResponseEntity.badRequest().body("L'email est obligatoire");
             }
-            if (request.getMotDePasse() == null || request.getMotDePasse().isBlank()) {
-                return ResponseEntity.badRequest().body("Le mot de passe est obligatoire");
-            }
             if (request.getNom() == null || request.getNom().isBlank()) {
                 return ResponseEntity.badRequest().body("Le nom est obligatoire");
             }
@@ -137,6 +140,16 @@ public class AuthController {
                 return ResponseEntity.status(409).body("Cet email existe déjà");
             }
 
+            // Vérifier que l'email appartient à un domaine UASZ autorisé
+            if (!sn.uasz.uasz_maintenance_backend.services.UtilisateurService.isEmailDomainAutorise(request.getEmail())) {
+                return ResponseEntity.status(400).body(
+                    "L'email doit appartenir à un domaine de l'UASZ (@zig.univ.sn ou @univ-zig.sn)."
+                );
+            }
+
+            // Générer un mot de passe temporaire sécurisé
+            String motDePasseTemporaire = utilisateurService.generateTemporaryPassword();
+
             // Créer le nouvel utilisateur
             Utilisateur utilisateur = Utilisateur.builder()
                     .username(request.getUsername())
@@ -146,15 +159,26 @@ public class AuthController {
                     .telephone(request.getTelephone())
                     .departement(request.getDepartement())
                     .serviceUnite(request.getServiceUnite())
-                    .motDePasse(passwordEncoder.encode(request.getMotDePasse()))
-                    .role(Role.DEMANDEUR) // Par défaut, les nouveaux utilisateurs sont des demandeurs
+                    .motDePasse(passwordEncoder.encode(motDePasseTemporaire))
+                    .role(Role.DEMANDEUR)
                     .enabled(true)
+                    .mustChangePassword(true)
                     .build();
 
             // Sauvegarder l'utilisateur
             Utilisateur savedUser = utilisateurRepository.save(utilisateur);
 
             log.info("✅ Nouvel utilisateur créé: {} (ID: {})", request.getUsername(), savedUser.getId());
+
+            // 📧 Envoyer le mot de passe temporaire par email à l'utilisateur
+            try {
+                String prenomNom = (savedUser.getPrenom() != null ? savedUser.getPrenom() : "")
+                        + " " + (savedUser.getNom() != null ? savedUser.getNom() : "");
+                emailService.sendWelcomeEmail(savedUser.getEmail(), prenomNom.trim(), savedUser.getUsername(), motDePasseTemporaire);
+                log.info("📧 Email de bienvenue envoyé à {}", savedUser.getEmail());
+            } catch (Exception e) {
+                log.error("❌ Erreur envoi email de bienvenue: {}", e.getMessage());
+            }
 
             // Créer une notification pour tous les administrateurs
             try {
