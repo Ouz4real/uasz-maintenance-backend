@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.uasz-maintenance.sn/api',
-  backendUrl: 'https://api.uasz-maintenance.sn',
-  wsUrl: 'https://api.uasz-maintenance.sn/ws',
+  apiUrl: 'https://uasz-maintenance-backend.onrender.com/api',
+  backendUrl: 'https://uasz-maintenance-backend.onrender.com',
+  wsUrl: 'https://uasz-maintenance-backend.onrender.com/ws',
 };
