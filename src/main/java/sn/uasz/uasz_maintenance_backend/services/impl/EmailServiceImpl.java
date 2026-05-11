@@ -5,14 +5,17 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import sn.uasz.uasz_maintenance_backend.services.EmailService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -20,12 +23,75 @@ import java.time.format.DateTimeFormatter;
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${app.email.from}")
     private String fromEmail;
 
     @Value("${app.email.enabled:true}")
     private boolean emailEnabled;
+
+    @Value("${brevo.api.key:}")
+    private String brevoApiKey;
+
+    /**
+     * Envoie un email via l'API HTTP Brevo (port 443, non bloqué par Render).
+     * Utilisé en prod quand BREVO_API_KEY est défini.
+     */
+    private void sendViaBrevoApi(String toEmail, String subject, String htmlContent) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("api-key", brevoApiKey);
+
+            String body = """
+                {
+                  "sender": {"email": "%s", "name": "UASZ Maintenance"},
+                  "to": [{"email": "%s"}],
+                  "subject": "%s",
+                  "htmlContent": %s
+                }
+                """.formatted(
+                    fromEmail,
+                    toEmail,
+                    subject,
+                    org.springframework.util.StringUtils.hasText(htmlContent)
+                        ? "\"" + htmlContent.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "") + "\""
+                        : "\"<p>Message</p>\""
+            );
+
+            HttpEntity<String> request = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                "https://api.brevo.com/v3/smtp/email", request, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Email envoyé via Brevo API à {}", toEmail);
+            } else {
+                log.error("Erreur Brevo API: {}", response.getBody());
+            }
+        } catch (Exception e) {
+            log.error("Erreur envoi Brevo API: {}", e.getMessage());
+        }
+    }
+
+    private void sendEmail(String toEmail, String subject, String htmlContent) {
+        if (org.springframework.util.StringUtils.hasText(brevoApiKey)) {
+            sendViaBrevoApi(toEmail, subject, htmlContent);
+        } else {
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setFrom(fromEmail);
+                helper.setTo(toEmail);
+                helper.setSubject(subject);
+                helper.setText(htmlContent, true);
+                mailSender.send(message);
+                log.info("Email envoyé via SMTP à {}", toEmail);
+            } catch (MessagingException e) {
+                log.error("Erreur SMTP: {}", e.getMessage());
+            }
+        }
+    }
 
     @Override
     @Async
@@ -873,53 +939,43 @@ public class EmailServiceImpl implements EmailService {
     @Async
     public void sendWelcomeEmail(String toEmail, String prenomNom, String username, String motDePasseTemporaire) {
         if (!emailEnabled) { log.info("Email désactivé - Email non envoyé à {}", toEmail); return; }
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Bienvenue sur UASZ Maintenance - Vos identifiants de connexion");
-            helper.setText("""
-                <!DOCTYPE html><html><head><meta charset="UTF-8">
-                <style>
-                  body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
-                  .container{max-width:600px;margin:0 auto;padding:20px}
-                  .header{background:#1d4ed8;color:white;padding:20px;text-align:center;border-radius:5px 5px 0 0}
-                  .content{background:#f9f9f9;padding:30px;border:1px solid #ddd}
-                  .credentials-box{background:#eff6ff;padding:20px;margin:20px 0;border-left:4px solid #1d4ed8;border-radius:5px}
-                  .password-box{background:#1d4ed8;color:white;padding:12px 20px;border-radius:8px;font-size:20px;font-weight:bold;letter-spacing:2px;text-align:center;margin:10px 0}
-                  .warning-box{background:#fef3c7;padding:15px;margin:15px 0;border-left:4px solid #f59e0b;border-radius:5px}
-                  .footer{background:#ecf0f1;padding:15px;text-align:center;font-size:12px;color:#7f8c8d;border-radius:0 0 5px 5px}
-                  .highlight{color:#1d4ed8;font-weight:bold}
-                </style></head><body>
-                <div class="container">
-                  <div class="header">
-                    <h2>🎉 Bienvenue sur UASZ Maintenance</h2>
-                    <p style="margin:5px 0;font-size:14px;opacity:0.9">Votre compte a été créé avec succès</p>
-                  </div>
-                  <div class="content">
-                    <p>Bonjour <span class="highlight">%s</span>,</p>
-                    <p>Votre compte sur la plateforme de gestion de maintenance de l'UASZ a été créé par l'administrateur.</p>
-                    <div class="credentials-box">
-                      <p><strong>🔑 Vos identifiants de connexion :</strong></p>
-                      <p><strong>Nom d'utilisateur :</strong> %s</p>
-                      <p><strong>Mot de passe temporaire :</strong></p>
-                      <div class="password-box">%s</div>
-                    </div>
-                    <div class="warning-box">
-                      <p><strong>⚠️ Important :</strong> Ce mot de passe est temporaire. Vous devrez le changer dès votre première connexion.</p>
-                    </div>
-                    <p>Pour vous connecter, rendez-vous sur la plateforme et utilisez ces identifiants. Vous serez automatiquement invité à définir un nouveau mot de passe.</p>
-                    <p>Cordialement,<br><strong>L'équipe de maintenance UASZ</strong></p>
-                  </div>
-                  <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ - Université Assane Seck de Ziguinchor</p></div>
-                </div></body></html>
-                """.formatted(prenomNom, username, motDePasseTemporaire), true);
-            mailSender.send(message);
-            log.info("Email de bienvenue envoyé à {}", toEmail);
-        } catch (MessagingException e) {
-            log.error("Erreur email de bienvenue: {}", e.getMessage());
-        }
+        String html = """
+            <!DOCTYPE html><html><head><meta charset="UTF-8">
+            <style>
+              body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
+              .container{max-width:600px;margin:0 auto;padding:20px}
+              .header{background:#1d4ed8;color:white;padding:20px;text-align:center;border-radius:5px 5px 0 0}
+              .content{background:#f9f9f9;padding:30px;border:1px solid #ddd}
+              .credentials-box{background:#eff6ff;padding:20px;margin:20px 0;border-left:4px solid #1d4ed8;border-radius:5px}
+              .password-box{background:#1d4ed8;color:white;padding:12px 20px;border-radius:8px;font-size:20px;font-weight:bold;letter-spacing:2px;text-align:center;margin:10px 0}
+              .warning-box{background:#fef3c7;padding:15px;margin:15px 0;border-left:4px solid #f59e0b;border-radius:5px}
+              .footer{background:#ecf0f1;padding:15px;text-align:center;font-size:12px;color:#7f8c8d;border-radius:0 0 5px 5px}
+              .highlight{color:#1d4ed8;font-weight:bold}
+            </style></head><body>
+            <div class="container">
+              <div class="header">
+                <h2>Bienvenue sur UASZ Maintenance</h2>
+                <p style="margin:5px 0;font-size:14px;opacity:0.9">Votre compte a ete cree avec succes</p>
+              </div>
+              <div class="content">
+                <p>Bonjour <span class="highlight">%s</span>,</p>
+                <p>Votre compte sur la plateforme de gestion de maintenance de l'UASZ a ete cree.</p>
+                <div class="credentials-box">
+                  <p><strong>Vos identifiants de connexion :</strong></p>
+                  <p><strong>Nom d'utilisateur :</strong> %s</p>
+                  <p><strong>Mot de passe temporaire :</strong></p>
+                  <div class="password-box">%s</div>
+                </div>
+                <div class="warning-box">
+                  <p><strong>Important :</strong> Ce mot de passe est temporaire. Vous devrez le changer des votre premiere connexion.</p>
+                </div>
+                <p>Cordialement,<br><strong>L'equipe de maintenance UASZ</strong></p>
+              </div>
+              <div class="footer"><p>Email automatique - ne pas repondre.</p><p>2026 UASZ</p></div>
+            </div></body></html>
+            """.formatted(prenomNom, username, motDePasseTemporaire);
+        sendEmail(toEmail, "Bienvenue sur UASZ Maintenance - Vos identifiants de connexion", html);
+        log.info("Email de bienvenue envoyé à {}", toEmail);
     }
 
     @Override
