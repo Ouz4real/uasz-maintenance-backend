@@ -1,20 +1,27 @@
 <!-- src/app/pages/dashboard/dashboardAdmin/dashboard-admin.component.html -->
 
 <div class="dashboard-layout" [class.blur-background]="showCreateModal || showEditModal || showDeleteModal || showLogoutModal || showUserDetailsModal || showToggleEnabledModal || showNewDemandeModal || showDemandeDetailsModal">
+  <!-- Overlay sidebar mobile -->
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
+
   <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.open]="sidebarOpen" [class.collapsed]="sidebarCollapsed">
     <div class="sidebar-header">
       <div class="avatar-circle">{{ usernameInitial }}</div>
       <div class="sidebar-title">
         <h1>Maintenance UASZ</h1>
         <p>Administration</p>
       </div>
+      <button class="sidebar-collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed" [title]="sidebarCollapsed ? 'Ouvrir' : 'Réduire'">
+        <span class="material-icons">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</span>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
       <!-- Tableau de bord -->
       <button
         class="nav-item"
+        title="Tableau de bord"
         [class.active]="activeItem === 'dashboard'"
         (click)="setActive('dashboard')"
       >
@@ -25,6 +32,7 @@
       <!-- Gestion des utilisateurs -->
       <button
         class="nav-item"
+        title="Utilisateurs"
         [class.active]="activeItem === 'utilisateurs'"
         (click)="setActive('utilisateurs')"
       >
@@ -35,6 +43,7 @@
       <!-- Mes demandes -->
       <button
         class="nav-item"
+        title="Mes demandes"
         [class.active]="activeItem === 'mes-demandes'"
         (click)="setActive('mes-demandes')"
       >
@@ -45,6 +54,7 @@
       <!-- Aide -->
       <button
         class="nav-item"
+        title="Aide & Support"
         [class.active]="activeItem === 'help'"
         (click)="setActive('help')"
       >
@@ -64,6 +74,10 @@
       </div>
 
       <div class="topbar-right">
+        <!-- Bouton hamburger sidebar (mobile) -->
+        <button class="sidebar-toggle-btn" (click)="sidebarOpen = !sidebarOpen" aria-label="Ouvrir le menu">
+          <span class="material-icons">menu</span>
+        </button>
         <!-- Cloche de notifications -->
         <app-notification-bell 
           [themeColor]="'#2563eb'"
@@ -747,228 +761,216 @@
         </div>
       </ng-container>
 
-      <!-- 🟦 PAGE : AIDE -->
+      <!-- 🟦 PAGE : AIDE & SUPPORT -->
       <ng-container *ngIf="activeItem === 'help'">
-        <section class="resp-help-page">
-          <div class="recent-requests">
-            <div class="recent-header">
-              <h2>Aide & Support</h2>
-              <p class="section-subtitle">
-                Guide complet pour la gestion des utilisateurs, des demandes et de l'administration de la plateforme.
-              </p>
+        <section class="admin-help-page">
+
+          <h2 class="section-title" style="margin-bottom: 2rem;">
+            <span class="material-icons">help</span>
+            Aide &amp; Support
+          </h2>
+
+          <!-- Guide de démarrage rapide -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">rocket_launch</span>
+              Guide de démarrage rapide
+            </h3>
+            <div class="help-cards-grid">
+              <div class="help-card">
+                <div class="help-card-icon dashboard-icon"><span class="material-icons">dashboard</span></div>
+                <h4>Tableau de bord</h4>
+                <p>Consultez les statistiques globales des signalements, interventions et équipements en temps réel pour une vue d'ensemble complète.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon signalements-icon"><span class="material-icons">warning</span></div>
+                <h4>Signalements</h4>
+                <p>Analysez les pannes par statut et priorité. Filtrez par période pour identifier les tendances et les zones problématiques.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon interventions-icon"><span class="material-icons">build</span></div>
+                <h4>Interventions</h4>
+                <p>Suivez les maintenances planifiées et les interventions en cours. Surveillez les temps de réalisation et la performance.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon equipements-icon"><span class="material-icons">devices</span></div>
+                <h4>Équipements</h4>
+                <p>Visualisez les statistiques par type et localisation. Identifiez les équipements problématiques nécessitant une attention particulière.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon stats-icon"><span class="material-icons">group</span></div>
+                <h4>Utilisateurs</h4>
+                <p>Gérez les comptes utilisateurs, attribuez les rôles et contrôlez les accès à la plateforme de maintenance.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon stats-icon"><span class="material-icons">bar_chart</span></div>
+                <h4>Rapports & Stats</h4>
+                <p>Exportez vos données en Excel, CSV ou PDF. Générez des rapports détaillés pour l'analyse et la prise de décision.</p>
+              </div>
             </div>
+          </section>
 
-            <div class="help-grid">
-              <!-- Colonne gauche : FAQ Admin -->
-              <div class="help-column">
-                <div class="help-section-title">
-                  <span class="material-icons help-icon">admin_panel_settings</span>
-                  <div>
-                    <h3>Guide Administrateur</h3>
-                    <p>Gestion des utilisateurs, rôles et demandes de maintenance.</p>
-                  </div>
-                </div>
-
-                <div class="help-faq-list">
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment créer un nouvel utilisateur ?</h3>
-                      <p class="request-meta">
-                        Depuis l'onglet <strong>"Utilisateurs"</strong>, cliquez sur 
-                        <strong>"Nouvel utilisateur"</strong>. Renseignez le <strong>nom d'utilisateur</strong>, 
-                        <strong>email</strong>, <strong>mot de passe</strong>, <strong>prénom</strong>, 
-                        <strong>nom</strong> et sélectionnez le <strong>rôle</strong> approprié 
-                        (Demandeur, Technicien, Responsable, Superviseur ou Administrateur). 
-                        Le compte est activé par défaut.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment désactiver un compte utilisateur ?</h3>
-                      <p class="request-meta">
-                        Dans la liste des utilisateurs, cliquez sur <strong>"Voir détails"</strong> 
-                        puis utilisez le bouton <strong>"Désactiver le compte"</strong>. 
-                        L'utilisateur ne pourra plus se connecter mais ses données restent conservées. 
-                        Vous pouvez réactiver le compte à tout moment.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment réinitialiser le mot de passe d'un utilisateur ?</h3>
-                      <p class="request-meta">
-                        Ouvrez les détails de l'utilisateur et cliquez sur 
-                        <strong>"Réinitialiser le mot de passe"</strong>. 
-                        Entrez le nouveau mot de passe (minimum 6 caractères) et confirmez. 
-                        Informez l'utilisateur de son nouveau mot de passe de manière sécurisée.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Quels sont les différents rôles disponibles ?</h3>
-                      <p class="request-meta">
-                        <strong>DEMANDEUR</strong> : Crée et suit ses demandes de panne.<br>
-                        <strong>TECHNICIEN</strong> : Réalise les interventions assignées.<br>
-                        <strong>RESPONSABLE_MAINTENANCE</strong> : Affecte les pannes aux techniciens et définit les priorités.<br>
-                        <strong>SUPERVISEUR</strong> : Vue globale et statistiques (lecture seule).<br>
-                        <strong>ADMINISTRATEUR</strong> : Gestion complète des utilisateurs et accès à toutes les fonctionnalités.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment créer une demande de panne en tant qu'admin ?</h3>
-                      <p class="request-meta">
-                        Accédez à l'onglet <strong>"Mes demandes"</strong> et cliquez sur 
-                        <strong>"Nouvelle demande"</strong>. Remplissez le formulaire 
-                        (titre, lieu, type d'équipement, description, urgence) et ajoutez une 
-                        <strong>image obligatoire</strong>. Vos demandes suivent le même circuit 
-                        que celles des demandeurs.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment filtrer et rechercher des utilisateurs ?</h3>
-                      <p class="request-meta">
-                        Utilisez les <strong>filtres par rôle</strong> (Tous, Demandeur, Technicien, etc.) 
-                        et la <strong>barre de recherche</strong> pour trouver rapidement un utilisateur 
-                        par nom, prénom ou email. Les résultats sont paginés (5 par page).
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Que faire si un utilisateur ne peut pas se connecter ?</h3>
-                      <p class="request-meta">
-                        Vérifiez d'abord que le compte est <strong>activé</strong> (statut "Actif"). 
-                        Si le compte est désactivé, réactivez-le. Si l'utilisateur a oublié son mot de passe, 
-                        réinitialisez-le depuis les détails du compte. Vérifiez aussi que le 
-                        <strong>rôle</strong> est correctement assigné.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Comment supprimer un utilisateur ?</h3>
-                      <p class="request-meta">
-                        Ouvrez les détails de l'utilisateur et cliquez sur 
-                        <strong>"Supprimer l'utilisateur"</strong>. 
-                        <span style="color: #dc2626; font-weight: 500;">⚠️ Attention :</span> 
-                        Cette action est <strong>irréversible</strong> et supprime définitivement 
-                        toutes les données associées. Privilégiez la désactivation du compte 
-                        pour conserver l'historique.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="request-item help-item">
-                    <div>
-                      <h3 class="request-title">Puis-je modifier mon propre compte ?</h3>
-                      <p class="request-meta">
-                        Oui, vous pouvez modifier vos informations personnelles (prénom, nom, email) 
-                        et changer votre mot de passe depuis le menu utilisateur en haut à droite. 
-                        Cependant, vous ne pouvez pas modifier votre propre rôle ou désactiver 
-                        votre propre compte pour des raisons de sécurité.
-                      </p>
-                    </div>
-                  </div>
+          <!-- Bonnes pratiques -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">verified</span>
+              Bonnes pratiques d'administration
+            </h3>
+            <div class="best-practices-grid">
+              <div class="practice-card">
+                <div class="practice-icon monitoring-icon"><span class="material-icons">visibility</span></div>
+                <div class="practice-content">
+                  <h4>Surveillance proactive</h4>
+                  <p>Consultez régulièrement le tableau de bord pour identifier rapidement les anomalies et les tendances préoccupantes.</p>
                 </div>
               </div>
-
-              <!-- Colonne droite : Bonnes pratiques & Support -->
-              <div class="help-column help-column-right">
-                <div class="help-support-card">
-                  <h3>Bonnes pratiques</h3>
-                  <p class="request-meta">
-                    Recommandations pour une gestion efficace de la plateforme.
-                  </p>
-
-                  <div class="help-best-practices">
-                    <div class="practice-item">
-                      <span class="material-icons practice-icon">security</span>
-                      <div>
-                        <strong>Sécurité des mots de passe</strong>
-                        <p>Utilisez des mots de passe forts (8+ caractères, majuscules, chiffres, symboles). 
-                        Changez régulièrement les mots de passe des comptes sensibles.</p>
-                      </div>
-                    </div>
-
-                    <div class="practice-item">
-                      <span class="material-icons practice-icon">person_off</span>
-                      <div>
-                        <strong>Désactivation vs Suppression</strong>
-                        <p>Privilégiez la <strong>désactivation</strong> pour les départs temporaires 
-                        ou pour conserver l'historique. La <strong>suppression</strong> est définitive.</p>
-                      </div>
-                    </div>
-
-                    <div class="practice-item">
-                      <span class="material-icons practice-icon">verified_user</span>
-                      <div>
-                        <strong>Attribution des rôles</strong>
-                        <p>Attribuez le rôle le plus restrictif nécessaire. Ne donnez le rôle 
-                        <strong>Administrateur</strong> qu'aux personnes de confiance.</p>
-                      </div>
-                    </div>
-
-                    <div class="practice-item">
-                      <span class="material-icons practice-icon">update</span>
-                      <div>
-                        <strong>Maintenance régulière</strong>
-                        <p>Vérifiez régulièrement la liste des utilisateurs actifs. 
-                        Désactivez les comptes inutilisés pour maintenir la sécurité.</p>
-                      </div>
-                    </div>
-                  </div>
+              <div class="practice-card">
+                <div class="practice-icon analysis-icon"><span class="material-icons">admin_panel_settings</span></div>
+                <div class="practice-content">
+                  <h4>Gestion des accès</h4>
+                  <p>Attribuez le rôle le plus restrictif nécessaire à chaque utilisateur. Vérifiez régulièrement les comptes inactifs.</p>
                 </div>
-
-                <div class="help-support-card" style="margin-top: 1.5rem;">
-                  <h3>Besoin d'assistance ?</h3>
-                  <p class="request-meta">
-                    Pour toute question technique ou problème avec la plateforme, 
-                    contactez l'équipe support.
-                  </p>
-
-                  <div class="help-contact-block">
-                    <div class="help-contact-line">
-                      <span class="material-icons">email</span>
-                      <span>admin@uasz.sn</span>
-                    </div>
-                    <div class="help-contact-line">
-                      <span class="material-icons">phone</span>
-                      <span>+221 33 123 45 67</span>
-                    </div>
-                    <div class="help-contact-line">
-                      <span class="material-icons">schedule</span>
-                      <span>Lun-Ven : 8h-17h</span>
-                    </div>
-                  </div>
-
-                  <div class="help-emergency" style="margin-top: 1rem; padding: 0.75rem; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                      <span class="material-icons" style="color: #dc2626; font-size: 20px;">warning</span>
-                      <strong style="color: #dc2626;">Urgence technique</strong>
-                    </div>
-                    <p style="margin: 0; font-size: 0.85rem; color: #991b1b;">
-                      En cas de problème critique (panne serveur, accès bloqué), 
-                      contactez immédiatement le support technique au 
-                      <strong>+221 77 123 45 67</strong>
-                    </p>
-                  </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon priority-icon"><span class="material-icons">lock</span></div>
+                <div class="practice-content">
+                  <h4>Sécurité des comptes</h4>
+                  <p>Utilisez des mots de passe forts. Privilégiez la désactivation à la suppression pour conserver l'historique.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon report-icon"><span class="material-icons">assessment</span></div>
+                <div class="practice-content">
+                  <h4>Rapports réguliers</h4>
+                  <p>Générez des rapports hebdomadaires ou mensuels pour suivre l'évolution des indicateurs clés de performance (KPI).</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon equipment-icon"><span class="material-icons">devices_other</span></div>
+                <div class="practice-content">
+                  <h4>Équipements critiques</h4>
+                  <p>Identifiez les équipements les plus problématiques et planifiez des maintenances préventives pour réduire les pannes.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon team-icon"><span class="material-icons">groups</span></div>
+                <div class="practice-content">
+                  <h4>Coordination d'équipe</h4>
+                  <p>Assurez une communication efficace entre les techniciens, responsables et demandeurs pour optimiser les interventions.</p>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
+
+          <!-- FAQ -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">quiz</span>
+              Questions fréquentes (FAQ)
+            </h3>
+            <div class="faq-container">
+              <div class="faq-item" [class.active]="activeFaqIndex === 0" (click)="toggleFaq(0)">
+                <div class="faq-question">
+                  <span>Comment créer un nouvel utilisateur ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 0 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 0">
+                  <p>Depuis l'onglet <strong>Utilisateurs</strong>, cliquez sur <strong>Nouvel utilisateur</strong>. Renseignez le nom d'utilisateur, l'email, le prénom, le nom et sélectionnez le rôle approprié. Un mot de passe temporaire est automatiquement généré et envoyé par email à l'utilisateur. Le compte est activé par défaut.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 1" (click)="toggleFaq(1)">
+                <div class="faq-question">
+                  <span>Comment désactiver un compte utilisateur ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 1 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 1">
+                  <p>Dans la liste des utilisateurs, cliquez sur <strong>Voir détails</strong> puis utilisez le bouton <strong>Désactiver le compte</strong>. L'utilisateur ne pourra plus se connecter mais ses données restent conservées.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 2" (click)="toggleFaq(2)">
+                <div class="faq-question">
+                  <span>Quels sont les différents rôles disponibles ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 2 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 2">
+                  <ul>
+                    <li><strong>DEMANDEUR :</strong> crée et suit ses demandes de maintenance</li>
+                    <li><strong>TECHNICIEN :</strong> réalise les interventions assignées</li>
+                    <li><strong>RESPONSABLE :</strong> affecte et priorise les interventions</li>
+                    <li><strong>SUPERVISEUR :</strong> vue globale et statistiques</li>
+                    <li><strong>ADMIN :</strong> gestion complète de la plateforme</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 3" (click)="toggleFaq(3)">
+                <div class="faq-question">
+                  <span>Comment filtrer et rechercher des utilisateurs ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 3 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 3">
+                  <p>Utilisez les filtres par rôle et la barre de recherche pour trouver rapidement un utilisateur par nom, prénom ou email. Les résultats sont paginés.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 4" (click)="toggleFaq(4)">
+                <div class="faq-question">
+                  <span>Que faire si un utilisateur ne peut pas se connecter ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 4 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 4">
+                  <p>Vérifiez que le compte est <strong>activé</strong>. Si désactivé, réactivez-le. Si l'utilisateur a oublié son mot de passe, réinitialisez-le depuis les détails du compte.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 5" (click)="toggleFaq(5)">
+                <div class="faq-question">
+                  <span>Comment supprimer un utilisateur ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 5 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 5">
+                  <p>Ouvrez les détails et cliquez sur <strong>Supprimer l'utilisateur</strong>. Cette action est <strong>irréversible</strong>. Privilégiez la désactivation pour conserver l'historique.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Contact et support -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">contact_support</span>
+              Besoin d'aide supplémentaire ?
+            </h3>
+            <div class="contact-cards-grid">
+              <div class="contact-card">
+                <div class="contact-icon email-icon"><span class="material-icons">email</span></div>
+                <h4>Support technique</h4>
+                <p>support@uasz-maintenance.sn</p>
+                <a href="mailto:support@uasz-maintenance.sn" class="contact-link">Envoyer un email</a>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon phone-icon"><span class="material-icons">phone</span></div>
+                <h4>Assistance téléphonique</h4>
+                <p>+221 33 123 45 67</p>
+                <p class="contact-hours">Lun-Ven: 8h-18h</p>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon docs-icon"><span class="material-icons">description</span></div>
+                <h4>Documentation complète</h4>
+                <p>Guides détaillés et tutoriels</p>
+                <button class="secondary-btn" style="margin-top: 0.5rem;" (click)="openDocumentation()">
+                  <span class="material-icons">open_in_new</span>
+                  Consulter
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Version et informations -->
+          <section class="stats-section" style="text-align: center; padding: 2rem;">
+            <div style="color: #6b7280; font-size: 0.875rem;">
+              <p style="margin-bottom: 0.5rem;"><strong>UASZ Maintenance System</strong> - Version 1.0.0</p>
+              <p style="margin: 0;">© 2026 Université Assane Seck de Ziguinchor. Tous droits réservés.</p>
+            </div>
+          </section>
+
         </section>
       </ng-container>
 
@@ -1233,8 +1235,11 @@
           <input
             type="email"
             [(ngModel)]="newUser.email"
-            placeholder="email@example.com"
+            placeholder="prenom.nom@zig.univ.sn ou prenom.nom@univ-zig.sn"
           />
+          <p class="error-text" *ngIf="newUser.email && !isEmailUaszValide(newUser.email)">
+            L'email doit être un email UASZ (@zig.univ.sn ou @univ-zig.sn).
+          </p>
         </div>
 
         <div class="form-field">
@@ -1345,8 +1350,11 @@
           <input
             type="email"
             [(ngModel)]="editUser.email"
-            placeholder="email@example.com"
+            placeholder="prenom.nom@zig.univ.sn ou prenom.nom@univ-zig.sn"
           />
+          <p class="error-text" *ngIf="editUser.email && !isEmailUaszValide(editUser.email)">
+            L'email doit être un email UASZ (@zig.univ.sn ou @univ-zig.sn).
+          </p>
         </div>
 
         <div class="form-field">
@@ -1626,43 +1634,26 @@
 
         <div class="form-field">
           <label for="lieu">Lieu<span class="required">*</span></label>
-          <input
-            id="lieu"
-            type="text"
+          <app-lieu-autocomplete
+            inputId="lieu"
+            inputName="lieu"
+            [required]="true"
             [(ngModel)]="newDemande.lieu"
-            placeholder="Ex : PGF-SUP salle 10"
-          />
+            name="lieu"
+          ></app-lieu-autocomplete>
         </div>
 
         <!-- Type d'équipement (preset) -->
+        <!-- Type d'équipement (autocomplete) -->
         <div class="form-field">
           <label for="equipementPreset">Type d'équipement<span class="required">*</span></label>
-
-          <select
-            id="equipementPreset"
-            name="equipementPreset"
+          <app-equipement-autocomplete
+            inputId="equipementPreset"
+            inputName="equipementPreset"
+            [required]="true"
             [(ngModel)]="selectedEquipementPreset"
-            (ngModelChange)="selectedEquipementPreset = $event; equipementAutre = ($event === 'AUTRE') ? equipementAutre : ''"
-          >
-
-          <option value="" disabled>Choisissez un équipement…</option>
-
-            <option *ngFor="let name of equipementsPreset" [value]="name">
-              {{ name === 'AUTRE' ? 'Autre (équipement non listé)' : name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Champ "Autre" si nécessaire -->
-        <div class="form-field" *ngIf="isAutreEquipement()">
-          <label for="equipementAutre">Précisez l'équipement<span class="required">*</span></label>
-          <input
-            id="equipementAutre"
-            type="text"
-            name="equipementAutre"
-            [(ngModel)]="equipementAutre"
-            placeholder="Ex : Lampe"
-          />
+            name="equipementPreset"
+          ></app-equipement-autocomplete>
         </div>
 
         <div class="form-field">
@@ -1831,6 +1822,14 @@
     <footer class="modal-footer">
       <button type="button" class="secondary-btn" (click)="closeDemandeDetails()">
         Fermer
+      </button>
+      <button
+        type="button"
+        class="primary-btn relance-modal-btn"
+        (click)="relancerDemande(selectedDemande!)"
+        [disabled]="!selectedDemande || !peutRelancerDemande(selectedDemande)"
+      >
+        Relancer cette demande
       </button>
     </footer>
   </section>

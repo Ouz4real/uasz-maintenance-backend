@@ -22,8 +22,6 @@ public class Panne {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ✅ supprimé : code
-
     @Column(nullable = false, length = 200)
     private String titre;
 
@@ -72,35 +70,30 @@ public class Panne {
     @Column(length = 150)
     private String lieu;
 
-    // ✅ image persistée
     @Column(name = "image_path", length = 255)
     private String imagePath;
 
-    // ✅ image après résolution (jointe par le technicien)
     @Column(name = "image_resolution_path", length = 255)
     private String imageResolutionPath;
 
-    // ✅ commentaire interne pour le responsable/technicien
     @Column(name = "commentaire_interne", columnDefinition = "TEXT")
     private String commentaireInterne;
 
-    // ✅ note du technicien après intervention
     @Column(name = "note_technicien", columnDefinition = "TEXT")
     private String noteTechnicien;
 
-    // ✅ pièces utilisées (format JSON ou texte simple)
     @Column(name = "pieces_utilisees", columnDefinition = "TEXT")
     private String piecesUtilisees;
 
-    // ✅ raison du refus par le technicien
     @Column(name = "raison_refus", columnDefinition = "TEXT")
     private String raisonRefus;
 
-    // ✅ date du refus
     @Column(name = "date_refus")
     private LocalDateTime dateRefus;
 
-    // ✅ technicien qui a décliné (pour garder l'historique lors de la réaffectation)
+    @Column(name = "date_derniere_relance")
+    private LocalDateTime dateDerniereRelance;
+
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "technicien_declinant_id", nullable = true)
@@ -122,6 +115,4 @@ public class Panne {
             this.statutInterventions = StatutInterventions.NON_DEMARREE;
         }
     }
-
-
 }

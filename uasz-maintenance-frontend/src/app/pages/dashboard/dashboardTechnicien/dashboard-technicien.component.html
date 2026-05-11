@@ -2,48 +2,54 @@
 
 <!-- ===== CONTENU PRINCIPAL AVEC EFFET BLUR ===== -->
 <div class="dashboard-layout" [class.blur-background]="showLogoutModal">
+  <!-- Overlay sidebar mobile -->
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
+
   <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar" [class.hidden]="activeItem === 'profile'">
+  <aside class="sidebar" [class.open]="sidebarOpen" [class.collapsed]="sidebarCollapsed" [class.hidden]="activeItem === 'profile'">
     <div class="sidebar-header">
       <div class="avatar-circle">{{ usernameInitial }}</div>
       <div class="sidebar-title">
         <h1>Maintenance UASZ</h1>
         <p>Parc &amp; interventions</p>
       </div>
+      <button class="sidebar-collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed" [title]="sidebarCollapsed ? 'Ouvrir' : 'Réduire'">
+        <span class="material-icons">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</span>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item" [class.active]="activeItem === 'dashboard'" (click)="setActive('dashboard')">
+      <button class="nav-item" title="Tableau de bord" [class.active]="activeItem === 'dashboard'" (click)="setActive('dashboard')">
         <span class="nav-icon material-icons">dashboard</span>
         <span class="nav-label">Tableau de bord</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'interventions'" (click)="setActive('interventions')">
+      <button class="nav-item" title="Mes interventions" [class.active]="activeItem === 'interventions'" (click)="setActive('interventions')">
         <span class="nav-icon material-icons">build</span>
         <span class="nav-label">Mes interventions</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'mes-demandes'" (click)="setActive('mes-demandes')">
+      <button class="nav-item" title="Mes demandes" [class.active]="activeItem === 'mes-demandes'" (click)="setActive('mes-demandes')">
         <span class="nav-icon material-icons">assignment</span>
         <span class="nav-label">Mes demandes</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'maintenances-preventives'" (click)="setActive('maintenances-preventives')">
+      <button class="nav-item" title="Maintenances préventives" [class.active]="activeItem === 'maintenances-preventives'" (click)="setActive('maintenances-preventives')">
         <span class="nav-icon material-icons">event_repeat</span>
         <span class="nav-label">Maintenances préventives</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'equipements'" (click)="setActive('equipements')">
+      <button class="nav-item" title="Équipements" [class.active]="activeItem === 'equipements'" (click)="setActive('equipements')">
         <span class="nav-icon material-icons">devices</span>
         <span class="nav-label">Équipements</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'historique'" (click)="setActive('historique')">
+      <button class="nav-item" title="Historique" [class.active]="activeItem === 'historique'" (click)="setActive('historique')">
         <span class="nav-icon material-icons">history</span>
         <span class="nav-label">Historique</span>
       </button>
 
-      <button class="nav-item" [class.active]="activeItem === 'help'" (click)="setActive('help')">
+      <button class="nav-item" title="Aide & Support" [class.active]="activeItem === 'help'" (click)="setActive('help')">
         <span class="nav-icon material-icons">help_outline</span>
         <span class="nav-label">Aide &amp; Support</span>
       </button>
@@ -60,6 +66,10 @@
       </div>
 
       <div class="topbar-right">
+        <!-- Bouton hamburger sidebar (mobile) -->
+        <button class="sidebar-toggle-btn" (click)="sidebarOpen = !sidebarOpen" aria-label="Ouvrir le menu">
+          <span class="material-icons">menu</span>
+        </button>
         <!-- Composant de notification -->
         <app-notification-bell 
           [themeColor]="'#0891b2'"
@@ -1215,96 +1225,221 @@
 
 
       <ng-container *ngIf="activeItem === 'help'">
-        <section class="recent-requests">
-          <div class="recent-header">
-            <h2>Aide &amp; support</h2>
-            <p class="recent-subtitle">
-              Guides rapides, contacts et réponses aux questions fréquentes.
-            </p>
-          </div>
+        <section class="tech-help-page">
 
-          <div class="help-shell">
-            <!-- ================= LEFT : FAQ ================= -->
-            <div class="help-left">
-              <div class="help-section-title">
-                <div class="help-badge material-icons">info</div>
-                <div>
-                  <h3>Questions fréquentes</h3>
-                  <p>Quelques réponses rapides avant de contacter le support.</p>
-                </div>
+          <h2 class="section-title" style="margin-bottom: 2rem;">
+            <span class="material-icons">help</span>
+            Aide &amp; Support
+          </h2>
+
+          <!-- Guide de démarrage rapide -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">rocket_launch</span>
+              Guide de démarrage rapide
+            </h3>
+            <div class="help-cards-grid">
+              <div class="help-card">
+                <div class="help-card-icon dashboard-icon"><span class="material-icons">dashboard</span></div>
+                <h4>Tableau de bord</h4>
+                <p>Consultez vos interventions en cours, vos statistiques et les maintenances planifiées pour une vue d'ensemble de votre activité.</p>
               </div>
-
-              <!-- FAQ item 1 -->
-              <div class="faq-card">
-                <h4>Comment traiter une intervention “À faire” ?</h4>
-                <p>
-                  Ouvrez <strong>Mes interventions</strong>, cliquez sur <strong>Voir détails</strong>,
-                  puis <strong>Accepter l’intervention</strong> ou <strong>Décliner</strong>.
-                </p>
+              <div class="help-card">
+                <div class="help-card-icon interventions-icon"><span class="material-icons">assignment</span></div>
+                <h4>Mes interventions</h4>
+                <p>Gérez les interventions qui vous sont affectées. Acceptez, traitez et terminez chaque intervention avec une image et une note.</p>
               </div>
-
-              <!-- FAQ item 2 -->
-              <div class="faq-card">
-                <h4>Pourquoi le bouton “Terminer l’intervention” est désactivé ?</h4>
-                <p>
-                  Il devient actif uniquement si vous avez ajouté une <strong>image</strong> et une
-                  <strong>note technicien</strong>. Les pièces utilisées sont <strong>optionnelles</strong>.
-                </p>
+              <div class="help-card">
+                <div class="help-card-icon signalements-icon"><span class="material-icons">event_repeat</span></div>
+                <h4>Maintenances préventives</h4>
+                <p>Consultez et réalisez les maintenances préventives planifiées. Renseignez vos observations et validez la réalisation.</p>
               </div>
-
-              <!-- FAQ item 3 -->
-              <div class="faq-card">
-                <h4>Comment ajouter des pièces utilisées ?</h4>
-                <p>
-                  Dans la modale “En cours”, choisissez une <strong>pièce</strong> dans la liste,
-                  puis saisissez une <strong>quantité ≥ 1</strong>. Vous pouvez ajouter plusieurs pièces.
-                </p>
+              <div class="help-card">
+                <div class="help-card-icon equipements-icon"><span class="material-icons">history</span></div>
+                <h4>Historique</h4>
+                <p>Consultez l'historique de toutes vos interventions terminées et suivez votre performance dans le temps.</p>
               </div>
-
-              <!-- FAQ item 4 -->
-              <div class="faq-card">
-                <h4>Que se passe-t-il si je refuse une intervention ?</h4>
-                <p>
-                  Un message de confirmation s’affiche, puis le Responsable Maintenance est informé.
-                </p>
+              <div class="help-card">
+                <div class="help-card-icon stats-icon"><span class="material-icons">build</span></div>
+                <h4>Mes demandes</h4>
+                <p>Créez et suivez vos propres demandes de maintenance. Signalez les pannes que vous constatez sur le terrain.</p>
+              </div>
+              <div class="help-card">
+                <div class="help-card-icon stats-icon"><span class="material-icons">notifications</span></div>
+                <h4>Notifications</h4>
+                <p>Recevez des alertes en temps réel pour chaque nouvelle affectation, mise à jour ou message important.</p>
               </div>
             </div>
+          </section>
 
-            <!-- ================= RIGHT : CONTACT BOX ================= -->
-            <div class="help-right">
+          <!-- Bonnes pratiques -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">verified</span>
+              Bonnes pratiques technicien
+            </h3>
+            <div class="best-practices-grid">
+              <div class="practice-card">
+                <div class="practice-icon monitoring-icon"><span class="material-icons">photo_camera</span></div>
+                <div class="practice-content">
+                  <h4>Image de résolution</h4>
+                  <p>Ajoutez toujours une image claire de la résolution. Elle est obligatoire pour terminer une intervention.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon analysis-icon"><span class="material-icons">edit_note</span></div>
+                <div class="practice-content">
+                  <h4>Note technicien</h4>
+                  <p>La note technicien aide le responsable à valider rapidement. Soyez précis sur les actions effectuées.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon priority-icon"><span class="material-icons">speed</span></div>
+                <div class="practice-content">
+                  <h4>Réactivité</h4>
+                  <p>Déclinez rapidement si vous ne pouvez pas traiter une intervention pour permettre une réaffectation rapide.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon report-icon"><span class="material-icons">inventory</span></div>
+                <div class="practice-content">
+                  <h4>Pièces utilisées</h4>
+                  <p>Renseignez les pièces utilisées lors de chaque intervention pour maintenir le stock à jour.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon equipment-icon"><span class="material-icons">devices_other</span></div>
+                <div class="practice-content">
+                  <h4>Équipements critiques</h4>
+                  <p>Signalez immédiatement les équipements nécessitant une attention particulière ou un remplacement.</p>
+                </div>
+              </div>
+              <div class="practice-card">
+                <div class="practice-icon team-icon"><span class="material-icons">groups</span></div>
+                <div class="practice-content">
+                  <h4>Communication</h4>
+                  <p>Tenez le responsable informé de l'avancement des interventions complexes ou bloquées.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- FAQ -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">quiz</span>
+              Questions fréquentes (FAQ)
+            </h3>
+            <div class="faq-container">
+              <div class="faq-item" [class.active]="activeFaqIndex === 0" (click)="toggleFaq(0)">
+                <div class="faq-question">
+                  <span>Comment traiter une intervention « À faire » ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 0 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 0">
+                  <p>Ouvrez <strong>Mes interventions</strong>, cliquez sur <strong>Voir détails</strong>, puis <strong>Accepter</strong> ou <strong>Décliner</strong> l'intervention.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 1" (click)="toggleFaq(1)">
+                <div class="faq-question">
+                  <span>Pourquoi le bouton « Terminer » est désactivé ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 1 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 1">
+                  <p>Il s'active uniquement si vous avez ajouté une <strong>image de résolution</strong> et une <strong>note technicien</strong>. Les pièces utilisées sont optionnelles.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 2" (click)="toggleFaq(2)">
+                <div class="faq-question">
+                  <span>Comment ajouter des pièces utilisées ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 2 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 2">
+                  <p>Dans la modale « En cours », choisissez une pièce dans la liste, saisissez une quantité ≥ 1. Vous pouvez en ajouter plusieurs avant de terminer.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 3" (click)="toggleFaq(3)">
+                <div class="faq-question">
+                  <span>Que se passe-t-il si je refuse une intervention ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 3 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 3">
+                  <p>Un message de confirmation s'affiche, puis le Responsable Maintenance est automatiquement notifié pour réaffecter l'intervention.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 4" (click)="toggleFaq(4)">
+                <div class="faq-question">
+                  <span>Comment réaliser une maintenance préventive ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 4 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 4">
+                  <p>Allez dans <strong>Maintenances préventives</strong>, cliquez sur la maintenance planifiée, renseignez vos observations et validez la réalisation.</p>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 5" (click)="toggleFaq(5)">
+                <div class="faq-question">
+                  <span>Signification des statuts d'intervention</span>
+                  <span class="material-icons">{{ activeFaqIndex === 5 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 5">
+                  <ul>
+                    <li><strong>À faire :</strong> affectée, non encore acceptée</li>
+                    <li><strong>En cours :</strong> acceptée et en traitement</li>
+                    <li><strong>Terminée :</strong> intervention clôturée</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="faq-item" [class.active]="activeFaqIndex === 6" (click)="toggleFaq(6)">
+                <div class="faq-question">
+                  <span>Comment signaler une nouvelle panne ?</span>
+                  <span class="material-icons">{{ activeFaqIndex === 6 ? 'expand_less' : 'expand_more' }}</span>
+                </div>
+                <div class="faq-answer" *ngIf="activeFaqIndex === 6">
+                  <p>Utilisez le bouton <strong>Nouvelle demande</strong> dans la section <strong>Mes demandes</strong> pour signaler une panne que vous constatez sur le terrain.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Contact et support -->
+          <section class="stats-section">
+            <h3 class="subsection-title">
+              <span class="material-icons">contact_support</span>
+              Besoin d'aide supplémentaire ?
+            </h3>
+            <div class="contact-cards-grid">
               <div class="contact-card">
-                <h3>Besoin d’un coup de main ?</h3>
-                <p>
-                  Si vous ne trouvez pas la réponse à votre question, vous pouvez contacter
-                  l’équipe maintenance.
-                </p>
-
-                <div class="contact-lines">
-                  <div class="contact-line">
-                    <span class="material-icons">mail</span>
-                    <span>maintenance@uasz.sn</span>
-                  </div>
-                  <div class="contact-line">
-                    <span class="material-icons">call</span>
-                    <span>+221 77 123 45 67</span>
-                  </div>
-                  <div class="contact-line">
-                    <span class="material-icons">schedule</span>
-                    <span>Lundi – Vendredi, 8h00 – 17h00</span>
-                  </div>
-                </div>
-
-                <div class="contact-actions">
-                  <button type="button" class="primary-btn" (click)="setActive('interventions')">
-                    Voir mes interventions
-                  </button>
-                  <button type="button" class="secondary-btn" (click)="setActive('dashboard')">
-                    Retour au dashboard
-                  </button>
-                </div>
+                <div class="contact-icon email-icon"><span class="material-icons">email</span></div>
+                <h4>Support technique</h4>
+                <p>support@uasz-maintenance.sn</p>
+                <a href="mailto:support@uasz-maintenance.sn" class="contact-link">Envoyer un email</a>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon phone-icon"><span class="material-icons">phone</span></div>
+                <h4>Assistance téléphonique</h4>
+                <p>+221 33 123 45 67</p>
+                <p class="contact-hours">Lun-Ven: 8h-18h</p>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon docs-icon"><span class="material-icons">description</span></div>
+                <h4>Documentation complète</h4>
+                <p>Guides détaillés et tutoriels</p>
+                <button class="secondary-btn" style="margin-top: 0.5rem;" (click)="openDocumentation()">
+                  <span class="material-icons">open_in_new</span>
+                  Consulter
+                </button>
               </div>
             </div>
-          </div>
+          </section>
+
+          <!-- Version et informations -->
+          <section class="stats-section" style="text-align: center; padding: 2rem;">
+            <div style="color: #6b7280; font-size: 0.875rem;">
+              <p style="margin-bottom: 0.5rem;"><strong>UASZ Maintenance System</strong> - Version 1.0.0</p>
+              <p style="margin: 0;">© 2026 Université Assane Seck de Ziguinchor. Tous droits réservés.</p>
+            </div>
+          </section>
+
         </section>
       </ng-container>
 
@@ -1848,43 +1983,26 @@
 
               <div class="form-field">
                 <label for="lieu">Lieu<span class="required">*</span></label>
-                <input
-                  id="lieu"
-                  type="text"
-                  name="lieu"
+                <app-lieu-autocomplete
+                  inputId="lieu"
+                  inputName="lieu"
+                  [required]="true"
                   [(ngModel)]="nouvelleDemande.lieu"
-                  placeholder="Ex : PGF-SUP salle 10"
-                />
+                  name="lieu"
+                ></app-lieu-autocomplete>
               </div>
 
               <!-- Type d'équipement (preset) -->
+              <!-- Type d'équipement (autocomplete) -->
               <div class="form-field">
                 <label for="equipementPreset">Type d'équipement<span class="required">*</span></label>
-
-                <select
-                  id="equipementPreset"
-                  name="equipementPreset"
+                <app-equipement-autocomplete
+                  inputId="equipementPreset"
+                  inputName="equipementPreset"
+                  [required]="true"
                   [(ngModel)]="selectedEquipementPreset"
-                  (ngModelChange)="onEquipementPresetChange()"
-                >
-                  <option value="" disabled>Choisissez un équipement…</option>
-
-                  <option *ngFor="let name of equipementsPreset" [value]="name">
-                    {{ name === 'AUTRE' ? 'Autre (équipement non listé)' : name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Champ "Autre" si nécessaire -->
-              <div class="form-field" *ngIf="selectedEquipementPreset === 'AUTRE'">
-                <label for="equipementAutre">Précisez l'équipement<span class="required">*</span></label>
-                <input
-                  id="equipementAutre"
-                  type="text"
-                  name="equipementAutre"
-                  [(ngModel)]="equipementAutre"
-                  placeholder="Ex : Lampe"
-                />
+                  name="equipementPreset"
+                ></app-equipement-autocomplete>
               </div>
 
               <!-- Urgence du demandeur -->
@@ -2050,6 +2168,14 @@
 
         <footer class="modal-footer">
           <button type="button" class="secondary-btn" (click)="closeModals()">Fermer</button>
+          <button
+            type="button"
+            class="primary-btn relance-modal-btn"
+            (click)="relancerDemande(selectedDemande!)"
+            [disabled]="!selectedDemande || !peutRelancerDemande(selectedDemande)"
+          >
+            Relancer cette demande
+          </button>
         </footer>
       </section>
 

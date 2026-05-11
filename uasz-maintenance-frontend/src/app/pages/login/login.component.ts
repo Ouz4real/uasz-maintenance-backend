@@ -9,6 +9,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -28,6 +29,7 @@ import {
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
+    FormsModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -44,14 +46,47 @@ export class LoginComponent {
   errorMessage: string | null = null;
   showDisabledAccountModal = false;
   disabledAccountMessage = '';
+  showForgotModal = false;
+  forgotEmail = '';
+  forgotLoading = false;
+  forgotSent = false;
+  forgotError: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService
   ) {
+    const savedUsername = localStorage.getItem('rememberedUsername') ?? '';
     this.loginForm = this.fb.group({
-      username: ['', Validators.required],
+      username: [savedUsername, Validators.required],
       password: ['', Validators.required],
+      rememberMe: [!!savedUsername],
+    });
+  }
+
+  openForgotModal(): void {
+    this.showForgotModal = true;
+    this.forgotEmail = '';
+    this.forgotSent = false;
+    this.forgotError = null;
+  }
+
+  closeForgotModal(): void { this.showForgotModal = false; }
+
+  submitForgotPassword(): void {
+    if (!this.forgotEmail) return;
+    this.forgotLoading = true;
+    this.forgotError = null;
+
+    this.authService.forgotPassword(this.forgotEmail).subscribe({
+      next: () => {
+        this.forgotLoading = false;
+        this.forgotSent = true;
+      },
+      error: () => {
+        this.forgotLoading = false;
+        this.forgotError = 'Une erreur est survenue. Veuillez réessayer.';
+      }
     });
   }
 
@@ -66,11 +101,17 @@ export class LoginComponent {
     this.errorMessage = null;
 
     if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
       return;
     }
 
-    const { username, password } = this.loginForm.value;
+    const { username, password, rememberMe } = this.loginForm.value;
+
+    if (rememberMe) {
+      localStorage.setItem('rememberedUsername', username);
+    } else {
+      localStorage.removeItem('rememberedUsername');
+    }
+
     const payload: LoginRequest = {
       usernameOrEmail: username,
       motDePasse: password,

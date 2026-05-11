@@ -1,0 +1,28 @@
+<div class="equip-autocomplete-wrapper">
+  <input
+    [id]="inputId"
+    [name]="inputName"
+    type="text"
+    class="equip-input"
+    [placeholder]="placeholder"
+    [required]="required"
+    [value]="inputValue"
+    (input)="onInput($any($event.target).value)"
+    (keydown)="onKeydown($event)"
+    (blur)="onBlur()"
+    autocomplete="off"
+  />
+
+  <ul class="equip-dropdown" *ngIf="showDropdown && suggestions.length > 0" role="listbox">
+    <li
+      *ngFor="let s of suggestions; let i = index"
+      class="equip-option"
+      [class.active]="i === activeIndex"
+      (mousedown)="select(s)"
+      role="option"
+    >
+      <span class="material-icons equip-icon">devices</span>
+      {{ s }}
+    </li>
+  </ul>
+</div>

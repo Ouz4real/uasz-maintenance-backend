@@ -20,6 +20,8 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
 
     List<Utilisateur> findByRole(Role role);
 
+    List<Utilisateur> findByRoleAndEnabled(Role role, boolean enabled);
+
 
     boolean existsByEmail(String email);
 }

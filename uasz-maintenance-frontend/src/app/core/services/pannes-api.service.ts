@@ -18,8 +18,15 @@ export class PannesApiService {
     return this.http.get<PanneApi>(`${this.baseUrl}/${id}`);
   }
 
-  // ✅ multipart/form-data
   createPanne(formData: FormData): Observable<PanneApi> {
     return this.http.post<PanneApi>(this.baseUrl, formData);
+  }
+
+  relancerDemande(id: number): Observable<PanneApi> {
+    return this.http.post<PanneApi>(`${this.baseUrl}/${id}/relancer`, {});
+  }
+
+  exportPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${id}/export-pdf`, { responseType: 'blob' });
   }
 }

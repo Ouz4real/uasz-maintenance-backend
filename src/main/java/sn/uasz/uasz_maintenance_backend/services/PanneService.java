@@ -92,6 +92,23 @@ public class PanneService {
             throw new IllegalArgumentException("Le type d’équipement est obligatoire.");
         }
 
+
+        // ===============================
+        // 2b. Vérification doublon
+        // ===============================
+        boolean doublon = panneRepository
+                .existsByDemandeurIdAndTitreIgnoreCaseAndLieuIgnoreCaseAndTypeEquipementIgnoreCaseAndStatutIn(
+                        request.getDemandeurId(),
+                        request.getTitre().trim(),
+                        request.getLieu().trim(),
+                        request.getTypeEquipement().trim(),
+                        java.util.List.of(StatutPanne.OUVERTE, StatutPanne.EN_COURS)
+                );
+        if (doublon) {
+            throw new IllegalStateException(
+                    "Une demande identique (même titre, lieu et équipement) est déjà en cours de traitement."
+            );
+        }
         // ===============================
         // 2. Chargement du demandeur
         // ===============================
@@ -543,8 +560,12 @@ public class PanneService {
                 .imagePath(panne.getImagePath())
                 .imageResolutionPath(panne.getImageResolutionPath())
                 .commentaireInterne(panne.getCommentaireInterne())
+                .noteTechnicien(panne.getNoteTechnicien())
+                .piecesUtilisees(panne.getPiecesUtilisees())
                 .raisonRefus(panne.getRaisonRefus())
                 .dateRefus(panne.getDateRefus() != null ? panne.getDateRefus().toString() : null)
+                .dateSignalement(panne.getDateSignalement())
+                .dateDerniereRelance(panne.getDateDerniereRelance())
                 .build();
     }
 
@@ -1171,4 +1192,65 @@ public class PanneService {
         
         return toResponse(saved);
     }
+
+    /**
+    /**
+     * Relancer une demande : notifie + email les responsables.
+     * Accessible par tous les rôles (le demandeur peut être admin, technicien, etc.)
+     */
+    @Transactional
+    public PanneResponse relancerDemande(Long panneId, Long demandeurId) {
+        Panne panne = panneRepository.findById(panneId)
+                .orElseThrow(() -> new ResourceNotFoundException("Panne introuvable"));
+
+        // Vérifier que c'est bien la demande de cet utilisateur
+        if (panne.getDemandeur() == null || !panne.getDemandeur().getId().equals(demandeurId)) {
+            throw new IllegalArgumentException("Cette panne n'appartient pas à cet utilisateur");
+        }
+
+        if (panne.getStatut() != StatutPanne.OUVERTE) {
+            throw new IllegalArgumentException("Seules les demandes en attente peuvent être relancées");
+        }
+
+        // Calcul du vrai nombre de jours d'attente
+        long joursAttente = java.time.temporal.ChronoUnit.DAYS.between(
+                panne.getDateSignalement(), LocalDateTime.now()
+        );
+
+        panne.setDateDerniereRelance(LocalDateTime.now());
+        Panne saved = panneRepository.save(panne);
+
+        String demandeurNom = panne.getDemandeur().getPrenom() + " " + panne.getDemandeur().getNom();
+        String lieu = panne.getLieu() != null ? panne.getLieu() : "Non précisé";
+
+        // Notifier + emailer tous les responsables
+        List<Utilisateur> responsables = utilisateurRepository.findByRole(Role.RESPONSABLE_MAINTENANCE);
+        for (Utilisateur responsable : responsables) {
+            try {
+                notificationService.createNotification(
+                        responsable.getId(),
+                        "🔔 Relance demande — " + panne.getTitre(),
+                        demandeurNom + " relance sa demande \"" + panne.getTitre() + "\" (lieu : " + lieu + ") sans prise en charge depuis " + joursAttente + " jour(s).",
+                        "WARNING",
+                        "PANNE",
+                        saved.getId()
+                );
+                if (responsable.getEmail() != null) {
+                    emailService.sendRelanceResponsableEmail(
+                            responsable.getEmail(),
+                            responsable.getPrenom() + " " + responsable.getNom(),
+                            panne.getTitre(),
+                            demandeurNom,
+                            lieu,
+                            joursAttente
+                    );
+                }
+            } catch (Exception e) {
+                System.err.println("Erreur relance responsable: " + e.getMessage());
+            }
+        }
+
+        return toResponse(saved);
+    }
 }
+

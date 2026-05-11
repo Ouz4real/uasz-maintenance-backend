@@ -846,122 +846,276 @@
 
 /* ====== AIDE & SUPPORT ====== */
 
+.dem-help-page {
+  padding: 0;
+}
+
+/* En-tête */
+.help-page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+  color: white;
+
+  .help-header-icon {
+    width: 52px;
+    height: 52px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    .material-icons { font-size: 28px; color: white; }
+  }
+
+  .help-page-title {
+    margin: 0 0 0.25rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .help-page-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.8);
+  }
+}
+
+/* Grille 2 colonnes */
 .help-grid {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
-  gap: 1.25rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
 }
 
 .help-column {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1.25rem;
 }
 
+/* Titre de section */
 .help-section-title {
   display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  margin-bottom: 0.5rem;
-}
-
-.help-section-title h3 {
-  margin: 0;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1rem;
+  font-weight: 600;
+  color: #1e3a5f;
+  margin: 0 0 0.75rem;
+  .material-icons { font-size: 20px; color: #2563eb; }
 }
 
-.help-section-title p {
-  margin: 0.15rem 0 0;
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.help-icon {
-  font-size: 22px;
-  color: #2563eb;
-  background: #eff6ff;
-  border-radius: 999px;
-  padding: 0.3rem;
-}
-
+/* Liste FAQ */
 .help-faq-list {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-}
-
-.help-item {
-  border-bottom: none;
-  padding: 0.75rem 0.75rem;
-  border-radius: 14px;
-  background: #f9fafb;
-}
-
-.help-item .request-title {
-  font-size: 0.95rem;
-}
-
-.help-item .request-meta {
-  font-size: 0.82rem;
-}
-
-/* Colonne droite : carte contact */
-
-.help-column-right {
-  align-self: stretch;
-}
-
-.help-support-card {
-  background: radial-gradient(circle at top left, #e0f2fe, #eef2ff);
-  border-radius: 18px;
-  padding: 1.1rem 1.25rem;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-  display: flex;
-  flex-direction: column;
   gap: 0.75rem;
 }
 
-.help-support-card h3 {
-  margin: 0 0 0.25rem;
-  font-size: 1rem;
-}
-
-.help-contact-block {
+.help-faq-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 0.2rem;
+  gap: 0.875rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  transition: box-shadow 0.2s ease;
+  &:hover { box-shadow: 0 4px 12px rgba(15,23,42,0.08); }
 }
 
-.help-contact-line {
+.help-faq-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: #374151;
+  justify-content: center;
+  flex-shrink: 0;
+  .material-icons { font-size: 20px; }
 }
 
-.help-contact-line .material-icons {
-  font-size: 18px;
-  color: #4b5563;
+.help-faq-content {
+  flex: 1;
+  h4 {
+    margin: 0 0 0.35rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111827;
+  }
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
 }
 
-.help-actions {
+/* Liste inline dans FAQ */
+.help-inline-list {
+  margin: 0.25rem 0 0;
+  padding-left: 0;
+  list-style: none;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.6rem;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  color: #6b7280;
 }
 
-/* Responsive : une colonne sur mobile */
-@media (max-width: 900px) {
-  .help-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
+/* Badges statuts */
+.help-badge {
+  display: inline !important;
+  padding: 2px 10px !important;
+  border-radius: 999px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  margin-right: 4px !important;
+  width: auto !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+  vertical-align: middle !important;
+}
+.badge-attente { background: #fef3c7 !important; color: #92400e !important; }
+.badge-cours   { background: #dbeafe !important; color: #1d4ed8 !important; }
+.badge-resolue { background: #d1fae5 !important; color: #065f46 !important; }
 
-  .main {
-    margin-left: 220px; /* si tu réduis le sidebar sur mobile, ajuste ici ou gère un autre breakpoint */
+/* Card contact */
+.help-contact-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+}
+
+.help-contact-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  .material-icons { font-size: 22px; color: #2563eb; }
+  h3 { margin: 0; font-size: 1rem; font-weight: 600; color: #1e3a5f; }
+}
+
+.help-contact-desc {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0 0 1rem;
+}
+
+.help-contact-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.help-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  .material-icons { font-size: 18px; color: #2563eb; flex-shrink: 0; }
+  div { display: flex; flex-direction: column; }
+}
+
+.help-contact-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.help-contact-value {
+  font-size: 0.88rem;
+  color: #111827;
+  font-weight: 500;
+}
+
+.help-contact-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8rem;
+  color: #1d4ed8;
+  margin: 0;
+  .material-icons { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+}
+
+/* Actions rapides */
+.help-quick-actions {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.help-action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.help-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  .material-icons { font-size: 18px; color: #2563eb; }
+  &:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+    transform: translateY(-1px);
   }
+}
+
+/* Card conseils */
+.help-tips-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.help-tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #374151;
+    .material-icons { font-size: 18px; color: #16a34a; flex-shrink: 0; margin-top: 1px; }
+  }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .help-grid { grid-template-columns: 1fr; }
 }
 
 
@@ -1587,6 +1741,40 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.7rem;
+
+  .secondary-btn {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #e5e7eb;
+      border-color: #9ca3af;
+    }
+  }
+}
+
+.btn-fermer-details {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  padding: 0.45rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+
+  &:hover {
+    background: #f3f4ff;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+  }
 }
 
 
@@ -2049,4 +2237,189 @@
 /* Empêcher le scroll quand la modale est ouverte */
 :host ::ng-deep body.modal-open {
   overflow: hidden;
+}
+
+/* ============================================================
+   RESPONSIVE — Dashboard Demandeur
+   ============================================================ */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 260px !important;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+  }
+
+  .sidebar.open { left: 0; }
+
+  .main {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem;
+  }
+
+  .content {
+    padding: 1rem !important;
+  }
+
+  .topbar {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .topbar-left p { display: none; }
+
+  .signals-table-wrapper,
+  .demandes-table-wrapper,
+  .table-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filters-shell {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .modal-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 1rem !important;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .content {
+    padding: 0.75rem !important;
+  }
+}
+
+
+/* ========== AIDE & SUPPORT — STYLE SUPERVISEUR ========== */
+
+.stats-section { margin-bottom: 2rem; }
+
+.subsection-title {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 1.1rem; font-weight: 600; color: #1f2937; margin-bottom: 1.5rem;
+  .material-icons { color: #3b82f6; font-size: 22px; }
+}
+
+.help-cards-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem; margin-bottom: 2rem;
+}
+
+.help-card {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem;
+  text-align: center; transition: all 0.3s ease;
+  &:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .help-card-icon {
+    width: 60px; height: 60px; margin: 0 auto 1rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    .material-icons { font-size: 32px; color: white; }
+    &.dashboard-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    &.signalements-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    &.interventions-icon { background: linear-gradient(135deg, #10b981, #059669); }
+    &.equipements-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    &.stats-icon { background: linear-gradient(135deg, #ec4899, #db2777); }
+  }
+  h4 { font-size: 1.1rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; }
+  p { color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin: 0; }
+}
+
+.best-practices-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem; margin-bottom: 2rem;
+}
+
+.practice-card {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem;
+  transition: all 0.3s ease;
+  &:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .practice-icon {
+    width: 60px; height: 60px; margin: 0 auto 1rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    .material-icons { font-size: 32px; color: white; }
+    &.monitoring-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    &.analysis-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+    &.priority-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    &.report-icon { background: linear-gradient(135deg, #10b981, #059669); }
+    &.equipment-icon { background: linear-gradient(135deg, #ec4899, #db2777); }
+    &.team-icon { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+  }
+  h4 { font-size: 1.05rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; text-align: center; }
+  p { color: #6b7280; font-size: 0.9rem; line-height: 1.5; margin: 0; text-align: center; }
+}
+
+.faq-container { display: flex; flex-direction: column; gap: 1rem; }
+
+.faq-item {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;
+  transition: all 0.3s ease;
+  &:hover { border-color: #3b82f6; }
+  &.active { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.1); }
+  .faq-question {
+    padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; user-select: none;
+    span:first-child { font-weight: 600; color: #1f2937; font-size: 1rem; }
+    .material-icons { color: #3b82f6; }
+  }
+  .faq-answer {
+    padding: 0 1.25rem 1.25rem; color: #4b5563; line-height: 1.6;
+    p { margin: 0; }
+    ul { margin: 0.5rem 0 0 1.5rem; padding: 0; li { margin-bottom: 0.5rem; } }
+  }
+}
+
+.contact-cards-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;
+}
+
+.contact-card {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 2rem;
+  text-align: center; transition: all 0.3s ease;
+  &:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .contact-icon {
+    width: 60px; height: 60px; margin: 0 auto 1rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    .material-icons { font-size: 32px; color: white; }
+    &.email-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    &.phone-icon { background: linear-gradient(135deg, #10b981, #059669); }
+    &.docs-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+  }
+  h4 { font-size: 1.1rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; }
+  p { color: #6b7280; font-size: 0.95rem; margin: 0.25rem 0; }
+  .contact-hours { font-size: 0.85rem; color: #9ca3af; font-style: italic; }
+  .contact-link {
+    display: inline-block; margin-top: 0.75rem; color: #3b82f6; text-decoration: none; font-weight: 500;
+    &:hover { color: #2563eb; text-decoration: underline; }
+  }
+}
+
+.secondary-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #d1d5db;
+  background: white; color: #374151; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;
+  &:hover { background: #f9fafb; border-color: #9ca3af; }
+  .material-icons { font-size: 16px; }
+}
+
+@media (max-width: 768px) {
+  .help-cards-grid, .best-practices-grid, .contact-cards-grid { grid-template-columns: 1fr; }
 }

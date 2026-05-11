@@ -1,6 +1,7 @@
 package sn.uasz.uasz_maintenance_backend.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
@@ -24,6 +25,8 @@ import sn.uasz.uasz_maintenance_backend.services.PanneService;
 import sn.uasz.uasz_maintenance_backend.services.TechnicienDashboardService;
 import sn.uasz.uasz_maintenance_backend.services.UtilisateurService;
 
+import sn.uasz.uasz_maintenance_backend.services.PdfExportService;
+
 import java.util.List;
 
 @RestController
@@ -35,6 +38,7 @@ public class PanneController {
     private final PanneService panneService;
     private final TechnicienDashboardService technicienDashboardService;
     private final PanneRepository panneRepository;
+    private final PdfExportService pdfExportService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('TECHNICIEN','RESPONSABLE_MAINTENANCE','SUPERVISEUR')")
@@ -137,6 +141,16 @@ public class PanneController {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleConflict(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     @PatchMapping("/{id}/technicien")
@@ -322,6 +336,40 @@ public class PanneController {
         );
         
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Relancer une demande
+     * POST /api/pannes/{id}/relancer
+     * Accessible à tous les utilisateurs authentifiés (ils relancent leurs propres demandes)
+     */
+    @PostMapping("/{id}/relancer")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PanneResponse> relancerDemande(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        Utilisateur demandeur = (Utilisateur) authentication.getPrincipal();
+        PanneResponse response = panneService.relancerDemande(id, demandeur.getId());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Export PDF d'une panne (demandeur, responsable, superviseur)
+     * GET /api/pannes/{id}/export-pdf
+     */
+    @GetMapping("/{id}/export-pdf")
+    @PreAuthorize("hasAnyRole('DEMANDEUR','RESPONSABLE_MAINTENANCE','SUPERVISEUR','TECHNICIEN','ADMINISTRATEUR')")
+    public ResponseEntity<byte[]> exportPdf(@PathVariable Long id) {
+        Panne panne = panneService.getPanneById(id);
+        byte[] pdf = pdfExportService.exportPanneToPdf(panne);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("inline", "rapport-panne-" + id + ".pdf");
+        headers.setContentLength(pdf.length);
+
+        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 }
 

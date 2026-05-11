@@ -37,6 +37,10 @@ public class UtilisateurService {
     private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    public String generateTemporaryPassword() {
+        return generatePassword();
+    }
+
     private String generatePassword() {
         StringBuilder sb = new StringBuilder(12);
         // Garantir au moins 1 majuscule, 1 minuscule, 1 chiffre, 1 spécial
@@ -77,6 +81,13 @@ public class UtilisateurService {
         // Vérifier si l'email est déjà utilisé
         if (utilisateurRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email déjà utilisé : " + email);
+        }
+
+        // Vérifier que l'email appartient à un domaine UASZ autorisé
+        if (email != null && !email.isBlank() && !isEmailDomainAutorise(email)) {
+            throw new IllegalArgumentException(
+                "L'email doit appartenir à un domaine de l'UASZ (@zig.univ.sn ou @univ-zig.sn)."
+            );
         }
 
         // Générer un mot de passe aléatoire sécurisé si non fourni (création par admin)
@@ -282,6 +293,14 @@ public class UtilisateurService {
         utilisateurRepository.delete(user);
     }
 
-
+    /**
+     * Vérifie que l'email appartient à un domaine UASZ autorisé.
+     * Domaines acceptés : @zig.univ.sn et @univ-zig.sn
+     */
+    public static boolean isEmailDomainAutorise(String email) {
+        if (email == null) return false;
+        String lower = email.toLowerCase().trim();
+        return lower.endsWith("@zig.univ.sn") || lower.endsWith("@univ-zig.sn");
+    }
 
 }

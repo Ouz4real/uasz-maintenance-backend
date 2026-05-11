@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register';
 import { ChangePasswordRequiredComponent } from './pages/change-password-required/change-password-required.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { DashboardDemandeurComponent } from './pages/dashboard/dashboardDemandeur/dashboard-demandeur.component';
 import { DashboardTechnicienComponent } from './pages/dashboard/dashboardTechnicien/dashboard-technicien.component';
 import { DashboardResponsableComponent } from './pages/dashboard/dashboardResponsable/dashboard-responsable.component';
@@ -18,6 +19,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'change-password-required', component: ChangePasswordRequiredComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
 
 
   // Profil (commun à tous les rôles)

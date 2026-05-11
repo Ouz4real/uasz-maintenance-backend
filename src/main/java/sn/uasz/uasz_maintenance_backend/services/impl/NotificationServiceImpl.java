@@ -28,7 +28,7 @@ public class NotificationServiceImpl implements NotificationService {
     
     @Override
     public List<NotificationDto> getNotificationsByUserId(Long userId) {
-        return notificationRepository.findTop10ByUtilisateurIdOrderByDateCreationDesc(userId)
+        return notificationRepository.findByUtilisateurIdOrderByDateCreationDesc(userId)
                 .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());

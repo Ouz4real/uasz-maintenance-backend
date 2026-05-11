@@ -1,16 +1,16 @@
 import { TestBed } from '@angular/core/testing';
+import { SuperviseurApiService } from './superviseur-api.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
-import { Stats } from './stats';
-
-describe('Stats', () => {
-  let service: Stats;
+describe('SuperviseurApiService', () => {
+  let service: SuperviseurApiService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Stats);
+    TestBed.configureTestingModule({ imports: [HttpClientTestingModule] });
+    service = TestBed.inject(SuperviseurApiService);
   });
 
-  it('should be created', () => {
+  it('doit être créé', () => {
     expect(service).toBeTruthy();
   });
 });

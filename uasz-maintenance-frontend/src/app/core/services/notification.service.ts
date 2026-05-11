@@ -50,8 +50,8 @@ export class NotificationService implements OnDestroy {
       const current = this.notificationsSubject.getValue();
       // Ajouter en tête de liste
       this.notificationsSubject.next([notif as unknown as Notification, ...current]);
-      const unread = this.notificationsSubject.getValue().filter(n => !n.lu).length;
-      this.unreadCountSubject.next(unread);
+      // Incrémenter le compteur plutôt que de recalculer depuis la liste locale
+      this.unreadCountSubject.next(this.unreadCountSubject.getValue() + 1);
     });
   }
 
@@ -59,6 +59,7 @@ export class NotificationService implements OnDestroy {
     return this.http.get<Notification[]>(this.apiUrl).pipe(
       tap(notifications => {
         this.notificationsSubject.next(notifications);
+        // Compter depuis la liste complète reçue du backend
         this.unreadCountSubject.next(notifications.filter(n => !n.lu).length);
       })
     );

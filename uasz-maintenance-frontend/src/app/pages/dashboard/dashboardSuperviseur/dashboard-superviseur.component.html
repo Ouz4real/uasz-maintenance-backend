@@ -20,76 +20,54 @@
 </div>
 
 <div class="dashboard-layout" [class.blur-background]="showLogoutModal || showNewDemandeModal || showDemandeDetailsModal">
+  <!-- Overlay sidebar mobile -->
+  <div class="sidebar-overlay" [class.visible]="sidebarOpen" (click)="sidebarOpen = false"></div>
+
   <!-- ===== SIDEBAR ===== -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.open]="sidebarOpen" [class.collapsed]="sidebarCollapsed">
     <div class="sidebar-header">
       <div class="avatar-circle">{{ usernameInitial }}</div>
       <div class="sidebar-title">
         <h1>Maintenance UASZ</h1>
         <p>Supervision globale</p>
       </div>
+      <button class="sidebar-collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed" [title]="sidebarCollapsed ? 'Ouvrir' : 'Réduire'">
+        <span class="material-icons">{{ sidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</span>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'dashboard'"
-        (click)="setActive('dashboard')"
-      >
+      <button class="nav-item" title="Tableau de bord" [class.active]="activeItem === 'dashboard'" (click)="setActive('dashboard')">
         <span class="nav-icon material-icons">dashboard</span>
         <span class="nav-label">Tableau de bord</span>
       </button>
 
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'signalements'"
-        (click)="setActive('signalements')"
-      >
+      <button class="nav-item" title="Signalements" [class.active]="activeItem === 'signalements'" (click)="setActive('signalements')">
         <span class="nav-icon material-icons">assignment</span>
         <span class="nav-label">Signalements</span>
       </button>
 
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'interventions'"
-        (click)="setActive('interventions')"
-      >
+      <button class="nav-item" title="Interventions" [class.active]="activeItem === 'interventions'" (click)="setActive('interventions')">
         <span class="nav-icon material-icons">handyman</span>
         <span class="nav-label">Interventions</span>
       </button>
 
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'equipements'"
-        (click)="setActive('equipements')"
-      >
+      <button class="nav-item" title="Équipements" [class.active]="activeItem === 'equipements'" (click)="setActive('equipements')">
         <span class="nav-icon material-icons">devices</span>
         <span class="nav-label">Équipements</span>
       </button>
 
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'mes-demandes'"
-        (click)="setActive('mes-demandes')"
-      >
+      <button class="nav-item" title="Mes demandes" [class.active]="activeItem === 'mes-demandes'" (click)="setActive('mes-demandes')">
         <span class="nav-icon material-icons">build</span>
         <span class="nav-label">Mes demandes</span>
       </button>
 
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'stats'"
-        (click)="setActive('stats')"
-      >
+      <button class="nav-item" title="Rapports & Stats" [class.active]="activeItem === 'stats'" (click)="setActive('stats')">
         <span class="nav-icon material-icons">bar_chart</span>
         <span class="nav-label">Rapports & Stats</span>
       </button>
 
-      <button
-        class="nav-item"
-        [class.active]="activeItem === 'help'"
-        (click)="setActive('help')"
-      >
+      <button class="nav-item" title="Aide & Support" [class.active]="activeItem === 'help'" (click)="setActive('help')">
         <span class="nav-icon material-icons">help_outline</span>
         <span class="nav-label">Aide & Support</span>
       </button>
@@ -123,6 +101,10 @@
       </div>
 
       <div class="topbar-right">
+        <!-- Bouton hamburger sidebar (mobile) -->
+        <button class="sidebar-toggle-btn" (click)="sidebarOpen = !sidebarOpen" aria-label="Ouvrir le menu">
+          <span class="material-icons">menu</span>
+        </button>
         <!-- Composant de notification -->
         <app-notification-bell 
           [themeColor]="'#7c3aed'"
@@ -2297,43 +2279,26 @@
 
         <div class="form-field">
           <label for="lieu">Lieu<span class="required">*</span></label>
-          <input
-            id="lieu"
-            type="text"
+          <app-lieu-autocomplete
+            inputId="lieu"
+            inputName="lieu"
+            [required]="true"
             [(ngModel)]="newDemande.lieu"
-            placeholder="Ex : PGF-SUP salle 10"
-          />
+            name="lieu"
+          ></app-lieu-autocomplete>
         </div>
 
         <!-- Type d'équipement (preset) -->
+        <!-- Type d'équipement (autocomplete) -->
         <div class="form-field">
           <label for="equipementPreset">Type d'équipement<span class="required">*</span></label>
-
-          <select
-            id="equipementPreset"
-            name="equipementPreset"
+          <app-equipement-autocomplete
+            inputId="equipementPreset"
+            inputName="equipementPreset"
+            [required]="true"
             [(ngModel)]="selectedEquipementPreset"
-            (ngModelChange)="selectedEquipementPreset = $event; equipementAutre = ($event === 'AUTRE') ? equipementAutre : ''"
-          >
-
-          <option value="" disabled>Choisissez un équipement…</option>
-
-            <option *ngFor="let name of equipementsPreset" [value]="name">
-              {{ name === 'AUTRE' ? 'Autre (équipement non listé)' : name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Champ "Autre" si nécessaire -->
-        <div class="form-field" *ngIf="isAutreEquipement()">
-          <label for="equipementAutre">Précisez l'équipement<span class="required">*</span></label>
-          <input
-            id="equipementAutre"
-            type="text"
-            name="equipementAutre"
-            [(ngModel)]="equipementAutre"
-            placeholder="Ex : Lampe"
-          />
+            name="equipementPreset"
+          ></app-equipement-autocomplete>
         </div>
 
         <div class="form-field">
@@ -2502,6 +2467,14 @@
     <footer class="modal-footer">
       <button type="button" class="secondary-btn" (click)="closeDemandeDetails()">
         Fermer
+      </button>
+      <button
+        type="button"
+        class="primary-btn relance-modal-btn"
+        (click)="relancerDemande(selectedDemande!)"
+        [disabled]="!selectedDemande || !peutRelancerDemande(selectedDemande)"
+      >
+        Relancer cette demande
       </button>
     </footer>
   </section>

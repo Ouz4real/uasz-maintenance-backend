@@ -40,6 +40,15 @@ export interface PanneApi {
   /** ✅ Pièces utilisées (format JSON) */
   piecesUtilisees?: string | null;
 
+  /** ✅ Image après résolution (technicien) */
+  imageResolutionPath?: string | null;
+
+  /** ✅ Date de la dernière relance */
+  dateDerniereRelance?: string | null;
+
+  /** ✅ Nombre de relances */
+  nbRelances?: number;
+
   equipement?: {
     libelle?: string;
     localisation?: string;

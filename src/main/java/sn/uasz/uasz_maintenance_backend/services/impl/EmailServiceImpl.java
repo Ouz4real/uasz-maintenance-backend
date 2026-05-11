@@ -744,6 +744,131 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    // =====================================================================
+    // EMAILS RELANCE
+    // =====================================================================
+
+    @Override
+    @Async
+    public void sendRelanceDemandeEmail(String toEmail, String demandeurNom, String titreDemande, String lieu, long joursAttente) {
+        if (!emailEnabled) { log.info("Email désactivé - Email non envoyé à {}", toEmail); return; }
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("⏳ Votre demande est toujours en attente - UASZ Maintenance");
+            helper.setText("""
+                <!DOCTYPE html><html><head><meta charset="UTF-8">
+                <style>
+                  body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
+                  .container{max-width:600px;margin:0 auto;padding:20px}
+                  .header{background:linear-gradient(135deg,#e67e22,#f39c12);color:white;padding:25px;text-align:center;border-radius:8px 8px 0 0}
+                  .header h2{margin:0;font-size:22px}
+                  .header p{margin:6px 0 0;font-size:13px;opacity:0.9}
+                  .content{background:#fff;padding:30px;border:1px solid #e0e0e0}
+                  .alert-box{background:#fff8f0;padding:20px;margin:20px 0;border-left:5px solid #e67e22;border-radius:5px}
+                  .info-row{display:flex;align-items:center;margin:8px 0;font-size:14px}
+                  .badge-attente{display:inline-block;background:#e67e22;color:white;padding:5px 14px;border-radius:20px;font-weight:bold;font-size:13px}
+                  .days-counter{font-size:36px;font-weight:bold;color:#e67e22;text-align:center;margin:10px 0}
+                  .action-box{background:#fef9f0;border:1px solid #f39c12;border-radius:8px;padding:15px;margin:20px 0;text-align:center}
+                  .footer{background:#f5f5f5;padding:15px;text-align:center;font-size:12px;color:#999;border-radius:0 0 8px 8px}
+                  .highlight{color:#e67e22;font-weight:bold}
+                </style></head><body>
+                <div class="container">
+                  <div class="header">
+                    <h2>⏳ Demande en Attente de Traitement</h2>
+                    <p>Plateforme de Maintenance UASZ</p>
+                  </div>
+                  <div class="content">
+                    <p>Bonjour <span class="highlight">%s</span>,</p>
+                    <p>Nous vous contactons car votre demande de maintenance est toujours <strong>en attente de prise en charge</strong>.</p>
+                    <div class="alert-box">
+                      <p style="margin:0 0 12px"><strong>📋 Détails de votre demande :</strong></p>
+                      <p style="margin:6px 0"><strong>📌 Titre :</strong> %s</p>
+                      <p style="margin:6px 0"><strong>📍 Lieu :</strong> %s</p>
+                      <p style="margin:6px 0"><strong>Statut :</strong> <span class="badge-attente">EN ATTENTE</span></p>
+                    </div>
+                    <div class="days-counter">%d jour(s)</div>
+                    <p style="text-align:center;color:#666;margin-top:0">sans prise en charge depuis le signalement</p>
+                    <div class="action-box">
+                      <p style="margin:0;color:#555">Notre équipe a été <strong>notifiée automatiquement</strong> de cette situation.<br>
+                      Un responsable va traiter votre demande dans les meilleurs délais.</p>
+                    </div>
+                    <p>Si vous avez des informations complémentaires à apporter, vous pouvez vous connecter à votre tableau de bord.</p>
+                    <p>Nous vous remercions de votre patience.</p>
+                    <p>Cordialement,<br><strong>L'équipe de maintenance UASZ</strong></p>
+                  </div>
+                  <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ - Université Assane Seck de Ziguinchor</p></div>
+                </div></body></html>
+                """.formatted(demandeurNom, titreDemande, lieu, joursAttente), true);
+            mailSender.send(message);
+            log.info("Email de relance demandeur envoyé à {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("Erreur email relance demandeur: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    @Async
+    public void sendRelanceResponsableEmail(String toEmail, String responsableNom, String titreDemande, String demandeurNom, String lieu, long joursAttente) {
+        if (!emailEnabled) { log.info("Email désactivé - Email non envoyé à {}", toEmail); return; }
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("🚨 URGENT - Demande non traitée depuis " + joursAttente + " jour(s) - UASZ");
+            helper.setText("""
+                <!DOCTYPE html><html><head><meta charset="UTF-8">
+                <style>
+                  body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
+                  .container{max-width:600px;margin:0 auto;padding:20px}
+                  .header{background:linear-gradient(135deg,#c0392b,#e74c3c);color:white;padding:25px;text-align:center;border-radius:8px 8px 0 0}
+                  .header h2{margin:0;font-size:22px}
+                  .header p{margin:6px 0 0;font-size:13px;opacity:0.9}
+                  .content{background:#fff;padding:30px;border:1px solid #e0e0e0}
+                  .urgent-box{background:#fdf2f2;padding:20px;margin:20px 0;border-left:5px solid #e74c3c;border-radius:5px}
+                  .badge-urgent{display:inline-block;background:#e74c3c;color:white;padding:5px 14px;border-radius:20px;font-weight:bold;font-size:13px}
+                  .days-counter{font-size:40px;font-weight:bold;color:#e74c3c;text-align:center;margin:10px 0}
+                  .action-required{background:#e74c3c;color:white;border-radius:8px;padding:15px 20px;margin:20px 0;text-align:center}
+                  .footer{background:#f5f5f5;padding:15px;text-align:center;font-size:12px;color:#999;border-radius:0 0 8px 8px}
+                  .highlight{color:#c0392b;font-weight:bold}
+                </style></head><body>
+                <div class="container">
+                  <div class="header">
+                    <h2>🚨 Alerte — Demande Non Traitée</h2>
+                    <p>Action requise de votre part</p>
+                  </div>
+                  <div class="content">
+                    <p>Bonjour <span class="highlight">%s</span>,</p>
+                    <p>Une demande de maintenance <strong>n'a pas été prise en charge</strong> depuis plusieurs jours. Votre intervention est requise.</p>
+                    <div class="urgent-box">
+                      <p style="margin:0 0 12px"><strong>📋 Demande concernée :</strong></p>
+                      <p style="margin:6px 0"><strong>📌 Titre :</strong> %s</p>
+                      <p style="margin:6px 0"><strong>👤 Demandeur :</strong> %s</p>
+                      <p style="margin:6px 0"><strong>📍 Lieu :</strong> %s</p>
+                      <p style="margin:6px 0"><strong>Statut :</strong> <span class="badge-urgent">NON TRAITÉE</span></p>
+                    </div>
+                    <div class="days-counter">%d jour(s)</div>
+                    <p style="text-align:center;color:#666;margin-top:0">sans prise en charge</p>
+                    <div class="action-required">
+                      <p style="margin:0;font-size:15px;font-weight:bold">⚡ Action requise</p>
+                      <p style="margin:8px 0 0;font-size:13px;opacity:0.9">Veuillez vous connecter à votre tableau de bord et affecter un technicien à cette demande.</p>
+                    </div>
+                    <p>Le demandeur a également été informé de la situation. Merci de traiter cette demande en priorité.</p>
+                    <p>Cordialement,<br><strong>Système de maintenance UASZ</strong></p>
+                  </div>
+                  <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ - Université Assane Seck de Ziguinchor</p></div>
+                </div></body></html>
+                """.formatted(responsableNom, titreDemande, demandeurNom, lieu, joursAttente), true);
+            mailSender.send(message);
+            log.info("Email de relance responsable envoyé à {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("Erreur email relance responsable: {}", e.getMessage());
+        }
+    }
+
     @Override
     @Async
     public void sendWelcomeEmail(String toEmail, String prenomNom, String username, String motDePasseTemporaire) {
@@ -794,6 +919,60 @@ public class EmailServiceImpl implements EmailService {
             log.info("Email de bienvenue envoyé à {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email de bienvenue: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    @Async
+    public void sendResetPasswordEmail(String toEmail, String prenomNom, String resetLink) {
+        if (!emailEnabled) { log.info("Email désactivé - Email non envoyé à {}", toEmail); return; }
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Réinitialisation de votre mot de passe - UASZ");
+            helper.setText("""
+                <!DOCTYPE html><html><head><meta charset="UTF-8">
+                <style>
+                  body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
+                  .container{max-width:600px;margin:0 auto;padding:20px}
+                  .header{background:linear-gradient(135deg,#1565c0,#42a5f5);color:white;padding:30px;text-align:center;border-radius:8px 8px 0 0}
+                  .content{background:#f9f9f9;padding:30px;border:1px solid #ddd}
+                  .btn{display:inline-block;background:#1565c0;color:white;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:bold;font-size:16px;margin:20px 0}
+                  .warning{background:#fff3cd;padding:15px;border-left:4px solid #ffc107;border-radius:5px;margin:15px 0;font-size:14px}
+                  .footer{background:#ecf0f1;padding:15px;text-align:center;font-size:12px;color:#7f8c8d;border-radius:0 0 8px 8px}
+                  .highlight{color:#1565c0;font-weight:bold}
+                </style></head><body>
+                <div class="container">
+                  <div class="header">
+                    <h2>🔐 Réinitialisation du mot de passe</h2>
+                    <p style="margin:5px 0;opacity:0.9;font-size:14px">UASZ - Plateforme de Maintenance</p>
+                  </div>
+                  <div class="content">
+                    <p>Bonjour <span class="highlight">%s</span>,</p>
+                    <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :</p>
+                    <div style="text-align:center;margin:20px 0">
+                      <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="%s" style="height:48px;v-text-anchor:middle;width:260px;" arcsize="50%%" stroke="f" fillcolor="#1565c0"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">Réinitialiser mon mot de passe</center></v:roundrect><![endif]-->
+                      <!--[if !mso]><!-->
+                      <a href="%s" target="_blank" style="background-color:#1565c0;border-radius:50px;color:#ffffff;display:inline-block;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;line-height:48px;text-align:center;text-decoration:none;width:260px;-webkit-text-size-adjust:none;mso-hide:all">Réinitialiser mon mot de passe</a>
+                      <!--<![endif]-->
+                    </div>
+                    <div class="warning">
+                      <strong>⏱ Ce lien est valable 30 minutes.</strong><br>
+                      Si vous n'avez pas demandé cette réinitialisation, ignorez cet email — votre mot de passe restera inchangé.
+                    </div>
+                    <p style="font-size:13px;color:#666">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+                    <span style="word-break:break-all;color:#1565c0">%s</span></p>
+                    <p>Cordialement,<br><strong>L'équipe de maintenance UASZ</strong></p>
+                  </div>
+                  <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ - Université Assane Seck de Ziguinchor</p></div>
+                </div></body></html>
+                """.formatted(prenomNom, resetLink, resetLink, resetLink), true);
+            mailSender.send(message);
+            log.info("Email reset password envoyé à {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("Erreur email reset password: {}", e.getMessage());
         }
     }
 }

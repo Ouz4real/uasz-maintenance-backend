@@ -8,6 +8,8 @@ import sn.uasz.uasz_maintenance_backend.enums.Priorite;
 import sn.uasz.uasz_maintenance_backend.enums.StatutInterventions;
 import sn.uasz.uasz_maintenance_backend.enums.StatutPanne;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Getter
 @Setter
@@ -33,8 +35,14 @@ public class PanneResponse {
     private String imagePath;
     private String imageResolutionPath;
     private String commentaireInterne;
+    private String noteTechnicien;
+    private String piecesUtilisees;
     private String raisonRefus;
     private String dateRefus;  // Format ISO 8601
+
+    // ✅ Dates importantes
+    private LocalDateTime dateSignalement;
+    private LocalDateTime dateDerniereRelance;
     
     // ✅ AJOUT: Informations du technicien qui a décliné
     private Long technicienDeclinantId;

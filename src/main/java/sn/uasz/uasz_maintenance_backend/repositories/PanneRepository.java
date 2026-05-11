@@ -36,6 +36,11 @@ public interface PanneRepository extends JpaRepository<Panne, Long> {
     // 🔥 POUR OCCUPATION (basé sur statut_interventions)
     boolean existsByTechnicienIdAndStatutInterventions(Long technicienId, StatutInterventions statutInterventions);
 
+    // 🔹 Vérifier doublon : même demandeur, même titre+lieu+typeEquipement, statut actif
+    boolean existsByDemandeurIdAndTitreIgnoreCaseAndLieuIgnoreCaseAndTypeEquipementIgnoreCaseAndStatutIn(
+            Long demandeurId, String titre, String lieu, String typeEquipement, List<StatutPanne> statuts
+    );
+
 
     // 🔹 Pannes EN COURS d’un technicien
     List<Panne> findByTechnicienIdAndStatutInterventionsOrderByDateDebutInterventionDesc(
@@ -147,6 +152,18 @@ public interface PanneRepository extends JpaRepository<Panne, Long> {
 
     @Query("SELECT COUNT(p) FROM Panne p WHERE CAST(p.dateSignalement AS LocalDate) BETWEEN :debut AND :fin")
     long countByDateSignalementBetween(@Param("debut") LocalDate debut, @Param("fin") LocalDate fin);
+
+    /**
+     * Pannes OUVERTES non prises en charge depuis plus de X jours
+     * (dateDerniereRelance IS NULL OU dateDerniereRelance < seuil)
+     */
+    @Query("""
+        SELECT p FROM Panne p
+        WHERE p.statut = sn.uasz.uasz_maintenance_backend.enums.StatutPanne.OUVERTE
+        AND p.dateSignalement < :seuil
+        AND (p.dateDerniereRelance IS NULL OR p.dateDerniereRelance < :seuil)
+    """)
+    List<Panne> findPannesARelancer(@Param("seuil") LocalDateTime seuil);
 
     @Modifying
     @Transactional

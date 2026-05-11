@@ -16,4 +16,9 @@ public interface EmailService {
     // Admin
     void sendNouvelUtilisateurAdminEmail(String toEmail, String adminNom, String nouvelUtilisateurNom, String username, String email, String date);
     void sendWelcomeEmail(String toEmail, String prenomNom, String username, String motDePasseTemporaire);
+    // Relance
+    void sendRelanceDemandeEmail(String toEmail, String demandeurNom, String titreDemande, String lieu, long joursAttente);
+    void sendRelanceResponsableEmail(String toEmail, String responsableNom, String titreDemande, String demandeurNom, String lieu, long joursAttente);
+    // Reset password
+    void sendResetPasswordEmail(String toEmail, String prenomNom, String resetLink);
 }
