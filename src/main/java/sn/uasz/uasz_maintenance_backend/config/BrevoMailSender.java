@@ -109,6 +109,8 @@ public class BrevoMailSender implements JavaMailSender {
     private String extractHtml(MimeMessage mimeMessage) {
         try {
             Object content = mimeMessage.getContent();
+            log.info("MimeMessage content type: {}, content class: {}",
+                    mimeMessage.getContentType(), content.getClass().getSimpleName());
             if (content instanceof String s) {
                 return s;
             }
