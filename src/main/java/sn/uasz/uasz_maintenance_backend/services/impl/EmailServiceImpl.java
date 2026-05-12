@@ -1,4 +1,4 @@
-﻿package sn.uasz.uasz_maintenance_backend.services.impl;
+package sn.uasz.uasz_maintenance_backend.services.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
