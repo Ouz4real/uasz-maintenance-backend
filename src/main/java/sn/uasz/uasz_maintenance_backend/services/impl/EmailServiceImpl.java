@@ -1,4 +1,4 @@
-package sn.uasz.uasz_maintenance_backend.services.impl;
+﻿package sn.uasz.uasz_maintenance_backend.services.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -85,7 +85,7 @@ public class EmailServiceImpl implements EmailService {
                 helper.setTo(toEmail);
                 helper.setSubject(subject);
                 helper.setText(htmlContent, true);
-                mailSender.send(message);
+                sendEmail(toEmail, subject, htmlContent);
                 log.info("Email envoyé via SMTP à {}", toEmail);
             } catch (MessagingException e) {
                 log.error("Erreur SMTP: {}", e.getMessage());
@@ -112,7 +112,7 @@ public class EmailServiceImpl implements EmailService {
             String htmlContent = buildNewDemandeEmailTemplate(demandeurNom, description, equipement);
             helper.setText(htmlContent, true);
 
-            mailSender.send(message);
+            sendEmail(toEmail, "Confirmation de votre demande de maintenance - UASZ", htmlContent);
             log.info("Email de nouvelle demande envoyé avec succès à {}", toEmail);
 
         } catch (MessagingException e) {
@@ -139,7 +139,7 @@ public class EmailServiceImpl implements EmailService {
             String htmlContent = buildNotificationEmailTemplate(userName, notificationMessage);
             helper.setText(htmlContent, true);
 
-            mailSender.send(message);
+            sendEmail(toEmail, "Nouvelle notification - UASZ Maintenance", htmlContent);
             log.info("Email de notification envoyé avec succès à {}", toEmail);
 
         } catch (MessagingException e) {
@@ -268,7 +268,7 @@ public class EmailServiceImpl implements EmailService {
             String htmlContent = buildDemandeAffecteeEmailTemplate(demandeurNom, titreDemande, technicienNom, dateAffectation);
             helper.setText(htmlContent, true);
 
-            mailSender.send(message);
+            sendEmail(toEmail, "Votre demande a été prise en charge - UASZ", htmlContent);
             log.info("Email d'affectation envoyé avec succès à {}", toEmail);
 
         } catch (MessagingException e) {
@@ -295,7 +295,7 @@ public class EmailServiceImpl implements EmailService {
             String htmlContent = buildDemandeResolueEmailTemplate(demandeurNom, titreDemande, technicienNom, dateResolution, commentaire);
             helper.setText(htmlContent, true);
 
-            mailSender.send(message);
+            sendEmail(toEmail, "Votre demande a été résolue - UASZ", htmlContent);
             log.info("Email de résolution envoyé avec succès à {}", toEmail);
 
         } catch (MessagingException e) {
@@ -448,7 +448,7 @@ public class EmailServiceImpl implements EmailService {
             String htmlContent = buildDemandePriseEnChargeEmailTemplate(demandeurNom, titreDemande, technicienNom, dateDebut);
             helper.setText(htmlContent, true);
 
-            mailSender.send(message);
+            sendEmail(toEmail, "Votre demande est en cours de traitement - UASZ", htmlContent);
             log.info("Email de prise en charge envoyé avec succès à {}", toEmail);
 
         } catch (MessagingException e) {
@@ -530,7 +530,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("Nouvelle demande de maintenance - " + titreDemande);
-            helper.setText("""
+            String htmlContent = """
                 <!DOCTYPE html><html><head><meta charset="UTF-8">
                 <style>
                   body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
@@ -562,8 +562,8 @@ public class EmailServiceImpl implements EmailService {
                   </div>
                   <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ</p></div>
                 </div></body></html>
-                """.formatted(responsableNom, titreDemande, demandeurNom, lieu, priorite.toLowerCase(), priorite, date), true);
-            mailSender.send(message);
+                """.formatted(responsableNom, titreDemande, demandeurNom, lieu, priorite.toLowerCase(), priorite, date);
+            sendEmail(toEmail, "Nouvelle demande de maintenance - " + titreDemande, htmlContent);
             log.info("Email nouvelle demande envoyé au responsable {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email responsable nouvelle demande: {}", e.getMessage());
@@ -580,7 +580,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("Intervention acceptée - " + titreDemande);
-            helper.setText("""
+            String htmlContent = """
                 <!DOCTYPE html><html><head><meta charset="UTF-8">
                 <style>
                   body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
@@ -606,8 +606,8 @@ public class EmailServiceImpl implements EmailService {
                   </div>
                   <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ</p></div>
                 </div></body></html>
-                """.formatted(responsableNom, titreDemande, technicienNom, date), true);
-            mailSender.send(message);
+                """.formatted(responsableNom, titreDemande, technicienNom, date);
+            sendEmail(toEmail, "Intervention acceptée - " + titreDemande, htmlContent);
             log.info("Email intervention acceptée envoyé au responsable {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email responsable intervention acceptée: {}", e.getMessage());
@@ -624,7 +624,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("⚠️ Intervention déclinée - " + titreDemande);
-            helper.setText("""
+            String htmlContent = """
                 <!DOCTYPE html><html><head><meta charset="UTF-8">
                 <style>
                   body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
@@ -655,8 +655,8 @@ public class EmailServiceImpl implements EmailService {
                   </div>
                   <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ</p></div>
                 </div></body></html>
-                """.formatted(responsableNom, titreDemande, technicienNom, date, raisonRefus), true);
-            mailSender.send(message);
+                """.formatted(responsableNom, titreDemande, technicienNom, date, raisonRefus);
+            sendEmail(toEmail, "⚠️ Intervention déclinée - " + titreDemande, htmlContent);
             log.info("Email intervention déclinée envoyé au responsable {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email responsable intervention déclinée: {}", e.getMessage());
@@ -673,7 +673,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("Demande résolue - " + titreDemande);
-            helper.setText("""
+            String htmlContent = """
                 <!DOCTYPE html><html><head><meta charset="UTF-8">
                 <style>
                   body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
@@ -698,8 +698,8 @@ public class EmailServiceImpl implements EmailService {
                   </div>
                   <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ</p></div>
                 </div></body></html>
-                """.formatted(responsableNom, titreDemande, technicienNom, date), true);
-            mailSender.send(message);
+                """.formatted(responsableNom, titreDemande, technicienNom, date);
+            sendEmail(toEmail, "Demande résolue - " + titreDemande, htmlContent);
             log.info("Email demande résolue envoyé au responsable {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email responsable demande résolue: {}", e.getMessage());
@@ -720,7 +720,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("Nouvelle intervention assignée - " + titreDemande);
-            helper.setText("""
+            String htmlContent = """
                 <!DOCTYPE html><html><head><meta charset="UTF-8">
                 <style>
                   body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
@@ -752,8 +752,8 @@ public class EmailServiceImpl implements EmailService {
                   </div>
                   <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ</p></div>
                 </div></body></html>
-                """.formatted(technicienNom, titreDemande, demandeurNom, lieu, priorite.toLowerCase(), priorite, date), true);
-            mailSender.send(message);
+                """.formatted(technicienNom, titreDemande, demandeurNom, lieu, priorite.toLowerCase(), priorite, date);
+            sendEmail(toEmail, "Nouvelle intervention assignée - " + titreDemande, htmlContent);
             log.info("Email affectation envoyé au technicien {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email technicien affectation: {}", e.getMessage());
@@ -774,7 +774,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("Nouvel utilisateur inscrit - " + nouvelUtilisateurNom);
-            helper.setText("""
+            String htmlContent = """
                 <!DOCTYPE html><html><head><meta charset="UTF-8">
                 <style>
                   body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
@@ -802,8 +802,8 @@ public class EmailServiceImpl implements EmailService {
                   </div>
                   <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ</p></div>
                 </div></body></html>
-                """.formatted(adminNom, nouvelUtilisateurNom, username, email, date), true);
-            mailSender.send(message);
+                """.formatted(adminNom, nouvelUtilisateurNom, username, email, date);
+            sendEmail(toEmail, "Nouvel utilisateur inscrit - " + nouvelUtilisateurNom, htmlContent);
             log.info("Email nouvel utilisateur envoyé à l'admin {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email admin nouvel utilisateur: {}", e.getMessage());
@@ -824,7 +824,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("⏳ Votre demande est toujours en attente - UASZ Maintenance");
-            helper.setText("""
+            String htmlContent = """
                 <!DOCTYPE html><html><head><meta charset="UTF-8">
                 <style>
                   body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
@@ -867,8 +867,8 @@ public class EmailServiceImpl implements EmailService {
                   </div>
                   <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ - Université Assane Seck de Ziguinchor</p></div>
                 </div></body></html>
-                """.formatted(demandeurNom, titreDemande, lieu, joursAttente), true);
-            mailSender.send(message);
+                """.formatted(demandeurNom, titreDemande, lieu, joursAttente);
+            sendEmail(toEmail, "⏳ Votre demande est toujours en attente - UASZ Maintenance", htmlContent);
             log.info("Email de relance demandeur envoyé à {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email relance demandeur: {}", e.getMessage());
@@ -885,7 +885,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("🚨 URGENT - Demande non traitée depuis " + joursAttente + " jour(s) - UASZ");
-            helper.setText("""
+            String htmlContent = """
                 <!DOCTYPE html><html><head><meta charset="UTF-8">
                 <style>
                   body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
@@ -927,8 +927,8 @@ public class EmailServiceImpl implements EmailService {
                   </div>
                   <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ - Université Assane Seck de Ziguinchor</p></div>
                 </div></body></html>
-                """.formatted(responsableNom, titreDemande, demandeurNom, lieu, joursAttente), true);
-            mailSender.send(message);
+                """.formatted(responsableNom, titreDemande, demandeurNom, lieu, joursAttente);
+            sendEmail(toEmail, "🚨 URGENT - Demande non traitée depuis " + joursAttente + " jour(s) - UASZ", htmlContent);
             log.info("Email de relance responsable envoyé à {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email relance responsable: {}", e.getMessage());
@@ -988,7 +988,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("Réinitialisation de votre mot de passe - UASZ");
-            helper.setText("""
+            String htmlContent = """
                 <!DOCTYPE html><html><head><meta charset="UTF-8">
                 <style>
                   body{font-family:Arial,sans-serif;line-height:1.6;color:#333}
@@ -1024,8 +1024,8 @@ public class EmailServiceImpl implements EmailService {
                   </div>
                   <div class="footer"><p>Ceci est un email automatique, merci de ne pas y répondre.</p><p>© 2026 UASZ - Université Assane Seck de Ziguinchor</p></div>
                 </div></body></html>
-                """.formatted(prenomNom, resetLink, resetLink, resetLink), true);
-            mailSender.send(message);
+                """.formatted(prenomNom, resetLink, resetLink, resetLink);
+            sendEmail(toEmail, "Réinitialisation de votre mot de passe - UASZ", htmlContent);
             log.info("Email reset password envoyé à {}", toEmail);
         } catch (MessagingException e) {
             log.error("Erreur email reset password: {}", e.getMessage());
