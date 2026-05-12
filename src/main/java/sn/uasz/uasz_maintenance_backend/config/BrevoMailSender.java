@@ -108,14 +108,13 @@ public class BrevoMailSender implements JavaMailSender {
 
     private String extractHtml(MimeMessage mimeMessage) {
         try {
-            Object content = mimeMessage.getContent();
-            log.info("MimeMessage content type: {}, content class: {}",
-                    mimeMessage.getContentType(), content.getClass().getSimpleName());
-            if (content instanceof String s) {
-                return s;
-            }
-            if (content instanceof jakarta.mail.Multipart mp) {
+            String contentType = mimeMessage.getContentType().toLowerCase();
+            log.info("MimeMessage content type: {}", contentType);
+            if (contentType.contains("multipart")) {
+                jakarta.mail.Multipart mp = (jakarta.mail.Multipart) mimeMessage.getContent();
                 return extractHtmlFromMultipart(mp);
+            } else {
+                return (String) mimeMessage.getContent();
             }
         } catch (Exception e) {
             log.error("Erreur extraction HTML: {}", e.getMessage());
@@ -135,11 +134,12 @@ public class BrevoMailSender implements JavaMailSender {
                 textFallback = (String) bp.getContent();
             }
             if (ct.contains("multipart")) {
-                String nested = extractHtmlFromMultipart((jakarta.mail.Multipart) bp.getContent());
-                if (nested != null) return nested;
+                jakarta.mail.Multipart nested = (jakarta.mail.Multipart) bp.getContent();
+                String result = extractHtmlFromMultipart(nested);
+                if (result != null && !result.contains("Message UASZ")) return result;
             }
         }
-        return textFallback != null ? "<p>" + textFallback + "</p>" : "<p>Message UASZ Maintenance</p>";
+        return textFallback != null ? "<p>" + textFallback + "</p>" : null;
     }
 
     private void sendViaBrevoRaw(String toEmail, String subject, String htmlContent) {
