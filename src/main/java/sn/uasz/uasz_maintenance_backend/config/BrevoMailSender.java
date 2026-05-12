@@ -10,7 +10,6 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -100,34 +99,45 @@ public class BrevoMailSender implements JavaMailSender {
             String to = mimeMessage.getAllRecipients() != null && mimeMessage.getAllRecipients().length > 0
                     ? mimeMessage.getAllRecipients()[0].toString() : "";
             String subject = mimeMessage.getSubject();
-
-            // Extraire le contenu HTML du MimeMessage
-            Object content = mimeMessage.getContent();
-            String html;
-            if (content instanceof String) {
-                html = (String) content;
-            } else {
-                // Multipart — lire le contenu brut
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                mimeMessage.writeTo(baos);
-                html = "<p>Message UASZ Maintenance</p>";
-                // Essayer d'extraire le HTML du multipart
-                try {
-                    jakarta.mail.Multipart mp = (jakarta.mail.Multipart) content;
-                    for (int i = 0; i < mp.getCount(); i++) {
-                        jakarta.mail.BodyPart bp = mp.getBodyPart(i);
-                        if (bp.getContentType().toLowerCase().contains("text/html")) {
-                            html = (String) bp.getContent();
-                            break;
-                        }
-                    }
-                } catch (Exception ignored) {}
-            }
-
+            String html = extractHtml(mimeMessage);
             sendViaBrevoRaw(to, subject, html);
         } catch (Exception e) {
             log.error("Erreur extraction MimeMessage: {}", e.getMessage());
         }
+    }
+
+    private String extractHtml(MimeMessage mimeMessage) {
+        try {
+            Object content = mimeMessage.getContent();
+            if (content instanceof String s) {
+                return s;
+            }
+            if (content instanceof jakarta.mail.Multipart mp) {
+                return extractHtmlFromMultipart(mp);
+            }
+        } catch (Exception e) {
+            log.error("Erreur extraction HTML: {}", e.getMessage());
+        }
+        return "<p>Message UASZ Maintenance</p>";
+    }
+
+    private String extractHtmlFromMultipart(jakarta.mail.Multipart mp) throws Exception {
+        String textFallback = null;
+        for (int i = 0; i < mp.getCount(); i++) {
+            jakarta.mail.BodyPart bp = mp.getBodyPart(i);
+            String ct = bp.getContentType().toLowerCase();
+            if (ct.contains("text/html")) {
+                return (String) bp.getContent();
+            }
+            if (ct.contains("text/plain")) {
+                textFallback = (String) bp.getContent();
+            }
+            if (ct.contains("multipart")) {
+                String nested = extractHtmlFromMultipart((jakarta.mail.Multipart) bp.getContent());
+                if (nested != null) return nested;
+            }
+        }
+        return textFallback != null ? "<p>" + textFallback + "</p>" : "<p>Message UASZ Maintenance</p>";
     }
 
     private void sendViaBrevoRaw(String toEmail, String subject, String htmlContent) {
